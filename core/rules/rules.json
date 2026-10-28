@@ -201,11 +201,11 @@
       "rule_id": "TRM-004",
       "category": "termination",
       "patterns": [
-        "may\\s+terminate[^.]{0,60}(at any time|for any reason)"
+        "(landlord|employer|provider|discloser)\\s+may\\s+terminate[^.]{0,60}(at any time|for any reason)"
       ],
       "severity_weight": 4,
       "party_effect_hint": "unfavorable",
-      "explanation": "The other side can end the agreement at any time or for any reason."
+      "explanation": "The landlord, employer, provider or discloser can end the agreement at any time or for any reason."
     },
     {
       "rule_id": "TRM-005",
