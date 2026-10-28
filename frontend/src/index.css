@@ -1,0 +1,5 @@
+body { font-family: system-ui, sans-serif; max-width: 800px; margin: 0 auto; padding: 1rem; line-height: 1.5; }
+nav a { margin-right: 1rem; }
+label { display: block; margin: 0.75rem 0 0.25rem; }
+.error { color: #b00020; }
+.clause { border: 1px solid #ccc; padding: 0.5rem; margin: 0.5rem 0; }
