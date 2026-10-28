@@ -1,3 +1,530 @@
 {
-  "rules": []
+  "_note": "Rules are data. party_effect_hint is the effect on the tenant / employee / recipient / client side; it is flipped for landlord / employer / discloser / provider. Patterns are case-insensitive regular expressions. Review every pattern by hand.",
+  "rules": [
+    {
+      "rule_id": "PEN-001",
+      "category": "penalty",
+      "patterns": [
+        "late (fee|charge|payment fee)",
+        "interest[^.]{0,60}(per month|per annum|% per)",
+        "overdue amounts? accrue"
+      ],
+      "severity_weight": 2,
+      "party_effect_hint": "unfavorable",
+      "explanation": "A late fee or interest is charged if a payment is late."
+    },
+    {
+      "rule_id": "PEN-002",
+      "category": "penalty",
+      "patterns": [
+        "(employer|landlord|provider|discloser)\\s+shall\\s+pay[^.]{0,40}interest"
+      ],
+      "severity_weight": 3,
+      "party_effect_hint": "favorable",
+      "explanation": "The stronger party pays interest when it pays late."
+    },
+    {
+      "rule_id": "PEN-003",
+      "category": "penalty",
+      "patterns": [
+        "(freelancer|provider|contractor|vendor)\\s+shall\\s+pay[^.]{0,30}(penalty|liquidated damages)"
+      ],
+      "severity_weight": 3,
+      "party_effect_hint": "favorable",
+      "explanation": "The service provider pays a penalty if it is late or fails."
+    },
+    {
+      "rule_id": "PEN-004",
+      "category": "penalty",
+      "patterns": [
+        "liquidated damages"
+      ],
+      "severity_weight": 4,
+      "party_effect_hint": "unfavorable",
+      "explanation": "Liquidated damages: a fixed sum payable on breach, whatever the real loss."
+    },
+    {
+      "rule_id": "PEN-005",
+      "category": "penalty",
+      "patterns": [
+        "(?<!no )(early termination|termination|cancellation) fee"
+      ],
+      "severity_weight": 3,
+      "party_effect_hint": "unfavorable",
+      "explanation": "A fee must be paid to end or cancel the agreement."
+    },
+    {
+      "rule_id": "PEN-006",
+      "category": "penalty",
+      "patterns": [
+        "repay[^.]{0,60}(training|bond|cost)",
+        "training bond"
+      ],
+      "severity_weight": 4,
+      "party_effect_hint": "unfavorable",
+      "explanation": "The person must repay training or bond costs if they leave early."
+    },
+    {
+      "rule_id": "PEN-007",
+      "category": "penalty",
+      "patterns": [
+        "salary in lieu",
+        "in lieu of[^.]{0,30}notice"
+      ],
+      "severity_weight": 3,
+      "party_effect_hint": "unfavorable",
+      "explanation": "Salary is owed instead of notice if the notice period is not served."
+    },
+    {
+      "rule_id": "PEN-008",
+      "category": "penalty",
+      "patterns": [
+        "non-refundable",
+        "(retain|forfeit)[^.]{0,40}deposit"
+      ],
+      "severity_weight": 4,
+      "party_effect_hint": "unfavorable",
+      "explanation": "The deposit can be kept or is not refundable."
+    },
+    {
+      "rule_id": "PEN-009",
+      "category": "penalty",
+      "patterns": [
+        "grace period"
+      ],
+      "severity_weight": 3,
+      "party_effect_hint": "favorable",
+      "explanation": "A grace period delays any late charge."
+    },
+    {
+      "rule_id": "RGT-001",
+      "category": "right",
+      "patterns": [
+        "increase[^.]{0,40}(rent|fees?)\\b"
+      ],
+      "severity_weight": 2,
+      "party_effect_hint": "unfavorable",
+      "explanation": "The other side may raise the rent or fees."
+    },
+    {
+      "rule_id": "RGT-002",
+      "category": "right",
+      "patterns": [
+        "at renewal"
+      ],
+      "severity_weight": 2,
+      "party_effect_hint": "favorable",
+      "explanation": "Increases are limited to renewal time."
+    },
+    {
+      "rule_id": "RGT-003",
+      "category": "right",
+      "patterns": [
+        "sole discretion",
+        "entirely at the [a-z]+'s discretion"
+      ],
+      "severity_weight": 3,
+      "party_effect_hint": "unfavorable",
+      "explanation": "A decision is left to the other side's sole discretion."
+    },
+    {
+      "rule_id": "RGT-004",
+      "category": "right",
+      "patterns": [
+        "may\\s+(change|amend|modify|vary)[^.]{0,100}at any time"
+      ],
+      "severity_weight": 4,
+      "party_effect_hint": "unfavorable",
+      "explanation": "The other side can change the terms at any time."
+    },
+    {
+      "rule_id": "RGT-005",
+      "category": "right",
+      "patterns": [
+        "enter the premises\\s+(at any time|without)"
+      ],
+      "severity_weight": 4,
+      "party_effect_hint": "unfavorable",
+      "explanation": "The landlord can enter the property without notice."
+    },
+    {
+      "rule_id": "RGT-006",
+      "category": "right",
+      "patterns": [
+        "(whether|during or)[^.]{0,30}outside working hours[^.]{0,40}belong to the (employer|client)"
+      ],
+      "severity_weight": 4,
+      "party_effect_hint": "unfavorable",
+      "explanation": "The employer owns work created even outside working hours."
+    },
+    {
+      "rule_id": "RGT-007",
+      "category": "right",
+      "patterns": [
+        "outside working hours and without the (employer|client)'s resources"
+      ],
+      "severity_weight": 3,
+      "party_effect_hint": "favorable",
+      "explanation": "Work done in the person's own time with their own resources stays theirs."
+    },
+    {
+      "rule_id": "TRM-001",
+      "category": "termination",
+      "patterns": [
+        "\\b(three|five|seven|ten)\\s*\\(\\d+\\)\\s*days?\\s+(written\\s+)?notice"
+      ],
+      "severity_weight": 3,
+      "party_effect_hint": "unfavorable",
+      "explanation": "Very short notice period (10 days or less)."
+    },
+    {
+      "rule_id": "TRM-002",
+      "category": "termination",
+      "patterns": [
+        "\\b(fourteen|fifteen|thirty|forty-five|sixty|ninety)\\s*\\(\\d+\\)\\s*days?'?\\s+(written\\s+)?notice"
+      ],
+      "severity_weight": 1,
+      "party_effect_hint": "neutral",
+      "explanation": "A normal notice period (14 to 90 days)."
+    },
+    {
+      "rule_id": "TRM-003",
+      "category": "termination",
+      "patterns": [
+        "no (termination|cancellation) fee"
+      ],
+      "severity_weight": 3,
+      "party_effect_hint": "favorable",
+      "explanation": "No fee is charged for ending the agreement."
+    },
+    {
+      "rule_id": "TRM-004",
+      "category": "termination",
+      "patterns": [
+        "may\\s+terminate[^.]{0,60}(at any time|for any reason)"
+      ],
+      "severity_weight": 4,
+      "party_effect_hint": "unfavorable",
+      "explanation": "The other side can end the agreement at any time or for any reason."
+    },
+    {
+      "rule_id": "TRM-005",
+      "category": "termination",
+      "patterns": [
+        "for convenience"
+      ],
+      "severity_weight": 2,
+      "party_effect_hint": "neutral",
+      "explanation": "Termination for convenience: ending without needing a reason."
+    },
+    {
+      "rule_id": "TRM-006",
+      "category": "termination",
+      "patterns": [
+        "(employee|tenant|recipient)\\s+shall\\s+give[^.]{0,40}\\b(sixty|ninety)"
+      ],
+      "severity_weight": 4,
+      "party_effect_hint": "unfavorable",
+      "explanation": "The tenant, employee or recipient must give a long notice period (60 or 90 days)."
+    },
+    {
+      "rule_id": "TRM-007",
+      "category": "termination",
+      "patterns": [
+        "cure[^.]{0,40}\\b(three|five|seven|ten)\\s*\\(\\d+\\)\\s*days?",
+        "\\b(three|five|seven|ten)\\s*\\(\\d+\\)\\s*days?[^.]{0,40}cure"
+      ],
+      "severity_weight": 3,
+      "party_effect_hint": "unfavorable",
+      "explanation": "A breach must be fixed within a very short cure period."
+    },
+    {
+      "rule_id": "TRM-008",
+      "category": "termination",
+      "patterns": [
+        "cure[^.]{0,40}\\b(thirty|forty-five|sixty|ninety)\\s*\\(\\d+\\)\\s*days?",
+        "\\b(thirty|forty-five|sixty|ninety)\\s*\\(\\d+\\)\\s*days?[^.]{0,40}cure"
+      ],
+      "severity_weight": 3,
+      "party_effect_hint": "favorable",
+      "explanation": "A breach can be fixed within a long cure period (30 days or more)."
+    },
+    {
+      "rule_id": "TRM-009",
+      "category": "termination",
+      "patterns": [
+        "terminate[^.]{0,40}(immediately|without notice)"
+      ],
+      "severity_weight": 4,
+      "party_effect_hint": "unfavorable",
+      "explanation": "Termination can happen immediately or without notice."
+    },
+    {
+      "rule_id": "TRM-010",
+      "category": "termination",
+      "patterns": [
+        "may not terminate"
+      ],
+      "severity_weight": 4,
+      "party_effect_hint": "unfavorable",
+      "explanation": "One side is not allowed to terminate."
+    },
+    {
+      "rule_id": "TRM-011",
+      "category": "termination",
+      "patterns": [
+        "renews?\\s+automatically",
+        "automatically\\s+renews?",
+        "auto-?renew"
+      ],
+      "severity_weight": 3,
+      "party_effect_hint": "unfavorable",
+      "explanation": "Automatic renewal: the agreement continues unless notice is given in time."
+    },
+    {
+      "rule_id": "TRM-012",
+      "category": "termination",
+      "patterns": [
+        "does not renew unless",
+        "may renew (this|the) (lease|agreement)"
+      ],
+      "severity_weight": 3,
+      "party_effect_hint": "favorable",
+      "explanation": "Renewal only happens if the tenant or employee chooses it."
+    },
+    {
+      "rule_id": "TRM-013",
+      "category": "termination",
+      "patterns": [
+        "renews?\\s+for\\s+a\\s+further[^.]{0,60}unless"
+      ],
+      "severity_weight": 2,
+      "party_effect_hint": "neutral",
+      "explanation": "The agreement renews unless either side gives notice."
+    },
+    {
+      "rule_id": "PAY-001",
+      "category": "payment_term",
+      "patterns": [
+        "\\b(rent|salary)\\b[^.]{0,60}(on or before|due)"
+      ],
+      "severity_weight": 1,
+      "party_effect_hint": "neutral",
+      "explanation": "States when rent or salary is due."
+    },
+    {
+      "rule_id": "PAY-002",
+      "category": "payment_term",
+      "patterns": [
+        "(due|payable) within\\s+[a-z\\-]+\\s*\\(\\d+\\)\\s*days",
+        "within\\s+[a-z\\-]+\\s*\\(\\d+\\)\\s*days of (the )?(invoice|receiving)"
+      ],
+      "severity_weight": 1,
+      "party_effect_hint": "neutral",
+      "explanation": "States the number of days allowed to pay an invoice."
+    },
+    {
+      "rule_id": "PAY-003",
+      "category": "payment_term",
+      "patterns": [
+        "advance[^.]{0,80}balance"
+      ],
+      "severity_weight": 1,
+      "party_effect_hint": "neutral",
+      "explanation": "Payment is split into an advance and a balance."
+    },
+    {
+      "rule_id": "PAY-004",
+      "category": "payment_term",
+      "patterns": [
+        "deposit[^.]{0,40}\\b(four|five|six)\\s*\\(\\d+\\)\\s*months"
+      ],
+      "severity_weight": 3,
+      "party_effect_hint": "unfavorable",
+      "explanation": "The security deposit is large (4 or more months)."
+    },
+    {
+      "rule_id": "PAY-005",
+      "category": "payment_term",
+      "patterns": [
+        "severance"
+      ],
+      "severity_weight": 3,
+      "party_effect_hint": "favorable",
+      "explanation": "Severance pay is promised if the person is dismissed without cause."
+    },
+    {
+      "rule_id": "OBL-001",
+      "category": "obligation",
+      "patterns": [
+        "\\b(tenant|employee|recipient|client)\\s+shall\\s+indemnify"
+      ],
+      "severity_weight": 4,
+      "party_effect_hint": "unfavorable",
+      "explanation": "The tenant, employee, recipient or client must indemnify (cover the other side's losses)."
+    },
+    {
+      "rule_id": "OBL-002",
+      "category": "obligation",
+      "patterns": [
+        "\\b(landlord|employer|provider|discloser|freelancer|contractor)\\s+shall\\s+indemnify"
+      ],
+      "severity_weight": 3,
+      "party_effect_hint": "favorable",
+      "explanation": "The landlord, employer or provider must indemnify (cover the user's losses)."
+    },
+    {
+      "rule_id": "OBL-003",
+      "category": "obligation",
+      "patterns": [
+        "each\\s+party\\s+shall\\s+indemnify"
+      ],
+      "severity_weight": 2,
+      "party_effect_hint": "neutral",
+      "explanation": "Both parties indemnify each other."
+    },
+    {
+      "rule_id": "OBL-004",
+      "category": "obligation",
+      "patterns": [
+        "(landlord|employer|provider|discloser)'?s? own negligence"
+      ],
+      "severity_weight": 4,
+      "party_effect_hint": "unfavorable",
+      "explanation": "The indemnity covers the other side's own negligence."
+    },
+    {
+      "rule_id": "OBL-005",
+      "category": "obligation",
+      "patterns": [
+        "tenant\\s+is\\s+responsible\\s+for\\s+all\\s+repairs"
+      ],
+      "severity_weight": 4,
+      "party_effect_hint": "unfavorable",
+      "explanation": "The tenant pays for all repairs."
+    },
+    {
+      "rule_id": "OBL-006",
+      "category": "obligation",
+      "patterns": [
+        "(landlord|owner)\\s+is\\s+responsible\\s+for[^.]{0,60}repairs"
+      ],
+      "severity_weight": 3,
+      "party_effect_hint": "favorable",
+      "explanation": "The landlord is responsible for repairs."
+    },
+    {
+      "rule_id": "OBL-007",
+      "category": "obligation",
+      "patterns": [
+        "confidential[^.]{0,80}\\b(five|seven|ten)\\s*\\(\\d+\\)\\s*years"
+      ],
+      "severity_weight": 3,
+      "party_effect_hint": "unfavorable",
+      "explanation": "Confidentiality lasts 5 years or more."
+    },
+    {
+      "rule_id": "OBL-008",
+      "category": "obligation",
+      "patterns": [
+        "indefinitely"
+      ],
+      "severity_weight": 4,
+      "party_effect_hint": "unfavorable",
+      "explanation": "Confidentiality lasts indefinitely."
+    },
+    {
+      "rule_id": "OBL-009",
+      "category": "obligation",
+      "patterns": [
+        "non-?compet",
+        "shall not (work for|join|compete)"
+      ],
+      "severity_weight": 3,
+      "party_effect_hint": "unfavorable",
+      "explanation": "Non-compete: the person cannot work for competitors."
+    },
+    {
+      "rule_id": "OBL-010",
+      "category": "obligation",
+      "patterns": [
+        "(employer|company)\\s+shall\\s+pay[^.]{0,40}(fifty|\\d+)\\s*(percent|%|\\(\\d+%\\))"
+      ],
+      "severity_weight": 3,
+      "party_effect_hint": "favorable",
+      "explanation": "The non-compete is paid for."
+    },
+    {
+      "rule_id": "OBL-011",
+      "category": "obligation",
+      "patterns": [
+        "no compensation is payable"
+      ],
+      "severity_weight": 2,
+      "party_effect_hint": "unfavorable",
+      "explanation": "The restriction is unpaid."
+    },
+    {
+      "rule_id": "OBL-012",
+      "category": "obligation",
+      "patterns": [
+        "(return|refund)[^.]{0,30}deposit[^.]{0,60}within\\s+(seven|ten|fourteen|fifteen|thirty)"
+      ],
+      "severity_weight": 3,
+      "party_effect_hint": "favorable",
+      "explanation": "The deposit is returned quickly (30 days or less)."
+    },
+    {
+      "rule_id": "OTH-001",
+      "category": "other",
+      "patterns": [
+        "liability[^.]{0,60}limited to"
+      ],
+      "severity_weight": 3,
+      "party_effect_hint": "unfavorable",
+      "explanation": "The other side's liability is capped."
+    },
+    {
+      "rule_id": "OTH-002",
+      "category": "other",
+      "patterns": [
+        "under any circumstances"
+      ],
+      "severity_weight": 4,
+      "party_effect_hint": "unfavorable",
+      "explanation": "The other side is never liable."
+    },
+    {
+      "rule_id": "OTH-003",
+      "category": "other",
+      "patterns": [
+        "arbitrat",
+        "exclusive jurisdiction",
+        "have jurisdiction"
+      ],
+      "severity_weight": 2,
+      "party_effect_hint": "neutral",
+      "explanation": "Disputes go to arbitration or to a named court."
+    },
+    {
+      "rule_id": "OTH-004",
+      "category": "other",
+      "patterns": [
+        "waives?\\s+the\\s+right[^.]{0,60}(court|jury)"
+      ],
+      "severity_weight": 4,
+      "party_effect_hint": "unfavorable",
+      "explanation": "The person gives up the right to go to court."
+    },
+    {
+      "rule_id": "OTH-005",
+      "category": "other",
+      "patterns": [
+        "(recipient|tenant|employee|client)\\s+submits\\s+to\\s+the\\s+exclusive\\s+jurisdiction"
+      ],
+      "severity_weight": 3,
+      "party_effect_hint": "unfavorable",
+      "explanation": "Only the other side's chosen court may hear disputes."
+    }
+  ]
 }
