@@ -15,6 +15,19 @@ Lead: Varun. Team: Abhishek, Harnoor, Daksh, Shaurya. See [OWNERS.md](OWNERS.md)
 | `docs/` | Documentation |
 | `tests/` | Unit, integration tests and sample documents |
 
-## Run the backend
+## Run everything
 
-See [backend/api/README.md](backend/api/README.md). Short version: `cd backend/api && npm install && npm run prisma:generate && npm test`.
+One-time setup:
+
+```bash
+pip install -r core/requirements.txt
+cd backend/api && npm install && npm run prisma:generate
+cp .env.example .env   # fill in your own DATABASE_URL and DIRECT_URL; never commit .env
+```
+
+Start core (port 8001) and backend/api (port 8000) together:
+
+- macOS / Linux / Git Bash: `./scripts/start-all.sh`
+- Windows PowerShell: `.\scripts\start-all.ps1`
+
+Each lane can also be started alone: see [core/README.md](core/README.md) and [backend/api/README.md](backend/api/README.md).

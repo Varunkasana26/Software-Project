@@ -1,3 +1,4 @@
+# Reference signature only. The JSON schemas in this folder are authoritative.
 def segment_clauses(text: str) -> list[dict]:
     """Split text into clauses. Each item matches clause.schema.json (text only at this stage)."""
     ...

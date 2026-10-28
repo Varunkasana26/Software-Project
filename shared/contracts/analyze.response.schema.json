@@ -1,0 +1,6 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AnalyzeResponse",
+  "description": "Response of POST /analyze. Same shape as a Report.",
+  "$ref": "report.schema.json"
+}

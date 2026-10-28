@@ -1,0 +1,11 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AnalyzeRequest",
+  "type": "object",
+  "required": ["document_text", "user_party"],
+  "properties": {
+    "document_text": { "type": "string" },
+    "user_party": { "type": "string", "description": "The party the user represents, for example 'Tenant'" }
+  },
+  "additionalProperties": false
+}
