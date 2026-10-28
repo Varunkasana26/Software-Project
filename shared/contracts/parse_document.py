@@ -1,0 +1,3 @@
+def parse_document(file_path: str) -> str:
+    """Return the plain text of a PDF or text file."""
+    ...

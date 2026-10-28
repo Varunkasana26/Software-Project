@@ -1,0 +1,3 @@
+def build_report(document_id: str, clauses: list[dict]) -> dict:
+    """Return a report matching report.schema.json."""
+    ...

@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Report",
+  "type": "object",
+  "required": ["id", "document_id", "summary", "clauses"],
+  "properties": {
+    "id": { "type": "string" },
+    "document_id": { "type": "string" },
+    "summary": { "type": "string" },
+    "top_risks": { "type": "array", "items": { "type": "string" } },
+    "obligations": { "type": "array", "items": { "type": "string" } },
+    "exit_conditions": { "type": "array", "items": { "type": "string" } },
+    "clauses": { "type": "array", "items": { "$ref": "clause.schema.json" } }
+  }
+}

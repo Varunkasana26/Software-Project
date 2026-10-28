@@ -1,0 +1,91 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum DocumentStatus {
+  UPLOADED
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+enum ClauseCategory {
+  OBLIGATION
+  RIGHT
+  PENALTY
+  TERMINATION
+  PAYMENT_TERM
+  OTHER
+}
+
+enum ClauseSentiment {
+  FAVORABLE
+  UNFAVORABLE
+  NEUTRAL
+}
+
+enum RiskLevel {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+model Document {
+  id           String   @id @default(uuid())
+  fileName     String
+  fileType     String
+  storagePath  String
+  status       DocumentStatus @default(UPLOADED)
+  fileSize     Int
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  clauses      Clause[]
+  report       Report?
+}
+
+model Clause {
+  id          String         @id @default(uuid())
+  documentId  String
+  document    Document       @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  text        String         @db.Text
+  category    ClauseCategory
+  sentiment   ClauseSentiment
+  riskLevel   RiskLevel
+  explanation String         @db.Text
+  createdAt   DateTime       @default(now())
+
+  @@index([documentId])
+}
+
+model Report {
+  id               String   @id @default(uuid())
+  documentId       String   @unique
+  document         Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  summary          String   @db.Text
+  topRisks         String[]
+  obligations      String[]
+  exitConditions   String[]
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+model Rule {
+  id          String   @id @default(uuid())
+  name        String
+  category    ClauseCategory
+  pattern     String
+  riskLevel   RiskLevel
+  sentiment   ClauseSentiment
+  explanation String   @db.Text
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([category])
+  @@index([isActive])
+}
