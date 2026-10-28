@@ -1,0 +1,41 @@
+MUTUAL NON-DISCLOSURE AGREEMENT
+
+This Non-Disclosure Agreement is made on 12 May 2026 between Orchid Labs Inc (the "Discloser") and Sandstone Consulting LLP (the "Recipient"). The Discloser wishes to share confidential information with the Recipient to evaluate a possible business relationship.
+
+1. CONFIDENTIAL INFORMATION
+
+1.1 Confidential Information means all non-public technical, financial and business information disclosed by the Discloser to the Recipient, in any form.
+
+1.2 Confidential Information does not include information that is publicly available through no fault of the Recipient, was already known to the Recipient, or is independently developed by the Recipient.
+
+2. OBLIGATIONS OF THE RECIPIENT
+
+2.1 The Recipient shall keep the Confidential Information secret and use it only to evaluate the proposed business relationship.
+
+2.2 The Recipient's duty of confidentiality continues for five (5) years after the end of this Agreement.
+
+2.3 The Recipient shall return or destroy all Confidential Information within ten (10) days after the Discloser requests it.
+
+2.4 The Recipient shall not solicit any employee of the Discloser for twelve (12) months after the date of this Agreement.
+
+3. REMEDIES
+
+3.1 If the Recipient breaches this Agreement, the Recipient shall pay the Discloser liquidated damages of INR 10,00,000 for each breach, and this amount is not a penalty.
+
+3.2 The Discloser may seek an injunction against the Recipient without proving actual damage and without posting a bond.
+
+3.3 The Recipient shall indemnify the Discloser against all losses, costs and legal fees arising from any breach of this Agreement.
+
+4. TERM AND TERMINATION
+
+4.1 This Agreement lasts for two (2) years and renews automatically for successive one (1) year terms unless either party gives thirty (30) days written notice of non-renewal.
+
+4.2 The Discloser may terminate this Agreement at any time by giving fifteen (15) days written notice. The Recipient may not terminate this Agreement during the first term.
+
+5. GENERAL
+
+5.1 The Discloser provides the Confidential Information as is and gives no warranty of accuracy or completeness.
+
+5.2 This Agreement is governed by the laws of the State of Delaware, and the Recipient submits to the exclusive jurisdiction of the courts of Wilmington, Delaware.
+
+5.3 This Agreement may be amended only in writing signed by both parties.

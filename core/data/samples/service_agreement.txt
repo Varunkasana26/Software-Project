@@ -1,0 +1,47 @@
+MASTER SERVICE AGREEMENT
+
+This Master Service Agreement is made on 2 June 2026 between Bluewave Retail Pvt Ltd (the "Client") and DataBridge IT Services Pvt Ltd (the "Provider"). The Provider will supply managed hosting and support services to the Client.
+
+1. SERVICES AND FEES
+
+1.1 The Provider shall provide the services described in the attached statement of work in a professional manner.
+
+1.2 The Client shall pay a monthly fee of INR 1,50,000. The Provider shall invoice the Client on the first day of each month and payment is due within forty-five (45) days of the invoice date.
+
+1.3 Late payments accrue interest at 2% per month on the unpaid amount.
+
+1.4 The Provider may increase its fees by up to 10% each year by giving the Client thirty (30) days written notice.
+
+1.5 If the services are unavailable for more than 1% of any month, the Client receives a service credit of 5% of that month's fee.
+
+2. TERM AND TERMINATION
+
+2.1 This Agreement lasts for twelve (12) months and renews automatically for successive twelve (12) month terms unless either party gives sixty (60) days written notice of non-renewal.
+
+2.2 The Client may terminate this Agreement for convenience by giving the Provider thirty (30) days written notice. The Provider may terminate for convenience by giving the Client ninety (90) days written notice.
+
+2.3 If a party materially breaches this Agreement, the other party shall give written notice and the breaching party has thirty (30) days to cure the breach before the other party may terminate.
+
+2.4 On termination the Provider shall return all Client data within fourteen (14) days.
+
+3. LIABILITY AND INDEMNITY
+
+3.1 The Provider's total liability under this Agreement is limited to the fees paid by the Client in the three (3) months before the claim.
+
+3.2 The Provider shall indemnify the Client against third-party claims that the services infringe intellectual property rights.
+
+3.3 The Client shall indemnify the Provider against claims arising from the Client's misuse of the services.
+
+4. DATA AND CONFIDENTIALITY
+
+4.1 The Client owns all data it provides to the Provider. The Provider may use the Client's data only to provide the services.
+
+4.2 Each party shall keep the other's confidential information secret for three (3) years after this Agreement ends.
+
+5. GENERAL
+
+5.1 This Agreement is governed by the laws of Maharashtra. Disputes shall be resolved by arbitration in Mumbai before a single arbitrator.
+
+5.2 The Provider may subcontract the services without the Client's consent.
+
+5.3 This Agreement may be amended only in writing signed by both parties.

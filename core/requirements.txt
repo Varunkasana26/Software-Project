@@ -3,3 +3,7 @@ uvicorn
 pdfplumber
 pydantic
 pytest
+python-multipart
+jsonschema
+httpx
+fpdf2

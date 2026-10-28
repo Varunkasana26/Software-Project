@@ -1,0 +1,287 @@
+{
+  "_WARNING": "FIRST DRAFT. These labels were written by an AI assistant and have NOT been reviewed. The team must review every label by hand before any accuracy number is quoted.",
+  "_party_effect_perspective": "party_effect is judged FOR the tenant (rentals), employee (employment), recipient (NDA) and client (service and freelance). favorable = good for that party.",
+  "_expected_rule_ids": "Left empty on purpose. Fill in after the rule set is reviewed.",
+  "clauses": [
+    {
+      "sample": "rental_landlord_friendly.txt",
+      "clause_text": "1.3 If rent is not received within three (3) days of the due date, the Tenant shall pay a late fee of 8% of the monthly rent, plus INR 500 for each additional day of delay.",
+      "category": "penalty",
+      "party_effect": "unfavorable",
+      "expected_rule_ids": []
+    },
+    {
+      "sample": "rental_landlord_friendly.txt",
+      "clause_text": "1.4 The Landlord may increase the rent by up to 15% at any time upon fourteen (14) days written notice, including during the fixed term.",
+      "category": "right",
+      "party_effect": "unfavorable",
+      "expected_rule_ids": []
+    },
+    {
+      "sample": "rental_landlord_friendly.txt",
+      "clause_text": "1.5 This Agreement renews automatically for successive twelve (12) month terms unless the Tenant gives the Landlord written notice of non-renewal at least ninety (90) days before the end of the then-current term.",
+      "category": "termination",
+      "party_effect": "unfavorable",
+      "expected_rule_ids": []
+    },
+    {
+      "sample": "rental_landlord_friendly.txt",
+      "clause_text": "2.2 The deposit is non-refundable if the Tenant vacates before the end of the fixed term, and the Landlord may retain the entire deposit as liquidated damages.",
+      "category": "penalty",
+      "party_effect": "unfavorable",
+      "expected_rule_ids": []
+    },
+    {
+      "sample": "rental_landlord_friendly.txt",
+      "clause_text": "3.1 The Tenant is responsible for all repairs and maintenance of the Premises, including structural, plumbing and electrical repairs, regardless of cause.",
+      "category": "obligation",
+      "party_effect": "unfavorable",
+      "expected_rule_ids": []
+    },
+    {
+      "sample": "rental_landlord_friendly.txt",
+      "clause_text": "4.1 The Landlord may terminate this Agreement at any time, for any reason, by giving the Tenant seven (7) days written notice.",
+      "category": "termination",
+      "party_effect": "unfavorable",
+      "expected_rule_ids": []
+    },
+    {
+      "sample": "rental_landlord_friendly.txt",
+      "clause_text": "5.1 The Tenant shall indemnify and hold harmless the Landlord from all claims, losses, damages and expenses arising from the Tenant's use of the Premises, including claims caused by the Landlord's own negligence.",
+      "category": "obligation",
+      "party_effect": "unfavorable",
+      "expected_rule_ids": []
+    },
+    {
+      "sample": "rental_landlord_friendly.txt",
+      "clause_text": "6.1 This Agreement is governed by the laws of the State of Maharashtra. Any dispute shall be resolved by binding arbitration in Pune, and the Tenant waives the right to bring a claim in court.",
+      "category": "other",
+      "party_effect": "unfavorable",
+      "expected_rule_ids": []
+    },
+    {
+      "sample": "rental_tenant_friendly.txt",
+      "clause_text": "1.3 The Tenant has a grace period of ten (10) days after the due date. If rent is still unpaid after the grace period, a one-time late fee of 2% of the monthly rent applies.",
+      "category": "penalty",
+      "party_effect": "favorable",
+      "expected_rule_ids": []
+    },
+    {
+      "sample": "rental_tenant_friendly.txt",
+      "clause_text": "1.5 At the end of the initial term, the Tenant may renew this lease for a further twelve (12) months by giving the Landlord thirty (30) days written notice. The lease does not renew unless the Tenant chooses to renew.",
+      "category": "termination",
+      "party_effect": "favorable",
+      "expected_rule_ids": []
+    },
+    {
+      "sample": "rental_tenant_friendly.txt",
+      "clause_text": "2.2 The Landlord shall return the deposit in full within fifteen (15) days after the Tenant vacates, together with an itemized list of any deductions for damage beyond normal wear and tear.",
+      "category": "obligation",
+      "party_effect": "favorable",
+      "expected_rule_ids": []
+    },
+    {
+      "sample": "rental_tenant_friendly.txt",
+      "clause_text": "3.1 The Landlord is responsible for all structural, plumbing and electrical repairs and shall complete urgent repairs within forty-eight (48) hours of being notified.",
+      "category": "obligation",
+      "party_effect": "favorable",
+      "expected_rule_ids": []
+    },
+    {
+      "sample": "rental_tenant_friendly.txt",
+      "clause_text": "4.1 The Tenant may terminate this lease at any time by giving the Landlord thirty (30) days written notice. No termination fee is payable.",
+      "category": "termination",
+      "party_effect": "favorable",
+      "expected_rule_ids": []
+    },
+    {
+      "sample": "rental_tenant_friendly.txt",
+      "clause_text": "4.3 If either party breaches this lease, the other party shall give written notice and the breaching party has thirty (30) days to cure the breach before any termination takes effect.",
+      "category": "termination",
+      "party_effect": "favorable",
+      "expected_rule_ids": []
+    },
+    {
+      "sample": "rental_balanced.txt",
+      "clause_text": "1.2 The Tenant shall pay monthly rent of INR 25,000 on or before the first day of each month.",
+      "category": "payment_term",
+      "party_effect": "neutral",
+      "expected_rule_ids": []
+    },
+    {
+      "sample": "rental_balanced.txt",
+      "clause_text": "1.4 The Landlord may increase the rent by up to 7% at renewal, after giving the Tenant sixty (60) days written notice.",
+      "category": "right",
+      "party_effect": "neutral",
+      "expected_rule_ids": []
+    },
+    {
+      "sample": "rental_balanced.txt",
+      "clause_text": "4.1 Either party may terminate this Agreement by giving the other party sixty (60) days written notice.",
+      "category": "termination",
+      "party_effect": "neutral",
+      "expected_rule_ids": []
+    },
+    {
+      "sample": "rental_balanced.txt",
+      "clause_text": "4.2 If the Tenant ends the tenancy during the fixed term, the Tenant shall pay an early termination fee equal to one (1) month's rent.",
+      "category": "penalty",
+      "party_effect": "unfavorable",
+      "expected_rule_ids": []
+    },
+    {
+      "sample": "rental_balanced.txt",
+      "clause_text": "5.1 Each party shall indemnify the other against claims and losses arising from its own negligence or breach of this Agreement.",
+      "category": "obligation",
+      "party_effect": "neutral",
+      "expected_rule_ids": []
+    },
+    {
+      "sample": "employment_1.txt",
+      "clause_text": "1.2 Any bonus is paid entirely at the Employer's discretion and the Employee has no right to a bonus in any year.",
+      "category": "right",
+      "party_effect": "unfavorable",
+      "expected_rule_ids": []
+    },
+    {
+      "sample": "employment_1.txt",
+      "clause_text": "2.2 After probation, the Employee shall give the Employer ninety (90) days written notice to resign, and the Employer may terminate the Employee by giving thirty (30) days written notice.",
+      "category": "termination",
+      "party_effect": "unfavorable",
+      "expected_rule_ids": []
+    },
+    {
+      "sample": "employment_1.txt",
+      "clause_text": "2.3 If the Employee fails to serve the full notice period, the Employee shall pay the Employer salary in lieu of the unserved notice and any recruitment costs.",
+      "category": "penalty",
+      "party_effect": "unfavorable",
+      "expected_rule_ids": []
+    },
+    {
+      "sample": "employment_1.txt",
+      "clause_text": "3.1 If the Employee leaves within twenty-four (24) months of joining, the Employee shall repay the Employer INR 2,00,000 as liquidated damages for training costs.",
+      "category": "penalty",
+      "party_effect": "unfavorable",
+      "expected_rule_ids": []
+    },
+    {
+      "sample": "employment_1.txt",
+      "clause_text": "5.1 For twenty-four (24) months after employment ends, the Employee shall not work for or advise any business that competes with the Employer anywhere in India, and no compensation is payable for this restriction.",
+      "category": "obligation",
+      "party_effect": "unfavorable",
+      "expected_rule_ids": []
+    },
+    {
+      "sample": "employment_2.txt",
+      "clause_text": "1.1 This Agreement is for a fixed term of two (2) years starting on 1 February 2026. It renews for a further one (1) year term unless either party gives the other sixty (60) days written notice that it will not renew.",
+      "category": "termination",
+      "party_effect": "neutral",
+      "expected_rule_ids": []
+    },
+    {
+      "sample": "employment_2.txt",
+      "clause_text": "1.3 If the Employer pays salary late, the Employer shall pay interest on the unpaid amount at 1.5% per month until it is paid.",
+      "category": "penalty",
+      "party_effect": "favorable",
+      "expected_rule_ids": []
+    },
+    {
+      "sample": "employment_2.txt",
+      "clause_text": "2.2 If the Employer terminates the Employee without cause, the Employer shall pay the Employee severance equal to three (3) months' salary.",
+      "category": "payment_term",
+      "party_effect": "favorable",
+      "expected_rule_ids": []
+    },
+    {
+      "sample": "employment_2.txt",
+      "clause_text": "5.1 The Employer shall indemnify the Employee against claims arising from acts done by the Employee in good faith in the course of employment.",
+      "category": "obligation",
+      "party_effect": "favorable",
+      "expected_rule_ids": []
+    },
+    {
+      "sample": "nda.txt",
+      "clause_text": "2.2 The Recipient's duty of confidentiality continues for five (5) years after the end of this Agreement.",
+      "category": "obligation",
+      "party_effect": "unfavorable",
+      "expected_rule_ids": []
+    },
+    {
+      "sample": "nda.txt",
+      "clause_text": "3.1 If the Recipient breaches this Agreement, the Recipient shall pay the Discloser liquidated damages of INR 10,00,000 for each breach, and this amount is not a penalty.",
+      "category": "penalty",
+      "party_effect": "unfavorable",
+      "expected_rule_ids": []
+    },
+    {
+      "sample": "nda.txt",
+      "clause_text": "4.2 The Discloser may terminate this Agreement at any time by giving fifteen (15) days written notice. The Recipient may not terminate this Agreement during the first term.",
+      "category": "termination",
+      "party_effect": "unfavorable",
+      "expected_rule_ids": []
+    },
+    {
+      "sample": "nda.txt",
+      "clause_text": "5.2 This Agreement is governed by the laws of the State of Delaware, and the Recipient submits to the exclusive jurisdiction of the courts of Wilmington, Delaware.",
+      "category": "other",
+      "party_effect": "unfavorable",
+      "expected_rule_ids": []
+    },
+    {
+      "sample": "service_agreement.txt",
+      "clause_text": "1.2 The Client shall pay a monthly fee of INR 1,50,000. The Provider shall invoice the Client on the first day of each month and payment is due within forty-five (45) days of the invoice date.",
+      "category": "payment_term",
+      "party_effect": "neutral",
+      "expected_rule_ids": []
+    },
+    {
+      "sample": "service_agreement.txt",
+      "clause_text": "1.3 Late payments accrue interest at 2% per month on the unpaid amount.",
+      "category": "penalty",
+      "party_effect": "unfavorable",
+      "expected_rule_ids": []
+    },
+    {
+      "sample": "service_agreement.txt",
+      "clause_text": "2.2 The Client may terminate this Agreement for convenience by giving the Provider thirty (30) days written notice. The Provider may terminate for convenience by giving the Client ninety (90) days written notice.",
+      "category": "termination",
+      "party_effect": "favorable",
+      "expected_rule_ids": []
+    },
+    {
+      "sample": "service_agreement.txt",
+      "clause_text": "3.1 The Provider's total liability under this Agreement is limited to the fees paid by the Client in the three (3) months before the claim.",
+      "category": "other",
+      "party_effect": "unfavorable",
+      "expected_rule_ids": []
+    },
+    {
+      "sample": "service_agreement.txt",
+      "clause_text": "3.2 The Provider shall indemnify the Client against third-party claims that the services infringe intellectual property rights.",
+      "category": "obligation",
+      "party_effect": "favorable",
+      "expected_rule_ids": []
+    },
+    {
+      "sample": "freelance_contract.txt",
+      "clause_text": "1.2 The Client shall pay a fixed project fee of INR 80,000. The Client shall pay thirty percent (30%) as an advance on signing and the balance of seventy percent (70%) on delivery of the final files.",
+      "category": "payment_term",
+      "party_effect": "neutral",
+      "expected_rule_ids": []
+    },
+    {
+      "sample": "freelance_contract.txt",
+      "clause_text": "1.5 If the Freelancer delivers late, the Freelancer shall pay a penalty of 1% of the project fee for each day of delay.",
+      "category": "penalty",
+      "party_effect": "favorable",
+      "expected_rule_ids": []
+    },
+    {
+      "sample": "freelance_contract.txt",
+      "clause_text": "3.2 If the Client cancels the project after work has started, the Client shall pay the Freelancer a cancellation fee of 25% of the unpaid project fee, plus payment for work already completed.",
+      "category": "penalty",
+      "party_effect": "unfavorable",
+      "expected_rule_ids": []
+    }
+  ]
+}
