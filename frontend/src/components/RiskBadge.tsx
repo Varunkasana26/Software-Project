@@ -12,18 +12,13 @@ export function tierFromScore(score: number): Tier {
 }
 
 // Effective score: a lawyer override wins when present; the auto score is never replaced.
-export function effectiveScore(c: Pick<ClauseView, "autoScore" | "override">): number | null {
+export function effectiveScore(c: Pick<ClauseView, "autoScore" | "override">): number {
   return c.override ? c.override.score : c.autoScore;
 }
 
 export function clauseTier(c: ClauseView): Tier {
   if (c.label === "FAVORABLE" && !c.override) return "low";
-  const score = effectiveScore(c);
-  if (score !== null) return tierFromScore(score);
-  // TODO(backend): only riskLevel is available for real clauses until a numeric score is returned.
-  if (c.riskLevel === "HIGH") return "high";
-  if (c.riskLevel === "MEDIUM") return "medium";
-  return c.label === "UNFAVORABLE" ? "low" : "neutral";
+  return tierFromScore(effectiveScore(c));
 }
 
 const TEXT: Record<Tier, string> = { high: "High risk", medium: "Medium risk", low: "Low risk", neutral: "Neutral" };

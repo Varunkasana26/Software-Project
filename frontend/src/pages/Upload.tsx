@@ -23,6 +23,8 @@ function checkFile(file: File): string {
 // Turn a server rejection into a plain sentence.
 function explain(err: unknown): string {
   if (!(err instanceof ApiError)) return "Upload failed. Try again.";
+  if (err.code === "CORE_UNREACHABLE" || err.code === "CORE_TIMEOUT") return "The analysis service is not running or did not answer. Start it (core, port 8001) and try again.";
+  if (err.code === "DOCUMENT_TOO_LARGE" || err.code === "TOO_MANY_PAGES") return err.message;
   if (err.code === "SCANNED_PDF_UNSUPPORTED") return "This PDF looks scanned (it contains only images). Scanned documents are not supported. Upload a text-based PDF or a .txt file.";
   if (err.code === "FILE_TOO_LARGE" || err.status === 413) return `The server rejected this file as too large. The limit is ${MAX_MB} MB.`;
   if (err.code === "UNSUPPORTED_TYPE" || err.message.includes("Only PDF and plain text")) return "The server only accepts PDF (.pdf) and plain text (.txt) files.";
@@ -31,7 +33,7 @@ function explain(err: unknown): string {
 
 export default function Upload() {
   const [file, setFile] = useState<File | null>(null);
-  const [party, setParty] = useState(sessionStorage.getItem("party") ?? "");
+  const [party, setParty] = useState(sessionStorage.getItem("party") ?? ""); // remembered between visits only
   const [fileError, setFileError] = useState("");
   const [partyError, setPartyError] = useState("");
   const [serverError, setServerError] = useState("");
@@ -62,7 +64,7 @@ export default function Upload() {
     sessionStorage.setItem("party", party);
     try {
       setStep("Uploading");
-      const { id } = await uploadDocument(file);
+      const { id } = await uploadDocument(file, party);
       setStep("Analyzing");
       await processDocument(id);
       navigate(`/report/${id}`);
@@ -107,7 +109,7 @@ export default function Upload() {
                   </label>
                 ))}
               </div>
-              <p id="party-help" className="help">Risks are judged from your side. {/* TODO(backend): the API ignores the party for now; party-specific scoring needs the core service. */}</p>
+              <p id="party-help" className="help">Risks are judged from your side. Pick the side that matches your role in the contract.</p>
               {partyError && <div id="party-error" className="field-error" role="alert">{partyError}</div>}
             </fieldset>
 

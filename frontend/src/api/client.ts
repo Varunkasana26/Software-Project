@@ -1,15 +1,18 @@
 // All HTTP calls live here. Base URL comes from VITE_API_URL (see .env.example).
+// The session is an httpOnly cookie set by the backend, so no token is kept in the page.
 //
-// Real backend endpoints used (backend/api):
-//   POST   /api/documents            multipart field "file"  -> { id, fileName, status }
-//   POST   /api/documents/:id/process
-//   GET    /api/documents/:id/report   -> { summary, topRisks[], obligations[], exitConditions[] } (strings)
-//   GET    /api/documents/:id/clauses  -> [{ id, text, category, sentiment, riskLevel, explanation }]
-//   GET    /api/rules, POST /api/rules, PATCH /api/rules/:id, DELETE /api/rules/:id
-// Mocked (no endpoint yet): login, lawyer override, and the "demo" report.
-import { getOverrides, mockLogin, mockReport, saveOverride as saveMockOverride, type ContractReport } from "./mock";
+// Endpoints (backend/api):
+//   POST /api/auth/register | login | logout, GET /api/auth/me
+//   POST /api/documents (multipart: file, party), GET /api/documents, GET /api/documents/:id
+//   POST /api/documents/:id/process, GET /api/documents/:id/report
+//   PATCH | DELETE /api/clauses/:id/override       (lawyer)
+//   GET /api/rules, POST | PATCH | DELETE /api/rules (admin for writes)
+import { getDemoOverrides, mockReport, saveDemoOverride, type ContractReport } from "./mock";
 
 const BASE = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
+
+/** Development only: shows the built-in demo report without a backend. Always false in a production build. */
+export const DEMO_MODE = import.meta.env.DEV && import.meta.env.VITE_DEMO_MODE === "true";
 
 export class ApiError extends Error {
   constructor(message: string, public status: number, public code?: string) {
@@ -18,15 +21,11 @@ export class ApiError extends Error {
 }
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const token = localStorage.getItem("token");
   let res: Response;
   try {
-    res = await fetch(`${BASE}${path}`, {
-      ...init,
-      headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}), ...init?.headers },
-    });
+    res = await fetch(`${BASE}${path}`, { ...init, credentials: "include" });
   } catch {
-    throw new ApiError("Cannot reach the server. Check your connection and that the API is running.", 0);
+    throw new ApiError("Cannot reach the server. Check that the API is running.", 0, "NETWORK");
   }
   if (res.status === 204) return undefined as T;
   const body = await res.json().catch(() => ({}));
@@ -34,35 +33,34 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     const details = body.details && typeof body.details === "object"
       ? Object.entries(body.details).map(([k, v]) => `${k}: ${Array.isArray(v) ? v.join(", ") : String(v)}`).join("; ")
       : "";
-    throw new ApiError([body.error ?? body.message ?? `Request failed (${res.status})`, details].filter(Boolean).join(" - "), res.status, body.code);
+    if (res.status === 401 && body.code === "UNAUTHENTICATED") window.dispatchEvent(new Event("auth-expired"));
+    throw new ApiError([body.error ?? `Request failed (${res.status})`, details].filter(Boolean).join(" - "), res.status, body.code);
   }
   return body as T;
 }
 
-// ---- Auth (mock) ----
-// TODO(backend): no login endpoint exists, so this is a mock.
-export async function login(email: string): Promise<void> {
-  const { token } = await mockLogin(email);
-  localStorage.setItem("token", token);
-  localStorage.setItem("user", email);
-  window.dispatchEvent(new Event("auth-change"));
-}
-export function logout(): void {
-  localStorage.removeItem("token");
-  localStorage.removeItem("user");
-  window.dispatchEvent(new Event("auth-change"));
-}
-export const currentUser = (): string | null => localStorage.getItem("user");
+const json = { "Content-Type": "application/json" };
 
-// ---- Upload and process (real) ----
-export function uploadDocument(file: File) {
+// ---- Auth ----
+export type Role = "USER" | "LAWYER" | "ADMIN";
+export interface User { id: string; email: string; role: Role }
+export const register = (email: string, password: string) => request<{ user: User }>("/api/auth/register", { method: "POST", headers: json, body: JSON.stringify({ email, password }) });
+export const login = (email: string, password: string) => request<{ user: User }>("/api/auth/login", { method: "POST", headers: json, body: JSON.stringify({ email, password }) });
+export const logout = () => request<void>("/api/auth/logout", { method: "POST" });
+export const me = () => request<{ user: User }>("/api/auth/me");
+
+// ---- Documents ----
+export interface DocumentInfo { id: string; fileName: string; fileSize: number; status: "UPLOADED" | "PROCESSING" | "COMPLETED" | "FAILED"; party: string; failureCode: string | null; createdAt: string }
+
+export function uploadDocument(file: File, party: string) {
   const form = new FormData();
   form.append("file", file);
+  form.append("party", party);
   return request<{ id: string }>("/api/documents", { method: "POST", body: form });
 }
-export function processDocument(id: string) {
-  return request<unknown>(`/api/documents/${id}/process`, { method: "POST" });
-}
+export const processDocument = (id: string) => request<{ document: DocumentInfo }>(`/api/documents/${id}/process`, { method: "POST" });
+export const getDocument = (id: string) => request<DocumentInfo>(`/api/documents/${id}`);
+export const listDocuments = (page: number) => request<{ data: DocumentInfo[]; total: number; page: number; totalPages: number }>(`/api/documents?page=${page}&limit=20`);
 
 // ---- Report ----
 export type Label = "FAVORABLE" | "UNFAVORABLE" | "NEUTRAL";
@@ -70,19 +68,21 @@ export type Label = "FAVORABLE" | "UNFAVORABLE" | "NEUTRAL";
 export interface ClauseView {
   id: string;
   index: number;
+  heading: string;
   text: string;
   category: string;
   label: Label;
-  ruleId: string | null; // TODO(backend): real clauses have no rule_id yet
-  autoScore: number | null; // TODO(backend): real clauses have only riskLevel, no numeric score
-  riskLevel: "LOW" | "MEDIUM" | "HIGH" | null;
+  ruleId: string | null;
+  matchedRuleIds: string[];
+  autoScore: number;
   override: { score: number; reason: string } | null;
   explanation: string;
+  warning: string | null;
 }
-export interface ItemView { clauseIndex: number; text: string; ruleId: string | null; score: number | null; label: Label }
+export interface ItemView { clauseIndex: number; text: string; ruleId: string | null; score: number; label: Label }
 export interface ReportView {
   documentId: string;
-  isMock: boolean;
+  isDemo: boolean;
   summary: string;
   topRisks: ItemView[];
   obligations: ItemView[];
@@ -91,71 +91,57 @@ export interface ReportView {
   warnings: string[];
 }
 
-interface BackendReport { summary: string; topRisks: string[]; obligations: string[]; exitConditions: string[] }
-interface BackendClause { id: string; text: string; category: string; sentiment: Label; riskLevel: "LOW" | "MEDIUM" | "HIGH"; explanation: string }
-
-function fromContract(r: ContractReport): ReportView {
+function fromContract(r: ContractReport, isDemo: boolean): ReportView {
   const item = (i: ContractReport["top_risks"][number]): ItemView => ({ clauseIndex: i.clause_index, text: i.text, ruleId: i.rule_id, score: i.score, label: i.label });
   return {
-    documentId: r.document_id, isMock: true, summary: r.summary, warnings: [],
+    documentId: r.document_id, isDemo, summary: r.summary, warnings: r.warnings ?? [],
     topRisks: r.top_risks.map(item), obligations: r.obligations.map(item), exitConditions: r.exit_conditions.map(item),
-    clauses: r.clauses.map((c, index) => ({
-      id: c.id, index, text: c.text, category: c.category, label: c.sentiment, ruleId: c.rule_id,
-      autoScore: c.score.auto, riskLevel: null, override: null, explanation: c.explanation,
+    clauses: r.clauses.map((c) => ({
+      id: c.id, index: c.index, heading: c.heading ?? "", text: c.text, category: c.category, label: c.sentiment,
+      ruleId: c.rule_id, matchedRuleIds: c.matched_rule_ids ?? (c.rule_id ? [c.rule_id] : []), autoScore: c.score.auto,
+      override: c.score.lawyer_override === null ? null : { score: c.score.lawyer_override, reason: c.lawyer_override_reason ?? "" },
+      explanation: c.explanation, warning: c.warning ?? null,
     })),
   };
 }
 
-// The id "demo" returns mock data. Any other id calls the real backend.
 export async function getReport(id: string): Promise<ReportView> {
-  let view: ReportView;
-  if (id === "demo") {
-    view = fromContract(mockReport);
-  } else {
-    const [report, clauses] = await Promise.all([
-      request<BackendReport>(`/api/documents/${id}/report`),
-      request<BackendClause[]>(`/api/documents/${id}/clauses`),
-    ]);
-    // TODO(backend): lists are still strings. They must become reportItem objects (see shared/contracts/report.schema.json).
-    const asItems = (list: string[], label: Label): ItemView[] => list.map((text, i) => ({ clauseIndex: i, text, ruleId: null, score: null, label }));
-    view = {
-      documentId: id, isMock: false, summary: report.summary, warnings: [],
-      topRisks: asItems(report.topRisks, "UNFAVORABLE"),
-      obligations: asItems(report.obligations, "NEUTRAL"),
-      exitConditions: asItems(report.exitConditions, "NEUTRAL"),
-      clauses: clauses.map((c, index) => ({
-        id: c.id, index, text: c.text, category: c.category, label: c.sentiment, ruleId: null,
-        autoScore: null, riskLevel: c.riskLevel, override: null, explanation: c.explanation,
-      })),
-    };
+  if (DEMO_MODE && id === "demo") {
+    const view = fromContract(mockReport, true);
+    const saved = getDemoOverrides();
+    view.clauses = view.clauses.map((c) => ({ ...c, override: saved[c.id] ?? null }));
+    return view;
   }
-  // Lawyer overrides are mock-only for now (see saveOverride), so they apply to every report.
-  const overrides = getOverrides(view.documentId);
-  view.clauses = view.clauses.map((c) => ({ ...c, override: overrides[c.id] ?? null }));
-  return view;
+  return fromContract(await request<ContractReport>(`/api/documents/${id}/report`), false);
 }
 
-// TODO(backend): needs an endpoint such as PATCH /api/clauses/:id/override {score, reason}. Stored in this browser only.
-export async function saveOverride(docId: string, clauseId: string, score: number, reason: string): Promise<void> {
-  saveMockOverride(docId, clauseId, { score, reason });
+// ---- Lawyer override ----
+export async function saveOverride(clauseId: string, score: number, reason: string): Promise<void> {
+  if (clauseId.startsWith("demo-")) return saveDemoOverride(clauseId, { score, reason }); // demo mode only
+  await request(`/api/clauses/${clauseId}/override`, { method: "PATCH", headers: json, body: JSON.stringify({ score, reason }) });
+}
+export async function clearOverride(clauseId: string): Promise<void> {
+  if (clauseId.startsWith("demo-")) return saveDemoOverride(clauseId, null);
+  await request(`/api/clauses/${clauseId}/override`, { method: "DELETE" });
 }
 
-// ---- Rules (real) ----
+// ---- Rules ----
 export type Category = "OBLIGATION" | "RIGHT" | "PENALTY" | "TERMINATION" | "PAYMENT_TERM" | "OTHER";
 export interface Rule {
   id: string;
+  ruleId: string;
   name: string;
   category: Category;
-  pattern: string;
-  riskLevel: "LOW" | "MEDIUM" | "HIGH";
-  sentiment: Label;
+  patterns: string[];
+  severityWeight: number;
+  partyEffectHint: Label;
   explanation: string;
+  justification: string;
   isActive: boolean;
 }
 export type RuleInput = Omit<Rule, "id">;
 export interface RulePage { data: Rule[]; total: number; page: number; limit: number; totalPages: number }
 
-const json = { "Content-Type": "application/json" };
 export const listRules = (page: number, limit = 20) => request<RulePage>(`/api/rules?page=${page}&limit=${limit}`);
 export const createRule = (rule: RuleInput) => request<Rule>("/api/rules", { method: "POST", headers: json, body: JSON.stringify(rule) });
 export const updateRule = (id: string, patch: Partial<RuleInput>) => request<Rule>(`/api/rules/${id}`, { method: "PATCH", headers: json, body: JSON.stringify(patch) });
