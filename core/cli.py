@@ -32,8 +32,10 @@ def main() -> int:
         print(f"WARNING: {w}")
     for title, key in (("TOP RISKS", "top_risks"), ("OBLIGATIONS", "obligations"), ("EXIT CONDITIONS", "exit_conditions")):
         print(f"\n{title}")
-        for item in report[key] or ["(none)"]:
-            print(f"  - {item}")
+        for item in report[key]:
+            print(f"  - [{item['rule_id']}] (score {item['score']:g}) {item['text']}")
+        if not report[key]:
+            print("  - (none)")
     return 0
 
 

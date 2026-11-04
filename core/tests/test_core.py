@@ -62,7 +62,7 @@ def test_report_has_at_most_5_top_risks_ordered_by_severity():
     from core.pipeline import analyze_text
 
     report = analyze_text(text, "tenant")
-    scores = [float(r.rsplit("(score ", 1)[1].rstrip(")")) for r in report["top_risks"]]
+    scores = [r["score"] for r in report["top_risks"]]
     assert 0 < len(scores) <= 5
     assert scores == sorted(scores, reverse=True)
 
