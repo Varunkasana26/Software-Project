@@ -159,3 +159,24 @@ No frontend code was changed in this phase.
 - `core/`: `parser/parser.py`, `parser/__init__.py`, `segmenter/segmenter.py`, `service/main.py`, new `eval/regex_stress.py`, new `tests/test_security.py`.
 - `docs/security/`: this file and `backend-issues.md`.
 - `backend/` and `frontend/`: not changed.
+
+## 7. Status after phase 8 (backend integration)
+
+Checked in code and tests on 2026-11-04. Items not listed here are unchanged.
+
+| ID | Status |
+|---|---|
+| B1 no authentication | Fixed: JWT auth on every route except health and `/auth/*`; tests in `backend/api/tests/auth.test.ts` and `access.test.ts`. |
+| B2 anyone can change rules | Fixed: admin only (`rules.test.ts`). |
+| B3 any user can list all documents | Fixed: a user sees only their own; a lawyer sees all; an admin none (`access.test.ts`). |
+| B4 upload type from client header | Fixed: magic-byte check (`upload.test.ts`). |
+| B5 no rate limit | Partly: `express-rate-limit` on login, register, upload and process. No per-user quota or old-file cleanup. |
+| B6 pdf-parse in the Node request | Fixed: removed; PDFs are read by core, which has size, page and character limits. |
+| B7 multer 1.x | Fixed: multer 2.5.0. |
+| B8 mass assignment | Fixed: the parsed body replaces `req.body`; rule and override schemas are `.strict()`. |
+| B9 rule pattern not validated | Fixed: core checks every rule on save (regex, length, nested repeats). Residual: see known-limitations. |
+| B10 dependency advisories | Partly: `npm audit fix` took 16 down to 8 (5 moderate, 1 high, 2 critical). The remaining production one is `zod` (major upgrade); the critical ones are dev-only test tools. |
+| B11 error details leaked | Fixed: fixed messages with a code; server logs the cause. |
+| B12 processing lock race | Fixed: the lock is one conditional update, with a 5-minute stale timeout. |
+| B13 security headers | Fixed: `helmet()`. The health route still reports database state. |
+| fp-check | Not applied (plugin not installed). |

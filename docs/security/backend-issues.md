@@ -1,5 +1,7 @@
 # Backend issues for Abhishek
 
+> **Status (phase 8):** items 1 to 4 and most of item 5 are now implemented; see `docs/security/audit.md` section 7. Kept below as the record of what was asked. Still open: B5 per-user quota and cleanup, B10 `zod` upgrade.
+
 Raised by Varun's phase 4 review. `backend/` was not edited. The first four are integration work needed so the frontend and `core/` can be connected; the rest are security items from `docs/security/audit.md` (IDs B1 to B13 refer to that file). Changes to `shared/contracts/` go through Varun.
 
 ## 1. Lawyer override endpoint (needed by the frontend)

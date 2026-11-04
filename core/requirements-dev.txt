@@ -1,0 +1,3 @@
+# Optional tools: merge_labels import-xlsx (openpyxl) and scripts/real-screenshots.py (playwright)
+openpyxl
+playwright

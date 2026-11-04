@@ -13,6 +13,8 @@ def main() -> int:
     ap.add_argument("path")
     ap.add_argument("--party", default="", help="tenant, landlord, employee, employer, recipient, discloser, client, provider")
     ap.add_argument("--json", action="store_true", help="print the raw Report JSON")
+    ap.add_argument("--trace", action="store_true", help="show every pipeline stage for one clause (see --clause)")
+    ap.add_argument("--clause", type=int, default=None, help="clause index for --trace (default: the riskiest clause)")
     ap.add_argument("--llm", action="store_true", help="use Claude for explanations if ANTHROPIC_API_KEY is set")
     args = ap.parse_args()
     logging.basicConfig(level=logging.INFO, format="%(message)s")
@@ -22,6 +24,11 @@ def main() -> int:
     except ParseError as exc:
         print(f"ERROR {exc.code}: {exc.message}", file=sys.stderr)
         return 1
+    if args.trace:
+        from core.trace import trace_clause
+
+        trace_clause(doc["text"], args.party, args.clause, name=args.path)
+        return 0
     report = analyze_text(doc["text"], args.party, name=args.path, use_llm=args.llm)
 
     if args.json:

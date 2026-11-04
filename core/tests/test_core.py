@@ -78,3 +78,15 @@ def test_analyze_returns_schema_valid_report():
     response = TestClient(app).post("/analyze", json={"document_text": text, "user_party": "employee"})
     assert response.status_code == 200
     validator.validate(response.json())
+
+
+def test_cli_trace_prints_every_stage(capsys):
+    from core.cli import main as cli_main
+    import sys
+
+    sys.argv = ["core.cli", str(SAMPLES / "rental_landlord_friendly.txt"), "--party", "tenant", "--trace", "--clause", "7"]
+    assert cli_main() == 0
+    out = capsys.readouterr().out
+    for stage in ("STAGE 1", "STAGE 2", "STAGE 3", "STAGE 4", "STAGE 5", "STAGE 6"):
+        assert stage in out
+    assert "PEN-008" in out  # the deposit clause matches its rule

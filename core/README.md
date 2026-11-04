@@ -108,6 +108,15 @@ python -m core.eval.merge_labels finalize OUT/merged_draft.csv --out-dir OUT [--
 - Generated files in `data/labeled/out/` are git-ignored.
 - `gold.json` records `label_source`: "single LLM pass (not independent)" when the two pass files were identical, otherwise "two independent passes; disagreements resolved by <the resolved_by names>".
 
+## Used by the backend
+
+- `POST /analyze` takes JSON `{document_text, user_party, rules?}` or a multipart form with `file`, `user_party` and an optional `rules` field (JSON text). With `rules`, core uses those rules instead of `rules/rules.json` (the backend sends the active rules from its database). Rules are validated by `rules/loader.py` (fields, regex, length, no nested repeats); a bad rule gives `422 INVALID_RULES`.
+- `POST /validate-rules` takes `{rules: [...]}` and returns the problems, so the backend can refuse a bad rule when an admin saves it.
+- Schemas: `shared/contracts/analyze.request.schema.json`, `analyze.response.schema.json`, `rule.schema.json`.
+- `python -m core.cli FILE --party tenant --trace [--clause N]` prints every stage for one clause (see `docs/viva-notes.md`).
+- `requirements-dev.txt` has optional tools (`openpyxl` for `merge_labels import-xlsx`, `playwright` for `scripts/real-screenshots.py`).
+- Rules are frozen until the real-contract evaluation: `tests/test_rules_frozen.py` and `docs/known-limitations.md`.
+
 ## Known limits
 
 - Rules are keyword patterns. A rule cannot tell which party is acting, so asymmetric clauses (for example "Client can leave in 30 days, Provider needs 90") can be scored wrong.
