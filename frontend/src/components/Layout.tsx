@@ -1,10 +1,11 @@
-import { useEffect, useState, type ReactNode } from "react";
+import type { ReactNode } from "react";
 import { NavLink, Link, useNavigate } from "react-router-dom";
-import { currentUser, logout } from "../api/client";
+import { DEMO_MODE } from "../api/client";
+import { useAuth } from "./Auth";
 
-// Development-only marker for pages backed by mock data. Not rendered in production builds.
-export function MockTag({ what = "Mock data" }: { what?: string }) {
-  return import.meta.env.DEV ? <span className="tag tag--mock">{what}</span> : null;
+// Development-only marker for pages showing demo data (VITE_DEMO_MODE=true). Never rendered in production builds.
+export function MockTag({ what = "Demo data" }: { what?: string }) {
+  return DEMO_MODE ? <span className="tag tag--mock">{what}</span> : null;
 }
 
 export function PageHead({ title, children, mock }: { title: string; children?: ReactNode; mock?: string }) {
@@ -20,13 +21,7 @@ export function PageHead({ title, children, mock }: { title: string; children?: 
 
 export default function Layout({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
-  const [user, setUser] = useState(currentUser());
-  // login() and logout() in api/client.ts fire "auth-change".
-  useEffect(() => {
-    const sync = () => setUser(currentUser());
-    window.addEventListener("auth-change", sync);
-    return () => window.removeEventListener("auth-change", sync);
-  }, []);
+  const { user, signOut } = useAuth();
 
   return (
     <>
@@ -35,14 +30,15 @@ export default function Layout({ children }: { children: ReactNode }) {
         <div className="container">
           <Link to="/" className="brand">Legal Document Summarizer</Link>
           <nav className="nav" aria-label="Main">
-            <NavLink to="/upload">Upload</NavLink>
-            <NavLink to="/report/demo">Demo report</NavLink>
-            <NavLink to="/review/demo">Lawyer review</NavLink>
-            <NavLink to="/admin/rules">Rules</NavLink>
+            {user && <NavLink to="/upload">Analyze</NavLink>}
+            {user && <NavLink to="/documents">Documents</NavLink>}
+            {user && <NavLink to="/admin/rules">Rules</NavLink>}
+            {DEMO_MODE && <NavLink to="/report/demo">Demo report</NavLink>}
             {user ? (
-              <button type="button" onClick={() => { logout(); navigate("/login"); }}>
-                Sign out
-              </button>
+              <>
+                <span className="muted small" style={{ alignSelf: "center", padding: "0 8px" }}>{user.email} ({user.role.toLowerCase()})</span>
+                <button type="button" onClick={async () => { await signOut(); navigate("/login"); }}>Sign out</button>
+              </>
             ) : (
               <NavLink to="/login">Sign in</NavLink>
             )}

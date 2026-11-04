@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { getReport, type ClauseView, type ItemView, type ReportView } from "../api/client";
+import { getDocument, getReport, type ClauseView, type DocumentInfo, type ItemView, type ReportView } from "../api/client";
+import { useAuth } from "../components/Auth";
 import { ChevronIcon } from "../components/Icons";
 import { PageHead } from "../components/Layout";
 import { clauseTier, effectiveScore, RiskBadge, tierFromScore, type Tier } from "../components/RiskBadge";
@@ -18,8 +19,8 @@ function Items({ items, ordered, empty }: { items: ItemView[]; ordered?: boolean
       {items.map((it, i) => (
         <li key={i}>
           <div className="item-meta">
-            <RiskBadge tier={it.score === null ? (it.label === "UNFAVORABLE" ? "medium" : "neutral") : it.label === "FAVORABLE" ? "low" : tierFromScore(it.score)} score={it.score} label={it.label} />
-            <span className="muted small">{it.ruleId ? <>Rule <code>{it.ruleId}</code></> : "Rule not reported"}</span>
+            <RiskBadge tier={it.label === "FAVORABLE" ? "low" : tierFromScore(it.score)} score={it.score} label={it.label} />
+            <span className="muted small">{it.ruleId ? <>Rule <code>{it.ruleId}</code></> : "No rule matched"}</span>
           </div>
           <p className={open[i] ? "" : "clamp"} style={{ margin: 0 }}>{it.text}</p>
           {it.text.length > 160 && (
@@ -34,6 +35,7 @@ function Items({ items, ordered, empty }: { items: ItemView[]; ordered?: boolean
 }
 
 function ClauseCard({ clause, docId }: { clause: ClauseView; docId: string }) {
+  const { user } = useAuth();
   const [open, setOpen] = useState(false);
   const tier = clauseTier(clause);
   const panel = `why-${clause.id}`;
@@ -47,9 +49,9 @@ function ClauseCard({ clause, docId }: { clause: ClauseView; docId: string }) {
       </div>
       <p style={{ margin: 0 }}>{clause.text}</p>
       <div className="clause-scores">
-        <span>Auto score: {clause.autoScore ?? "not reported"}</span>
+        <span>Auto score: {clause.autoScore}</span>
         {clause.override && (
-          <span>Lawyer override: <strong>{clause.override.score}</strong> (auto score <span className="struck">{clause.autoScore ?? "n/a"}</span> kept on record)</span>
+          <span>Lawyer override: <strong>{clause.override.score}</strong> (auto score <span className="struck">{clause.autoScore}</span> kept on record)</span>
         )}
       </div>
       <button type="button" className="disclosure" aria-expanded={open} aria-controls={panel} onClick={() => setOpen(!open)}>
@@ -59,7 +61,7 @@ function ClauseCard({ clause, docId }: { clause: ClauseView; docId: string }) {
         <div id={panel} className="disclosure-panel">
           <p style={{ margin: 0 }}>{clause.explanation || "No explanation available."}</p>
           {clause.override && <p className="small muted" style={{ margin: "8px 0 0" }}>Override reason: {clause.override.reason}</p>}
-          <p className="small" style={{ margin: "8px 0 0" }}><Link to={`/review/${docId}`}>Review this clause</Link></p>
+          {user?.role === "LAWYER" && <p className="small" style={{ margin: "8px 0 0" }}><Link to={`/review/${docId}`}>Review this clause</Link></p>}
         </div>
       )}
     </article>
@@ -69,6 +71,7 @@ function ClauseCard({ clause, docId }: { clause: ClauseView; docId: string }) {
 export default function Report() {
   const { id = "" } = useParams();
   const [report, setReport] = useState<ReportView | null>(null);
+  const [info, setInfo] = useState<DocumentInfo | null>(null);
   const [error, setError] = useState("");
   const [category, setCategory] = useState("ALL");
   const [tier, setTier] = useState<Tier | "ALL">("ALL");
@@ -76,6 +79,7 @@ export default function Report() {
   const load = useCallback(() => {
     setReport(null);
     setError("");
+    getDocument(id).then(setInfo).catch(() => setInfo(null)); // file name and chosen side, shown in the header
     getReport(id).then(setReport).catch((e) => setError(e instanceof Error ? e.message : "Could not load the report."));
   }, [id]);
   useEffect(load, [load]);
@@ -91,11 +95,11 @@ export default function Report() {
 
   const high = report.clauses.filter((c) => clauseTier(c) === "high").length;
   const medium = report.clauses.filter((c) => clauseTier(c) === "medium").length;
-  const party = sessionStorage.getItem("party");
+  const party = info?.party;
 
   return (
     <>
-      <PageHead title="Contract report" mock={report.isMock ? "Mock data" : undefined}>{report.summary}</PageHead>
+      <PageHead title={info?.fileName ?? "Contract report"} mock={report.isDemo ? "Demo data" : undefined}>{report.summary}</PageHead>
       <section className="band" style={{ paddingBottom: 32 }}>
         <div className="container grid-3">
           <div><div className="stat">{report.clauses.length}</div><div className="muted">clauses read</div></div>
@@ -106,8 +110,8 @@ export default function Report() {
 
       <section className="section">
         <div className="container stack">
-          {party && <p className="muted small">Judged from the {party}'s side.</p>}
-          {report.warnings.map((w) => <p key={w} className="muted small">{w}</p>)}
+          {party ? <p className="muted small">Judged from the {party}'s side.</p> : <p className="muted small">No side was chosen, so every clause is labelled neutral.</p>}
+          {report.warnings.map((w) => <p key={w} className="muted small">Note: {w}</p>)}
           <div className="layout-2">
             <div>
               <h2>Top 5 risks</h2>
