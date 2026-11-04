@@ -1,0 +1,501 @@
+{
+  "schemaVersion": "2.0",
+  "meta": {
+    "name": "apple-in",
+    "sourceUrl": "https://www.apple.com/in/",
+    "capturedAt": "2026-11-04T02:17:33Z",
+    "generator": "extract-design",
+    "mode": "single-url"
+  },
+  "evidence": {
+    "items": [
+      {
+        "id": "ev:screenshot/home",
+        "type": "screenshot",
+        "path": "evidence/screenshots/home.png",
+        "description": "Baseline page screenshot at extraction viewport.",
+        "capturedAt": "2026-11-04T02:17:33Z"
+      },
+      {
+        "id": "ev:computed/body",
+        "type": "computed-style",
+        "path": "raw/computed-styles.json",
+        "description": "Computed style extraction for page and sampled components.",
+        "capturedAt": "2026-11-04T02:17:33Z"
+      },
+      {
+        "id": "ev:script/library-detect",
+        "type": "script",
+        "path": "raw/library-detect.json",
+        "description": "Client-side animation and UI library detection.",
+        "capturedAt": "2026-11-04T02:17:33Z"
+      },
+      {
+        "id": "ev:animation/transition-scan",
+        "type": "animation",
+        "path": "raw/transition-scan.json",
+        "description": "Computed transition pattern scan.",
+        "capturedAt": "2026-11-04T02:17:33Z"
+      }
+    ]
+  },
+  "rawSources": [
+    {
+      "id": "raw:computed/styles",
+      "type": "computed-styles",
+      "path": "raw/computed-styles.json",
+      "generatedBy": "extract-styles.py",
+      "capturedAt": "2026-11-04T02:17:33Z",
+      "evidence": [
+        "ev:computed/body"
+      ],
+      "sourceUrl": "https://www.apple.com/in/",
+      "status": "available"
+    },
+    {
+      "id": "raw:transition/scan",
+      "type": "transition-scan",
+      "path": "raw/transition-scan.json",
+      "generatedBy": "extract-styles.py",
+      "capturedAt": "2026-11-04T02:17:33Z",
+      "evidence": [
+        "ev:animation/transition-scan"
+      ],
+      "sourceUrl": "https://www.apple.com/in/",
+      "status": "available",
+      "unavailableReason": null
+    },
+    {
+      "id": "raw:script/library-detect",
+      "type": "script",
+      "path": "raw/library-detect.json",
+      "generatedBy": "extract-styles.py",
+      "capturedAt": "2026-11-04T02:17:33Z",
+      "evidence": [
+        "ev:script/library-detect"
+      ],
+      "sourceUrl": "https://www.apple.com/in/",
+      "status": "available"
+    }
+  ],
+  "design_system": {
+    "colors": [
+      {
+        "id": "color.bg.page",
+        "value": "rgb(255, 255, 255)",
+        "role": "background",
+        "usage": "Page background.",
+        "token": "--color-bg-page",
+        "confidence": {
+          "level": "medium",
+          "method": "measured",
+          "evidence": [
+            "ev:computed/body"
+          ]
+        }
+      },
+      {
+        "id": "color.text.primary",
+        "value": "rgb(29, 29, 31)",
+        "role": "text",
+        "usage": "Primary readable text.",
+        "token": "--color-text-primary",
+        "confidence": {
+          "level": "medium",
+          "method": "measured",
+          "evidence": [
+            "ev:computed/body"
+          ]
+        }
+      },
+      {
+        "id": "color.accent",
+        "value": "#111111",
+        "role": "accent",
+        "usage": "Primary interactive accent when detectable.",
+        "token": "--color-accent",
+        "confidence": {
+          "level": "medium",
+          "method": "measured",
+          "evidence": [
+            "ev:computed/body"
+          ]
+        }
+      }
+    ],
+    "typography": [
+      {
+        "id": "type.body",
+        "role": "body",
+        "fontFamily": "\"SF Pro Text\", \"SF Pro Icons\", \"Helvetica Neue\", Helvetica, Arial, sans-serif",
+        "fontSize": "17px",
+        "lineHeight": "25px",
+        "fontWeight": "400",
+        "letterSpacing": "-0.374px",
+        "token": "type.body",
+        "confidence": {
+          "level": "medium",
+          "method": "measured",
+          "evidence": [
+            "ev:computed/body"
+          ]
+        }
+      }
+    ],
+    "spacing": [
+      {
+        "id": "space.4",
+        "value": "16px",
+        "role": "scale",
+        "usage": "Starter component gap.",
+        "token": "--space-4",
+        "evidence": [
+          "ev:computed/body"
+        ],
+        "confidence": {
+          "level": "low",
+          "method": "inferred",
+          "evidence": [
+            "ev:computed/body"
+          ]
+        }
+      }
+    ],
+    "radii": [
+      {
+        "id": "radius.md",
+        "value": "0px",
+        "role": "medium",
+        "usage": "Starter component radius.",
+        "token": "--radius-md",
+        "evidence": [
+          "ev:computed/body"
+        ],
+        "confidence": {
+          "level": "medium",
+          "method": "measured",
+          "evidence": [
+            "ev:computed/body"
+          ]
+        }
+      }
+    ],
+    "shadows": [
+      {
+        "id": "shadow.surface",
+        "value": "none",
+        "role": "surface",
+        "usage": "Starter surface elevation.",
+        "token": "--shadow-surface",
+        "evidence": [
+          "ev:computed/body"
+        ],
+        "confidence": {
+          "level": "medium",
+          "method": "measured",
+          "evidence": [
+            "ev:computed/body"
+          ]
+        }
+      }
+    ],
+    "borders": [
+      {
+        "id": "border.default",
+        "value": "0px none rgb(29, 29, 31)",
+        "role": "surface",
+        "usage": "Starter surface boundary.",
+        "token": "--border-default",
+        "evidence": [
+          "ev:computed/body"
+        ],
+        "confidence": {
+          "level": "medium",
+          "method": "measured",
+          "evidence": [
+            "ev:computed/body"
+          ]
+        }
+      }
+    ]
+  },
+  "design_style": {
+    "mood": [
+      "requires-manual-summary"
+    ],
+    "composition": [
+      "requires-manual-summary"
+    ],
+    "density": "unknown",
+    "visual_language": [
+      "Initial extraction generated from computed styles."
+    ],
+    "generation_guidance": [
+      "Refine this manifest before using it as a final design guide."
+    ]
+  },
+  "visual_effects": [],
+  "components": [
+    {
+      "id": "component.button.primary",
+      "name": "Primary Button",
+      "category": "button",
+      "description": "Initial button archetype from the first detected button-like element.",
+      "anatomy": [
+        "container",
+        "label"
+      ],
+      "states": [
+        {
+          "name": "default",
+          "properties": {
+            "background": "var(--color-accent)",
+            "color": "var(--color-bg-page)",
+            "borderRadius": "var(--radius-md)"
+          },
+          "evidence": [
+            "ev:computed/body"
+          ],
+          "confidence": {
+            "level": "low",
+            "method": "inferred",
+            "evidence": [
+              "ev:computed/body"
+            ]
+          }
+        }
+      ],
+      "tokens": [
+        "--color-accent",
+        "--color-bg-page",
+        "--radius-md",
+        "--space-4"
+      ],
+      "evidence": [
+        "ev:computed/body"
+      ],
+      "confidence": {
+        "level": "low",
+        "method": "inferred",
+        "evidence": [
+          "ev:computed/body"
+        ]
+      }
+    }
+  ],
+  "motion": {
+    "present": true,
+    "patterns": [
+      {
+        "id": "motion.transition.1",
+        "trigger": "state-change",
+        "properties": [
+          "background"
+        ],
+        "durationMs": 240,
+        "easing": "cubic-bezier(0.4, 0, 0.6, 1)",
+        "source": "transition",
+        "evidence": [
+          "ev:animation/transition-scan"
+        ],
+        "confidence": {
+          "level": "low",
+          "method": "measured",
+          "evidence": [
+            "ev:animation/transition-scan"
+          ]
+        },
+        "usage": "Measured transition declaration. Confirm actual interaction trigger manually."
+      },
+      {
+        "id": "motion.transition.2",
+        "trigger": "state-change",
+        "properties": [
+          "color"
+        ],
+        "durationMs": 320,
+        "easing": "cubic-bezier(0.4, 0, 0.6, 1)",
+        "source": "transition",
+        "evidence": [
+          "ev:animation/transition-scan"
+        ],
+        "confidence": {
+          "level": "low",
+          "method": "measured",
+          "evidence": [
+            "ev:animation/transition-scan"
+          ]
+        },
+        "usage": "Measured transition declaration. Confirm actual interaction trigger manually."
+      },
+      {
+        "id": "motion.transition.3",
+        "trigger": "state-change",
+        "properties": [
+          "opacity",
+          "transform"
+        ],
+        "durationMs": 160,
+        "easing": "unknown",
+        "source": "transition",
+        "evidence": [
+          "ev:animation/transition-scan"
+        ],
+        "confidence": {
+          "level": "low",
+          "method": "measured",
+          "evidence": [
+            "ev:animation/transition-scan"
+          ]
+        },
+        "usage": "Measured transition declaration. Confirm actual interaction trigger manually."
+      },
+      {
+        "id": "motion.transition.4",
+        "trigger": "state-change",
+        "properties": [
+          "opacity",
+          "transform"
+        ],
+        "durationMs": 180,
+        "easing": "unknown",
+        "source": "transition",
+        "evidence": [
+          "ev:animation/transition-scan"
+        ],
+        "confidence": {
+          "level": "low",
+          "method": "measured",
+          "evidence": [
+            "ev:animation/transition-scan"
+          ]
+        },
+        "usage": "Measured transition declaration. Confirm actual interaction trigger manually."
+      },
+      {
+        "id": "motion.transition.5",
+        "trigger": "state-change",
+        "properties": [
+          "opacity",
+          "transform"
+        ],
+        "durationMs": 220,
+        "easing": "unknown",
+        "source": "transition",
+        "evidence": [
+          "ev:animation/transition-scan"
+        ],
+        "confidence": {
+          "level": "low",
+          "method": "measured",
+          "evidence": [
+            "ev:animation/transition-scan"
+          ]
+        },
+        "usage": "Measured transition declaration. Confirm actual interaction trigger manually."
+      },
+      {
+        "id": "motion.transition.6",
+        "trigger": "state-change",
+        "properties": [
+          "opacity"
+        ],
+        "durationMs": 240,
+        "easing": "cubic-bezier(0.4, 0, 0.6, 1)",
+        "source": "transition",
+        "evidence": [
+          "ev:animation/transition-scan"
+        ],
+        "confidence": {
+          "level": "low",
+          "method": "measured",
+          "evidence": [
+            "ev:animation/transition-scan"
+          ]
+        },
+        "usage": "Measured transition declaration. Confirm actual interaction trigger manually."
+      },
+      {
+        "id": "motion.transition.7",
+        "trigger": "state-change",
+        "properties": [
+          "opacity",
+          "transform"
+        ],
+        "durationMs": 240,
+        "easing": "unknown",
+        "source": "transition",
+        "evidence": [
+          "ev:animation/transition-scan"
+        ],
+        "confidence": {
+          "level": "low",
+          "method": "measured",
+          "evidence": [
+            "ev:animation/transition-scan"
+          ]
+        },
+        "usage": "Measured transition declaration. Confirm actual interaction trigger manually."
+      },
+      {
+        "id": "motion.transition.8",
+        "trigger": "state-change",
+        "properties": [
+          "opacity",
+          "transform"
+        ],
+        "durationMs": 200,
+        "easing": "unknown",
+        "source": "transition",
+        "evidence": [
+          "ev:animation/transition-scan"
+        ],
+        "confidence": {
+          "level": "low",
+          "method": "measured",
+          "evidence": [
+            "ev:animation/transition-scan"
+          ]
+        },
+        "usage": "Measured transition declaration. Confirm actual interaction trigger manually."
+      }
+    ]
+  },
+  "responsive_rules": [],
+  "accessibility_notes": [
+    "Validate generated color contrast before reuse."
+  ],
+  "reuse_filter": [
+    {
+      "feature": "Source page content and brand assets",
+      "decision": "Discarded",
+      "reason": "Extraction should preserve visual language, not source content or trademarked assets.",
+      "evidence": [
+        "ev:screenshot/home"
+      ]
+    }
+  ],
+  "limitations": [
+    {
+      "id": "limitation.motion.trigger-unconfirmed",
+      "severity": "warning",
+      "area": "motion",
+      "message": "Transition declarations were measured, but interaction triggers still need manual confirmation.",
+      "impact": "Review hover, focus, active, open, and scroll states before final reuse."
+    },
+    {
+      "id": "limitation.library-detect.none",
+      "severity": "info",
+      "area": "assets",
+      "message": "No known animation library was detected on window.",
+      "impact": "This does not rule out bundled or scoped animation code."
+    },
+    {
+      "id": "limitation.manual-refinement",
+      "severity": "warning",
+      "area": "manual-judgment",
+      "message": "Initial manifest is script-generated and requires manual semantic refinement.",
+      "impact": "Do not treat this as a final extraction without review."
+    }
+  ]
+}

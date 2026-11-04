@@ -1,0 +1,14 @@
+# Source-site material: never commit screenshots, fonts, images or other brand assets.
+evidence/screenshots/
+evidence/assets/
+*.png
+*.jpg
+*.jpeg
+*.webp
+*.svg
+*.woff
+*.woff2
+*.ttf
+*.otf
+# The specimen page embeds the source site's look and text; keep it local.
+artifacts/style-specimen.html
