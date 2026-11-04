@@ -1,141 +1,52 @@
-import { Request, Response, NextFunction } from "express";
-import {
-  createDocument,
-  getDocumentById,
-  getDocuments,
-  getDocumentClauses,
-  getDocumentReport,
-  processDocument,
-  deleteDocument,
-} from "../services/documentService";
+import { Request, Response } from "express";
 import { AppError } from "../middleware/errorHandler";
+import {
+  createDocument, deleteDocument, documentView, getAccessibleDocument, getClauses, getReportView, listDocuments, processDocument,
+} from "../services/documentService";
+import { AuthUser } from "../types";
 
-function getIdParam(req: Request): string {
+const user = (req: Request): AuthUser => req.user as AuthUser; // set by authenticate
+const idOf = (req: Request): string => {
   const id = req.params.id;
-  if (Array.isArray(id)) throw new AppError(400, "Invalid ID parameter");
+  if (Array.isArray(id)) throw new AppError(400, "Invalid ID parameter", "VALIDATION_FAILED");
   return id;
+};
+
+export async function uploadDocument(req: Request, res: Response) {
+  if (!req.file) throw new AppError(400, "No file uploaded.", "NO_FILE");
+  // The side the user is on. Letters only; core treats an unknown value as "no side" and warns.
+  const party = String(req.body?.party ?? "").trim().toLowerCase();
+  const doc = await createDocument(user(req), req.file, /^[a-z]{0,30}$/.test(party) ? party : "");
+  res.status(201).json({ id: doc.id, fileName: doc.fileName, status: doc.status, party: doc.party, message: "Document uploaded. Use POST /api/documents/:id/process to analyze it." });
 }
 
-export async function uploadDocument(
-  req: Request,
-  res: Response,
-  next: NextFunction
-) {
-  try {
-    if (!req.file) {
-      throw new AppError(400, "No file uploaded");
-    }
-
-    const document = await createDocument(
-      req.file.originalname,
-      req.file.mimetype,
-      req.file.path,
-      req.file.size
-    );
-
-    res.status(201).json({
-      id: document.id,
-      fileName: document.fileName,
-      status: document.status,
-      message: "Document uploaded successfully. Use POST /api/documents/:id/process to start processing.",
-    });
-  } catch (error) {
-    if (req.file && req.file.path) {
-      try {
-        const fs = await import("fs");
-        if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
-      } catch {
-        // Ignore cleanup errors
-      }
-    }
-    next(error);
-  }
+export async function list(req: Request, res: Response) {
+  const page = Number(req.query.page ?? 1);
+  const limit = Number(req.query.limit ?? 20);
+  const { data, total } = await listDocuments(user(req), page, limit, req.query.status as never);
+  res.json({ data, total, page, limit, totalPages: Math.ceil(total / limit) });
 }
 
-export async function listDocuments(req: Request, res: Response, next: NextFunction) {
-  try {
-    const page = parseInt((req.query.page as string) || "1") || 1;
-    const limit = parseInt((req.query.limit as string) || "20") || 20;
-    const status = req.query.status as string | undefined;
-
-    const { data, total } = await getDocuments(page, limit, status as any);
-
-    res.json({
-      data,
-      total,
-      page,
-      limit,
-      totalPages: Math.ceil(total / limit),
-    });
-  } catch (error) {
-    next(error);
-  }
+export async function getOne(req: Request, res: Response) {
+  res.json(documentView(await getAccessibleDocument(idOf(req), user(req))));
 }
 
-export async function getDocument(req: Request, res: Response, next: NextFunction) {
-  try {
-    const id = getIdParam(req);
-    const document = await getDocumentById(id);
-    if (!document) {
-      throw new AppError(404, "Document not found");
-    }
-    res.json(document);
-  } catch (error) {
-    next(error);
-  }
+export async function clauses(req: Request, res: Response) {
+  res.json(await getClauses(await getAccessibleDocument(idOf(req), user(req))));
 }
 
-export async function getClauses(req: Request, res: Response, next: NextFunction) {
-  try {
-    const id = getIdParam(req);
-    const clauses = await getDocumentClauses(id);
-    res.json(clauses);
-  } catch (error) {
-    next(error);
-  }
+export async function report(req: Request, res: Response) {
+  res.json(await getReportView(await getAccessibleDocument(idOf(req), user(req))));
 }
 
-export async function getReport(req: Request, res: Response, next: NextFunction) {
-  try {
-    const id = getIdParam(req);
-    const report = await getDocumentReport(id);
-    if (!report) {
-      throw new AppError(404, "Report not found for this document");
-    }
-    res.json(report);
-  } catch (error) {
-    next(error);
-  }
+export async function process_(req: Request, res: Response) {
+  const doc = await getAccessibleDocument(idOf(req), user(req), { write: true });
+  await processDocument(doc);
+  const fresh = await getAccessibleDocument(doc.id, user(req), { write: true });
+  res.json({ message: "Document analyzed.", document: documentView(fresh), report: await getReportView(fresh) });
 }
 
-export async function processDocumentController(
-  req: Request,
-  res: Response,
-  next: NextFunction
-) {
-  try {
-    const id = getIdParam(req);
-    await processDocument(id);
-    const document = await getDocumentById(id);
-    res.json({
-      message: "Document processed successfully",
-      document,
-    });
-  } catch (error) {
-    next(error);
-  }
-}
-
-export async function deleteDocumentController(
-  req: Request,
-  res: Response,
-  next: NextFunction
-) {
-  try {
-    const id = getIdParam(req);
-    await deleteDocument(id);
-    res.status(204).send();
-  } catch (error) {
-    next(error);
-  }
+export async function remove(req: Request, res: Response) {
+  await deleteDocument(await getAccessibleDocument(idOf(req), user(req), { write: true }));
+  res.status(204).send();
 }

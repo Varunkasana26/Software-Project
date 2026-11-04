@@ -51,6 +51,7 @@ export const AnyNull = runtime.AnyNull
 
 
 export const ModelName = {
+  User: 'User',
   Document: 'Document',
   Clause: 'Clause',
   Report: 'Report',
@@ -73,12 +74,26 @@ export const TransactionIsolationLevel = runtime.makeStrictEnum({
 export type TransactionIsolationLevel = (typeof TransactionIsolationLevel)[keyof typeof TransactionIsolationLevel]
 
 
+export const UserScalarFieldEnum = {
+  id: 'id',
+  email: 'email',
+  passwordHash: 'passwordHash',
+  role: 'role',
+  createdAt: 'createdAt'
+} as const
+
+export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
+
+
 export const DocumentScalarFieldEnum = {
   id: 'id',
+  ownerId: 'ownerId',
   fileName: 'fileName',
   fileType: 'fileType',
   storagePath: 'storagePath',
   status: 'status',
+  failureCode: 'failureCode',
+  party: 'party',
   fileSize: 'fileSize',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
@@ -90,10 +105,19 @@ export type DocumentScalarFieldEnum = (typeof DocumentScalarFieldEnum)[keyof typ
 export const ClauseScalarFieldEnum = {
   id: 'id',
   documentId: 'documentId',
+  index: 'index',
+  heading: 'heading',
   text: 'text',
   category: 'category',
   sentiment: 'sentiment',
-  riskLevel: 'riskLevel',
+  ruleId: 'ruleId',
+  matchedRuleIds: 'matchedRuleIds',
+  autoScore: 'autoScore',
+  lawyerOverride: 'lawyerOverride',
+  lawyerOverrideReason: 'lawyerOverrideReason',
+  overriddenAt: 'overriddenAt',
+  overriddenById: 'overriddenById',
+  warning: 'warning',
   explanation: 'explanation',
   createdAt: 'createdAt'
 } as const
@@ -108,6 +132,7 @@ export const ReportScalarFieldEnum = {
   topRisks: 'topRisks',
   obligations: 'obligations',
   exitConditions: 'exitConditions',
+  warnings: 'warnings',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -117,12 +142,15 @@ export type ReportScalarFieldEnum = (typeof ReportScalarFieldEnum)[keyof typeof 
 
 export const RuleScalarFieldEnum = {
   id: 'id',
+  ruleId: 'ruleId',
   name: 'name',
   category: 'category',
-  pattern: 'pattern',
-  riskLevel: 'riskLevel',
-  sentiment: 'sentiment',
+  patterns: 'patterns',
+  severityWeight: 'severityWeight',
+  position: 'position',
+  partyEffectHint: 'partyEffectHint',
   explanation: 'explanation',
+  justification: 'justification',
   isActive: 'isActive',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
@@ -139,10 +167,34 @@ export const SortOrder = {
 export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
 
 
+export const JsonNullValueInput = {
+  JsonNull: JsonNull
+} as const
+
+export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
+
+
 export const QueryMode = {
   default: 'default',
   insensitive: 'insensitive'
 } as const
 
 export type QueryMode = (typeof QueryMode)[keyof typeof QueryMode]
+
+
+export const NullsOrder = {
+  first: 'first',
+  last: 'last'
+} as const
+
+export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
+
+
+export const JsonNullValueFilter = {
+  DbNull: DbNull,
+  JsonNull: JsonNull,
+  AnyNull: AnyNull
+} as const
+
+export type JsonNullValueFilter = (typeof JsonNullValueFilter)[keyof typeof JsonNullValueFilter]
 

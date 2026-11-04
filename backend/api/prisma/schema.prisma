@@ -7,6 +7,12 @@ datasource db {
   provider = "postgresql"
 }
 
+enum Role {
+  USER
+  LAWYER
+  ADMIN
+}
+
 enum DocumentStatus {
   UPLOADED
   PROCESSING
@@ -29,62 +35,86 @@ enum ClauseSentiment {
   NEUTRAL
 }
 
-enum RiskLevel {
-  LOW
-  MEDIUM
-  HIGH
+model User {
+  id           String     @id @default(uuid())
+  email        String     @unique
+  passwordHash String
+  role         Role       @default(USER)
+  createdAt    DateTime   @default(now())
+  documents    Document[]
 }
 
 model Document {
-  id           String   @id @default(uuid())
-  fileName     String
-  fileType     String
-  storagePath  String
-  status       DocumentStatus @default(UPLOADED)
-  fileSize     Int
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  clauses      Clause[]
-  report       Report?
+  id          String         @id @default(uuid())
+  ownerId     String
+  owner       User           @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  fileName    String
+  fileType    String
+  storagePath String
+  status      DocumentStatus @default(UPLOADED)
+  failureCode String?
+  party       String         @default("")
+  fileSize    Int
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  clauses     Clause[]
+  report      Report?
+
+  @@index([ownerId])
 }
 
 model Clause {
-  id          String         @id @default(uuid())
-  documentId  String
-  document    Document       @relation(fields: [documentId], references: [id], onDelete: Cascade)
-  text        String         @db.Text
-  category    ClauseCategory
-  sentiment   ClauseSentiment
-  riskLevel   RiskLevel
-  explanation String         @db.Text
-  createdAt   DateTime       @default(now())
+  id                   String          @id @default(uuid())
+  documentId           String
+  document             Document        @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  index                Int
+  heading              String          @default("")
+  text                 String          @db.Text
+  category             ClauseCategory
+  sentiment            ClauseSentiment
+  ruleId               String?
+  matchedRuleIds       String[]
+  autoScore            Float           @default(0)
+  lawyerOverride       Float?
+  lawyerOverrideReason String?         @db.Text
+  overriddenAt         DateTime?
+  overriddenById       String?
+  warning              String?
+  explanation          String          @db.Text
+  createdAt            DateTime        @default(now())
 
   @@index([documentId])
 }
 
 model Report {
-  id               String   @id @default(uuid())
-  documentId       String   @unique
-  document         Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
-  summary          String   @db.Text
-  topRisks         String[]
-  obligations      String[]
-  exitConditions   String[]
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  id             String   @id @default(uuid())
+  documentId     String   @unique
+  document       Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  summary        String   @db.Text
+  topRisks       Json
+  obligations    Json
+  exitConditions Json
+  warnings       String[]
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 }
 
+// Source of truth for classification rules. Seeded from core/rules/rules.json when empty.
+// Shape follows shared/contracts/rule.schema.json.
 model Rule {
-  id          String   @id @default(uuid())
-  name        String
-  category    ClauseCategory
-  pattern     String
-  riskLevel   RiskLevel
-  sentiment   ClauseSentiment
-  explanation String   @db.Text
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id              String          @id @default(uuid())
+  ruleId          String          @unique
+  name            String
+  category        ClauseCategory
+  patterns        String[]
+  severityWeight  Int
+  position        Int             @default(0)
+  partyEffectHint ClauseSentiment
+  explanation     String          @db.Text
+  justification   String          @default("")
+  isActive        Boolean         @default(true)
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
 
   @@index([category])
   @@index([isActive])

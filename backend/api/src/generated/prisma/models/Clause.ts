@@ -20,17 +20,39 @@ export type ClauseModel = runtime.Types.Result.DefaultSelection<Prisma.$ClausePa
 
 export type AggregateClause = {
   _count: ClauseCountAggregateOutputType | null
+  _avg: ClauseAvgAggregateOutputType | null
+  _sum: ClauseSumAggregateOutputType | null
   _min: ClauseMinAggregateOutputType | null
   _max: ClauseMaxAggregateOutputType | null
+}
+
+export type ClauseAvgAggregateOutputType = {
+  index: number | null
+  autoScore: number | null
+  lawyerOverride: number | null
+}
+
+export type ClauseSumAggregateOutputType = {
+  index: number | null
+  autoScore: number | null
+  lawyerOverride: number | null
 }
 
 export type ClauseMinAggregateOutputType = {
   id: string | null
   documentId: string | null
+  index: number | null
+  heading: string | null
   text: string | null
   category: $Enums.ClauseCategory | null
   sentiment: $Enums.ClauseSentiment | null
-  riskLevel: $Enums.RiskLevel | null
+  ruleId: string | null
+  autoScore: number | null
+  lawyerOverride: number | null
+  lawyerOverrideReason: string | null
+  overriddenAt: Date | null
+  overriddenById: string | null
+  warning: string | null
   explanation: string | null
   createdAt: Date | null
 }
@@ -38,10 +60,18 @@ export type ClauseMinAggregateOutputType = {
 export type ClauseMaxAggregateOutputType = {
   id: string | null
   documentId: string | null
+  index: number | null
+  heading: string | null
   text: string | null
   category: $Enums.ClauseCategory | null
   sentiment: $Enums.ClauseSentiment | null
-  riskLevel: $Enums.RiskLevel | null
+  ruleId: string | null
+  autoScore: number | null
+  lawyerOverride: number | null
+  lawyerOverrideReason: string | null
+  overriddenAt: Date | null
+  overriddenById: string | null
+  warning: string | null
   explanation: string | null
   createdAt: Date | null
 }
@@ -49,23 +79,52 @@ export type ClauseMaxAggregateOutputType = {
 export type ClauseCountAggregateOutputType = {
   id: number
   documentId: number
+  index: number
+  heading: number
   text: number
   category: number
   sentiment: number
-  riskLevel: number
+  ruleId: number
+  matchedRuleIds: number
+  autoScore: number
+  lawyerOverride: number
+  lawyerOverrideReason: number
+  overriddenAt: number
+  overriddenById: number
+  warning: number
   explanation: number
   createdAt: number
   _all: number
 }
 
 
+export type ClauseAvgAggregateInputType = {
+  index?: true
+  autoScore?: true
+  lawyerOverride?: true
+}
+
+export type ClauseSumAggregateInputType = {
+  index?: true
+  autoScore?: true
+  lawyerOverride?: true
+}
+
 export type ClauseMinAggregateInputType = {
   id?: true
   documentId?: true
+  index?: true
+  heading?: true
   text?: true
   category?: true
   sentiment?: true
-  riskLevel?: true
+  ruleId?: true
+  autoScore?: true
+  lawyerOverride?: true
+  lawyerOverrideReason?: true
+  overriddenAt?: true
+  overriddenById?: true
+  warning?: true
   explanation?: true
   createdAt?: true
 }
@@ -73,10 +132,18 @@ export type ClauseMinAggregateInputType = {
 export type ClauseMaxAggregateInputType = {
   id?: true
   documentId?: true
+  index?: true
+  heading?: true
   text?: true
   category?: true
   sentiment?: true
-  riskLevel?: true
+  ruleId?: true
+  autoScore?: true
+  lawyerOverride?: true
+  lawyerOverrideReason?: true
+  overriddenAt?: true
+  overriddenById?: true
+  warning?: true
   explanation?: true
   createdAt?: true
 }
@@ -84,10 +151,19 @@ export type ClauseMaxAggregateInputType = {
 export type ClauseCountAggregateInputType = {
   id?: true
   documentId?: true
+  index?: true
+  heading?: true
   text?: true
   category?: true
   sentiment?: true
-  riskLevel?: true
+  ruleId?: true
+  matchedRuleIds?: true
+  autoScore?: true
+  lawyerOverride?: true
+  lawyerOverrideReason?: true
+  overriddenAt?: true
+  overriddenById?: true
+  warning?: true
   explanation?: true
   createdAt?: true
   _all?: true
@@ -131,6 +207,18 @@ export type ClauseAggregateArgs<ExtArgs extends runtime.Types.Extensions.Interna
   /**
    * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
    * 
+   * Select which fields to average
+  **/
+  _avg?: ClauseAvgAggregateInputType
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+   * 
+   * Select which fields to sum
+  **/
+  _sum?: ClauseSumAggregateInputType
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+   * 
    * Select which fields to find the minimum value
   **/
   _min?: ClauseMinAggregateInputType
@@ -161,6 +249,8 @@ export type ClauseGroupByArgs<ExtArgs extends runtime.Types.Extensions.InternalA
   take?: number
   skip?: number
   _count?: ClauseCountAggregateInputType | true
+  _avg?: ClauseAvgAggregateInputType
+  _sum?: ClauseSumAggregateInputType
   _min?: ClauseMinAggregateInputType
   _max?: ClauseMaxAggregateInputType
 }
@@ -168,13 +258,24 @@ export type ClauseGroupByArgs<ExtArgs extends runtime.Types.Extensions.InternalA
 export type ClauseGroupByOutputType = {
   id: string
   documentId: string
+  index: number
+  heading: string
   text: string
   category: $Enums.ClauseCategory
   sentiment: $Enums.ClauseSentiment
-  riskLevel: $Enums.RiskLevel
+  ruleId: string | null
+  matchedRuleIds: string[]
+  autoScore: number
+  lawyerOverride: number | null
+  lawyerOverrideReason: string | null
+  overriddenAt: Date | null
+  overriddenById: string | null
+  warning: string | null
   explanation: string
   createdAt: Date
   _count: ClauseCountAggregateOutputType | null
+  _avg: ClauseAvgAggregateOutputType | null
+  _sum: ClauseSumAggregateOutputType | null
   _min: ClauseMinAggregateOutputType | null
   _max: ClauseMaxAggregateOutputType | null
 }
@@ -200,10 +301,19 @@ export type ClauseWhereInput = {
   NOT?: Prisma.ClauseWhereInput | Prisma.ClauseWhereInput[]
   id?: Prisma.StringFilter<"Clause"> | string
   documentId?: Prisma.StringFilter<"Clause"> | string
+  index?: Prisma.IntFilter<"Clause"> | number
+  heading?: Prisma.StringFilter<"Clause"> | string
   text?: Prisma.StringFilter<"Clause"> | string
   category?: Prisma.EnumClauseCategoryFilter<"Clause"> | $Enums.ClauseCategory
   sentiment?: Prisma.EnumClauseSentimentFilter<"Clause"> | $Enums.ClauseSentiment
-  riskLevel?: Prisma.EnumRiskLevelFilter<"Clause"> | $Enums.RiskLevel
+  ruleId?: Prisma.StringNullableFilter<"Clause"> | string | null
+  matchedRuleIds?: Prisma.StringNullableListFilter<"Clause">
+  autoScore?: Prisma.FloatFilter<"Clause"> | number
+  lawyerOverride?: Prisma.FloatNullableFilter<"Clause"> | number | null
+  lawyerOverrideReason?: Prisma.StringNullableFilter<"Clause"> | string | null
+  overriddenAt?: Prisma.DateTimeNullableFilter<"Clause"> | Date | string | null
+  overriddenById?: Prisma.StringNullableFilter<"Clause"> | string | null
+  warning?: Prisma.StringNullableFilter<"Clause"> | string | null
   explanation?: Prisma.StringFilter<"Clause"> | string
   createdAt?: Prisma.DateTimeFilter<"Clause"> | Date | string
   document?: Prisma.XOR<Prisma.DocumentScalarRelationFilter, Prisma.DocumentWhereInput>
@@ -212,10 +322,19 @@ export type ClauseWhereInput = {
 export type ClauseOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   documentId?: Prisma.SortOrder
+  index?: Prisma.SortOrder
+  heading?: Prisma.SortOrder
   text?: Prisma.SortOrder
   category?: Prisma.SortOrder
   sentiment?: Prisma.SortOrder
-  riskLevel?: Prisma.SortOrder
+  ruleId?: Prisma.SortOrderInput | Prisma.SortOrder
+  matchedRuleIds?: Prisma.SortOrder
+  autoScore?: Prisma.SortOrder
+  lawyerOverride?: Prisma.SortOrderInput | Prisma.SortOrder
+  lawyerOverrideReason?: Prisma.SortOrderInput | Prisma.SortOrder
+  overriddenAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  overriddenById?: Prisma.SortOrderInput | Prisma.SortOrder
+  warning?: Prisma.SortOrderInput | Prisma.SortOrder
   explanation?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   document?: Prisma.DocumentOrderByWithRelationInput
@@ -227,10 +346,19 @@ export type ClauseWhereUniqueInput = Prisma.AtLeast<{
   OR?: Prisma.ClauseWhereInput[]
   NOT?: Prisma.ClauseWhereInput | Prisma.ClauseWhereInput[]
   documentId?: Prisma.StringFilter<"Clause"> | string
+  index?: Prisma.IntFilter<"Clause"> | number
+  heading?: Prisma.StringFilter<"Clause"> | string
   text?: Prisma.StringFilter<"Clause"> | string
   category?: Prisma.EnumClauseCategoryFilter<"Clause"> | $Enums.ClauseCategory
   sentiment?: Prisma.EnumClauseSentimentFilter<"Clause"> | $Enums.ClauseSentiment
-  riskLevel?: Prisma.EnumRiskLevelFilter<"Clause"> | $Enums.RiskLevel
+  ruleId?: Prisma.StringNullableFilter<"Clause"> | string | null
+  matchedRuleIds?: Prisma.StringNullableListFilter<"Clause">
+  autoScore?: Prisma.FloatFilter<"Clause"> | number
+  lawyerOverride?: Prisma.FloatNullableFilter<"Clause"> | number | null
+  lawyerOverrideReason?: Prisma.StringNullableFilter<"Clause"> | string | null
+  overriddenAt?: Prisma.DateTimeNullableFilter<"Clause"> | Date | string | null
+  overriddenById?: Prisma.StringNullableFilter<"Clause"> | string | null
+  warning?: Prisma.StringNullableFilter<"Clause"> | string | null
   explanation?: Prisma.StringFilter<"Clause"> | string
   createdAt?: Prisma.DateTimeFilter<"Clause"> | Date | string
   document?: Prisma.XOR<Prisma.DocumentScalarRelationFilter, Prisma.DocumentWhereInput>
@@ -239,15 +367,26 @@ export type ClauseWhereUniqueInput = Prisma.AtLeast<{
 export type ClauseOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   documentId?: Prisma.SortOrder
+  index?: Prisma.SortOrder
+  heading?: Prisma.SortOrder
   text?: Prisma.SortOrder
   category?: Prisma.SortOrder
   sentiment?: Prisma.SortOrder
-  riskLevel?: Prisma.SortOrder
+  ruleId?: Prisma.SortOrderInput | Prisma.SortOrder
+  matchedRuleIds?: Prisma.SortOrder
+  autoScore?: Prisma.SortOrder
+  lawyerOverride?: Prisma.SortOrderInput | Prisma.SortOrder
+  lawyerOverrideReason?: Prisma.SortOrderInput | Prisma.SortOrder
+  overriddenAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  overriddenById?: Prisma.SortOrderInput | Prisma.SortOrder
+  warning?: Prisma.SortOrderInput | Prisma.SortOrder
   explanation?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   _count?: Prisma.ClauseCountOrderByAggregateInput
+  _avg?: Prisma.ClauseAvgOrderByAggregateInput
   _max?: Prisma.ClauseMaxOrderByAggregateInput
   _min?: Prisma.ClauseMinOrderByAggregateInput
+  _sum?: Prisma.ClauseSumOrderByAggregateInput
 }
 
 export type ClauseScalarWhereWithAggregatesInput = {
@@ -256,20 +395,38 @@ export type ClauseScalarWhereWithAggregatesInput = {
   NOT?: Prisma.ClauseScalarWhereWithAggregatesInput | Prisma.ClauseScalarWhereWithAggregatesInput[]
   id?: Prisma.StringWithAggregatesFilter<"Clause"> | string
   documentId?: Prisma.StringWithAggregatesFilter<"Clause"> | string
+  index?: Prisma.IntWithAggregatesFilter<"Clause"> | number
+  heading?: Prisma.StringWithAggregatesFilter<"Clause"> | string
   text?: Prisma.StringWithAggregatesFilter<"Clause"> | string
   category?: Prisma.EnumClauseCategoryWithAggregatesFilter<"Clause"> | $Enums.ClauseCategory
   sentiment?: Prisma.EnumClauseSentimentWithAggregatesFilter<"Clause"> | $Enums.ClauseSentiment
-  riskLevel?: Prisma.EnumRiskLevelWithAggregatesFilter<"Clause"> | $Enums.RiskLevel
+  ruleId?: Prisma.StringNullableWithAggregatesFilter<"Clause"> | string | null
+  matchedRuleIds?: Prisma.StringNullableListFilter<"Clause">
+  autoScore?: Prisma.FloatWithAggregatesFilter<"Clause"> | number
+  lawyerOverride?: Prisma.FloatNullableWithAggregatesFilter<"Clause"> | number | null
+  lawyerOverrideReason?: Prisma.StringNullableWithAggregatesFilter<"Clause"> | string | null
+  overriddenAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Clause"> | Date | string | null
+  overriddenById?: Prisma.StringNullableWithAggregatesFilter<"Clause"> | string | null
+  warning?: Prisma.StringNullableWithAggregatesFilter<"Clause"> | string | null
   explanation?: Prisma.StringWithAggregatesFilter<"Clause"> | string
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Clause"> | Date | string
 }
 
 export type ClauseCreateInput = {
   id?: string
+  index: number
+  heading?: string
   text: string
   category: $Enums.ClauseCategory
   sentiment: $Enums.ClauseSentiment
-  riskLevel: $Enums.RiskLevel
+  ruleId?: string | null
+  matchedRuleIds?: Prisma.ClauseCreatematchedRuleIdsInput | string[]
+  autoScore?: number
+  lawyerOverride?: number | null
+  lawyerOverrideReason?: string | null
+  overriddenAt?: Date | string | null
+  overriddenById?: string | null
+  warning?: string | null
   explanation: string
   createdAt?: Date | string
   document: Prisma.DocumentCreateNestedOneWithoutClausesInput
@@ -278,20 +435,38 @@ export type ClauseCreateInput = {
 export type ClauseUncheckedCreateInput = {
   id?: string
   documentId: string
+  index: number
+  heading?: string
   text: string
   category: $Enums.ClauseCategory
   sentiment: $Enums.ClauseSentiment
-  riskLevel: $Enums.RiskLevel
+  ruleId?: string | null
+  matchedRuleIds?: Prisma.ClauseCreatematchedRuleIdsInput | string[]
+  autoScore?: number
+  lawyerOverride?: number | null
+  lawyerOverrideReason?: string | null
+  overriddenAt?: Date | string | null
+  overriddenById?: string | null
+  warning?: string | null
   explanation: string
   createdAt?: Date | string
 }
 
 export type ClauseUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  index?: Prisma.IntFieldUpdateOperationsInput | number
+  heading?: Prisma.StringFieldUpdateOperationsInput | string
   text?: Prisma.StringFieldUpdateOperationsInput | string
   category?: Prisma.EnumClauseCategoryFieldUpdateOperationsInput | $Enums.ClauseCategory
   sentiment?: Prisma.EnumClauseSentimentFieldUpdateOperationsInput | $Enums.ClauseSentiment
-  riskLevel?: Prisma.EnumRiskLevelFieldUpdateOperationsInput | $Enums.RiskLevel
+  ruleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  matchedRuleIds?: Prisma.ClauseUpdatematchedRuleIdsInput | string[]
+  autoScore?: Prisma.FloatFieldUpdateOperationsInput | number
+  lawyerOverride?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  lawyerOverrideReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  overriddenAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  overriddenById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  warning?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   explanation?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   document?: Prisma.DocumentUpdateOneRequiredWithoutClausesNestedInput
@@ -300,10 +475,19 @@ export type ClauseUpdateInput = {
 export type ClauseUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   documentId?: Prisma.StringFieldUpdateOperationsInput | string
+  index?: Prisma.IntFieldUpdateOperationsInput | number
+  heading?: Prisma.StringFieldUpdateOperationsInput | string
   text?: Prisma.StringFieldUpdateOperationsInput | string
   category?: Prisma.EnumClauseCategoryFieldUpdateOperationsInput | $Enums.ClauseCategory
   sentiment?: Prisma.EnumClauseSentimentFieldUpdateOperationsInput | $Enums.ClauseSentiment
-  riskLevel?: Prisma.EnumRiskLevelFieldUpdateOperationsInput | $Enums.RiskLevel
+  ruleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  matchedRuleIds?: Prisma.ClauseUpdatematchedRuleIdsInput | string[]
+  autoScore?: Prisma.FloatFieldUpdateOperationsInput | number
+  lawyerOverride?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  lawyerOverrideReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  overriddenAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  overriddenById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  warning?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   explanation?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -311,20 +495,38 @@ export type ClauseUncheckedUpdateInput = {
 export type ClauseCreateManyInput = {
   id?: string
   documentId: string
+  index: number
+  heading?: string
   text: string
   category: $Enums.ClauseCategory
   sentiment: $Enums.ClauseSentiment
-  riskLevel: $Enums.RiskLevel
+  ruleId?: string | null
+  matchedRuleIds?: Prisma.ClauseCreatematchedRuleIdsInput | string[]
+  autoScore?: number
+  lawyerOverride?: number | null
+  lawyerOverrideReason?: string | null
+  overriddenAt?: Date | string | null
+  overriddenById?: string | null
+  warning?: string | null
   explanation: string
   createdAt?: Date | string
 }
 
 export type ClauseUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  index?: Prisma.IntFieldUpdateOperationsInput | number
+  heading?: Prisma.StringFieldUpdateOperationsInput | string
   text?: Prisma.StringFieldUpdateOperationsInput | string
   category?: Prisma.EnumClauseCategoryFieldUpdateOperationsInput | $Enums.ClauseCategory
   sentiment?: Prisma.EnumClauseSentimentFieldUpdateOperationsInput | $Enums.ClauseSentiment
-  riskLevel?: Prisma.EnumRiskLevelFieldUpdateOperationsInput | $Enums.RiskLevel
+  ruleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  matchedRuleIds?: Prisma.ClauseUpdatematchedRuleIdsInput | string[]
+  autoScore?: Prisma.FloatFieldUpdateOperationsInput | number
+  lawyerOverride?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  lawyerOverrideReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  overriddenAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  overriddenById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  warning?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   explanation?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -332,10 +534,19 @@ export type ClauseUpdateManyMutationInput = {
 export type ClauseUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   documentId?: Prisma.StringFieldUpdateOperationsInput | string
+  index?: Prisma.IntFieldUpdateOperationsInput | number
+  heading?: Prisma.StringFieldUpdateOperationsInput | string
   text?: Prisma.StringFieldUpdateOperationsInput | string
   category?: Prisma.EnumClauseCategoryFieldUpdateOperationsInput | $Enums.ClauseCategory
   sentiment?: Prisma.EnumClauseSentimentFieldUpdateOperationsInput | $Enums.ClauseSentiment
-  riskLevel?: Prisma.EnumRiskLevelFieldUpdateOperationsInput | $Enums.RiskLevel
+  ruleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  matchedRuleIds?: Prisma.ClauseUpdatematchedRuleIdsInput | string[]
+  autoScore?: Prisma.FloatFieldUpdateOperationsInput | number
+  lawyerOverride?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  lawyerOverrideReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  overriddenAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  overriddenById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  warning?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   explanation?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -350,24 +561,55 @@ export type ClauseOrderByRelationAggregateInput = {
   _count?: Prisma.SortOrder
 }
 
+export type StringNullableListFilter<$PrismaModel = never> = {
+  equals?: string[] | Prisma.ListStringFieldRefInput<$PrismaModel> | null
+  has?: string | Prisma.StringFieldRefInput<$PrismaModel> | null
+  hasEvery?: string[] | Prisma.ListStringFieldRefInput<$PrismaModel>
+  hasSome?: string[] | Prisma.ListStringFieldRefInput<$PrismaModel>
+  isEmpty?: boolean
+}
+
 export type ClauseCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   documentId?: Prisma.SortOrder
+  index?: Prisma.SortOrder
+  heading?: Prisma.SortOrder
   text?: Prisma.SortOrder
   category?: Prisma.SortOrder
   sentiment?: Prisma.SortOrder
-  riskLevel?: Prisma.SortOrder
+  ruleId?: Prisma.SortOrder
+  matchedRuleIds?: Prisma.SortOrder
+  autoScore?: Prisma.SortOrder
+  lawyerOverride?: Prisma.SortOrder
+  lawyerOverrideReason?: Prisma.SortOrder
+  overriddenAt?: Prisma.SortOrder
+  overriddenById?: Prisma.SortOrder
+  warning?: Prisma.SortOrder
   explanation?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+}
+
+export type ClauseAvgOrderByAggregateInput = {
+  index?: Prisma.SortOrder
+  autoScore?: Prisma.SortOrder
+  lawyerOverride?: Prisma.SortOrder
 }
 
 export type ClauseMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   documentId?: Prisma.SortOrder
+  index?: Prisma.SortOrder
+  heading?: Prisma.SortOrder
   text?: Prisma.SortOrder
   category?: Prisma.SortOrder
   sentiment?: Prisma.SortOrder
-  riskLevel?: Prisma.SortOrder
+  ruleId?: Prisma.SortOrder
+  autoScore?: Prisma.SortOrder
+  lawyerOverride?: Prisma.SortOrder
+  lawyerOverrideReason?: Prisma.SortOrder
+  overriddenAt?: Prisma.SortOrder
+  overriddenById?: Prisma.SortOrder
+  warning?: Prisma.SortOrder
   explanation?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
@@ -375,12 +617,26 @@ export type ClauseMaxOrderByAggregateInput = {
 export type ClauseMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   documentId?: Prisma.SortOrder
+  index?: Prisma.SortOrder
+  heading?: Prisma.SortOrder
   text?: Prisma.SortOrder
   category?: Prisma.SortOrder
   sentiment?: Prisma.SortOrder
-  riskLevel?: Prisma.SortOrder
+  ruleId?: Prisma.SortOrder
+  autoScore?: Prisma.SortOrder
+  lawyerOverride?: Prisma.SortOrder
+  lawyerOverrideReason?: Prisma.SortOrder
+  overriddenAt?: Prisma.SortOrder
+  overriddenById?: Prisma.SortOrder
+  warning?: Prisma.SortOrder
   explanation?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+}
+
+export type ClauseSumOrderByAggregateInput = {
+  index?: Prisma.SortOrder
+  autoScore?: Prisma.SortOrder
+  lawyerOverride?: Prisma.SortOrder
 }
 
 export type ClauseCreateNestedManyWithoutDocumentInput = {
@@ -425,6 +681,10 @@ export type ClauseUncheckedUpdateManyWithoutDocumentNestedInput = {
   deleteMany?: Prisma.ClauseScalarWhereInput | Prisma.ClauseScalarWhereInput[]
 }
 
+export type ClauseCreatematchedRuleIdsInput = {
+  set: string[]
+}
+
 export type EnumClauseCategoryFieldUpdateOperationsInput = {
   set?: $Enums.ClauseCategory
 }
@@ -433,26 +693,65 @@ export type EnumClauseSentimentFieldUpdateOperationsInput = {
   set?: $Enums.ClauseSentiment
 }
 
-export type EnumRiskLevelFieldUpdateOperationsInput = {
-  set?: $Enums.RiskLevel
+export type ClauseUpdatematchedRuleIdsInput = {
+  set?: string[]
+  push?: string | string[]
+}
+
+export type FloatFieldUpdateOperationsInput = {
+  set?: number
+  increment?: number
+  decrement?: number
+  multiply?: number
+  divide?: number
+}
+
+export type NullableFloatFieldUpdateOperationsInput = {
+  set?: number | null
+  increment?: number
+  decrement?: number
+  multiply?: number
+  divide?: number
+}
+
+export type NullableDateTimeFieldUpdateOperationsInput = {
+  set?: Date | string | null
 }
 
 export type ClauseCreateWithoutDocumentInput = {
   id?: string
+  index: number
+  heading?: string
   text: string
   category: $Enums.ClauseCategory
   sentiment: $Enums.ClauseSentiment
-  riskLevel: $Enums.RiskLevel
+  ruleId?: string | null
+  matchedRuleIds?: Prisma.ClauseCreatematchedRuleIdsInput | string[]
+  autoScore?: number
+  lawyerOverride?: number | null
+  lawyerOverrideReason?: string | null
+  overriddenAt?: Date | string | null
+  overriddenById?: string | null
+  warning?: string | null
   explanation: string
   createdAt?: Date | string
 }
 
 export type ClauseUncheckedCreateWithoutDocumentInput = {
   id?: string
+  index: number
+  heading?: string
   text: string
   category: $Enums.ClauseCategory
   sentiment: $Enums.ClauseSentiment
-  riskLevel: $Enums.RiskLevel
+  ruleId?: string | null
+  matchedRuleIds?: Prisma.ClauseCreatematchedRuleIdsInput | string[]
+  autoScore?: number
+  lawyerOverride?: number | null
+  lawyerOverrideReason?: string | null
+  overriddenAt?: Date | string | null
+  overriddenById?: string | null
+  warning?: string | null
   explanation: string
   createdAt?: Date | string
 }
@@ -489,50 +788,95 @@ export type ClauseScalarWhereInput = {
   NOT?: Prisma.ClauseScalarWhereInput | Prisma.ClauseScalarWhereInput[]
   id?: Prisma.StringFilter<"Clause"> | string
   documentId?: Prisma.StringFilter<"Clause"> | string
+  index?: Prisma.IntFilter<"Clause"> | number
+  heading?: Prisma.StringFilter<"Clause"> | string
   text?: Prisma.StringFilter<"Clause"> | string
   category?: Prisma.EnumClauseCategoryFilter<"Clause"> | $Enums.ClauseCategory
   sentiment?: Prisma.EnumClauseSentimentFilter<"Clause"> | $Enums.ClauseSentiment
-  riskLevel?: Prisma.EnumRiskLevelFilter<"Clause"> | $Enums.RiskLevel
+  ruleId?: Prisma.StringNullableFilter<"Clause"> | string | null
+  matchedRuleIds?: Prisma.StringNullableListFilter<"Clause">
+  autoScore?: Prisma.FloatFilter<"Clause"> | number
+  lawyerOverride?: Prisma.FloatNullableFilter<"Clause"> | number | null
+  lawyerOverrideReason?: Prisma.StringNullableFilter<"Clause"> | string | null
+  overriddenAt?: Prisma.DateTimeNullableFilter<"Clause"> | Date | string | null
+  overriddenById?: Prisma.StringNullableFilter<"Clause"> | string | null
+  warning?: Prisma.StringNullableFilter<"Clause"> | string | null
   explanation?: Prisma.StringFilter<"Clause"> | string
   createdAt?: Prisma.DateTimeFilter<"Clause"> | Date | string
 }
 
 export type ClauseCreateManyDocumentInput = {
   id?: string
+  index: number
+  heading?: string
   text: string
   category: $Enums.ClauseCategory
   sentiment: $Enums.ClauseSentiment
-  riskLevel: $Enums.RiskLevel
+  ruleId?: string | null
+  matchedRuleIds?: Prisma.ClauseCreatematchedRuleIdsInput | string[]
+  autoScore?: number
+  lawyerOverride?: number | null
+  lawyerOverrideReason?: string | null
+  overriddenAt?: Date | string | null
+  overriddenById?: string | null
+  warning?: string | null
   explanation: string
   createdAt?: Date | string
 }
 
 export type ClauseUpdateWithoutDocumentInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  index?: Prisma.IntFieldUpdateOperationsInput | number
+  heading?: Prisma.StringFieldUpdateOperationsInput | string
   text?: Prisma.StringFieldUpdateOperationsInput | string
   category?: Prisma.EnumClauseCategoryFieldUpdateOperationsInput | $Enums.ClauseCategory
   sentiment?: Prisma.EnumClauseSentimentFieldUpdateOperationsInput | $Enums.ClauseSentiment
-  riskLevel?: Prisma.EnumRiskLevelFieldUpdateOperationsInput | $Enums.RiskLevel
+  ruleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  matchedRuleIds?: Prisma.ClauseUpdatematchedRuleIdsInput | string[]
+  autoScore?: Prisma.FloatFieldUpdateOperationsInput | number
+  lawyerOverride?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  lawyerOverrideReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  overriddenAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  overriddenById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  warning?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   explanation?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type ClauseUncheckedUpdateWithoutDocumentInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  index?: Prisma.IntFieldUpdateOperationsInput | number
+  heading?: Prisma.StringFieldUpdateOperationsInput | string
   text?: Prisma.StringFieldUpdateOperationsInput | string
   category?: Prisma.EnumClauseCategoryFieldUpdateOperationsInput | $Enums.ClauseCategory
   sentiment?: Prisma.EnumClauseSentimentFieldUpdateOperationsInput | $Enums.ClauseSentiment
-  riskLevel?: Prisma.EnumRiskLevelFieldUpdateOperationsInput | $Enums.RiskLevel
+  ruleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  matchedRuleIds?: Prisma.ClauseUpdatematchedRuleIdsInput | string[]
+  autoScore?: Prisma.FloatFieldUpdateOperationsInput | number
+  lawyerOverride?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  lawyerOverrideReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  overriddenAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  overriddenById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  warning?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   explanation?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type ClauseUncheckedUpdateManyWithoutDocumentInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  index?: Prisma.IntFieldUpdateOperationsInput | number
+  heading?: Prisma.StringFieldUpdateOperationsInput | string
   text?: Prisma.StringFieldUpdateOperationsInput | string
   category?: Prisma.EnumClauseCategoryFieldUpdateOperationsInput | $Enums.ClauseCategory
   sentiment?: Prisma.EnumClauseSentimentFieldUpdateOperationsInput | $Enums.ClauseSentiment
-  riskLevel?: Prisma.EnumRiskLevelFieldUpdateOperationsInput | $Enums.RiskLevel
+  ruleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  matchedRuleIds?: Prisma.ClauseUpdatematchedRuleIdsInput | string[]
+  autoScore?: Prisma.FloatFieldUpdateOperationsInput | number
+  lawyerOverride?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  lawyerOverrideReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  overriddenAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  overriddenById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  warning?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   explanation?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -542,10 +886,19 @@ export type ClauseUncheckedUpdateManyWithoutDocumentInput = {
 export type ClauseSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   documentId?: boolean
+  index?: boolean
+  heading?: boolean
   text?: boolean
   category?: boolean
   sentiment?: boolean
-  riskLevel?: boolean
+  ruleId?: boolean
+  matchedRuleIds?: boolean
+  autoScore?: boolean
+  lawyerOverride?: boolean
+  lawyerOverrideReason?: boolean
+  overriddenAt?: boolean
+  overriddenById?: boolean
+  warning?: boolean
   explanation?: boolean
   createdAt?: boolean
   document?: boolean | Prisma.DocumentDefaultArgs<ExtArgs>
@@ -554,10 +907,19 @@ export type ClauseSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
 export type ClauseSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   documentId?: boolean
+  index?: boolean
+  heading?: boolean
   text?: boolean
   category?: boolean
   sentiment?: boolean
-  riskLevel?: boolean
+  ruleId?: boolean
+  matchedRuleIds?: boolean
+  autoScore?: boolean
+  lawyerOverride?: boolean
+  lawyerOverrideReason?: boolean
+  overriddenAt?: boolean
+  overriddenById?: boolean
+  warning?: boolean
   explanation?: boolean
   createdAt?: boolean
   document?: boolean | Prisma.DocumentDefaultArgs<ExtArgs>
@@ -566,10 +928,19 @@ export type ClauseSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extens
 export type ClauseSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   documentId?: boolean
+  index?: boolean
+  heading?: boolean
   text?: boolean
   category?: boolean
   sentiment?: boolean
-  riskLevel?: boolean
+  ruleId?: boolean
+  matchedRuleIds?: boolean
+  autoScore?: boolean
+  lawyerOverride?: boolean
+  lawyerOverrideReason?: boolean
+  overriddenAt?: boolean
+  overriddenById?: boolean
+  warning?: boolean
   explanation?: boolean
   createdAt?: boolean
   document?: boolean | Prisma.DocumentDefaultArgs<ExtArgs>
@@ -578,15 +949,24 @@ export type ClauseSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extens
 export type ClauseSelectScalar = {
   id?: boolean
   documentId?: boolean
+  index?: boolean
+  heading?: boolean
   text?: boolean
   category?: boolean
   sentiment?: boolean
-  riskLevel?: boolean
+  ruleId?: boolean
+  matchedRuleIds?: boolean
+  autoScore?: boolean
+  lawyerOverride?: boolean
+  lawyerOverrideReason?: boolean
+  overriddenAt?: boolean
+  overriddenById?: boolean
+  warning?: boolean
   explanation?: boolean
   createdAt?: boolean
 }
 
-export type ClauseOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "documentId" | "text" | "category" | "sentiment" | "riskLevel" | "explanation" | "createdAt", ExtArgs["result"]["clause"]>
+export type ClauseOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "documentId" | "index" | "heading" | "text" | "category" | "sentiment" | "ruleId" | "matchedRuleIds" | "autoScore" | "lawyerOverride" | "lawyerOverrideReason" | "overriddenAt" | "overriddenById" | "warning" | "explanation" | "createdAt", ExtArgs["result"]["clause"]>
 export type ClauseInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   document?: boolean | Prisma.DocumentDefaultArgs<ExtArgs>
 }
@@ -605,10 +985,19 @@ export type $ClausePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     documentId: string
+    index: number
+    heading: string
     text: string
     category: $Enums.ClauseCategory
     sentiment: $Enums.ClauseSentiment
-    riskLevel: $Enums.RiskLevel
+    ruleId: string | null
+    matchedRuleIds: string[]
+    autoScore: number
+    lawyerOverride: number | null
+    lawyerOverrideReason: string | null
+    overriddenAt: Date | null
+    overriddenById: string | null
+    warning: string | null
     explanation: string
     createdAt: Date
   }, ExtArgs["result"]["clause"]>
@@ -1037,10 +1426,19 @@ export interface Prisma__ClauseClient<T, Null = never, ExtArgs extends runtime.T
 export interface ClauseFieldRefs {
   readonly id: Prisma.FieldRef<"Clause", 'String'>
   readonly documentId: Prisma.FieldRef<"Clause", 'String'>
+  readonly index: Prisma.FieldRef<"Clause", 'Int'>
+  readonly heading: Prisma.FieldRef<"Clause", 'String'>
   readonly text: Prisma.FieldRef<"Clause", 'String'>
   readonly category: Prisma.FieldRef<"Clause", 'ClauseCategory'>
   readonly sentiment: Prisma.FieldRef<"Clause", 'ClauseSentiment'>
-  readonly riskLevel: Prisma.FieldRef<"Clause", 'RiskLevel'>
+  readonly ruleId: Prisma.FieldRef<"Clause", 'String'>
+  readonly matchedRuleIds: Prisma.FieldRef<"Clause", 'String[]'>
+  readonly autoScore: Prisma.FieldRef<"Clause", 'Float'>
+  readonly lawyerOverride: Prisma.FieldRef<"Clause", 'Float'>
+  readonly lawyerOverrideReason: Prisma.FieldRef<"Clause", 'String'>
+  readonly overriddenAt: Prisma.FieldRef<"Clause", 'DateTime'>
+  readonly overriddenById: Prisma.FieldRef<"Clause", 'String'>
+  readonly warning: Prisma.FieldRef<"Clause", 'String'>
   readonly explanation: Prisma.FieldRef<"Clause", 'String'>
   readonly createdAt: Prisma.FieldRef<"Clause", 'DateTime'>
 }

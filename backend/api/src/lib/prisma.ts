@@ -5,9 +5,11 @@ import { getConfig } from "../config/env";
 
 const config = getConfig();
 
-const connectionString = config.DATABASE_URL;
-
-const pool = new Pool({ connectionString });
+// ponytail: rejectUnauthorized is off so the Supabase pooler works without shipping its CA. Pin the CA for production.
+const pool = new Pool({
+  connectionString: config.DATABASE_URL,
+  ssl: config.DB_SSL ? { rejectUnauthorized: false } : undefined,
+});
 const adapter = new PrismaPg(pool);
 
 const globalForPrisma = globalThis as unknown as {

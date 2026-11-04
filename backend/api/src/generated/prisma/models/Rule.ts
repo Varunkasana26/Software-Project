@@ -20,18 +20,32 @@ export type RuleModel = runtime.Types.Result.DefaultSelection<Prisma.$RulePayloa
 
 export type AggregateRule = {
   _count: RuleCountAggregateOutputType | null
+  _avg: RuleAvgAggregateOutputType | null
+  _sum: RuleSumAggregateOutputType | null
   _min: RuleMinAggregateOutputType | null
   _max: RuleMaxAggregateOutputType | null
 }
 
+export type RuleAvgAggregateOutputType = {
+  severityWeight: number | null
+  position: number | null
+}
+
+export type RuleSumAggregateOutputType = {
+  severityWeight: number | null
+  position: number | null
+}
+
 export type RuleMinAggregateOutputType = {
   id: string | null
+  ruleId: string | null
   name: string | null
   category: $Enums.ClauseCategory | null
-  pattern: string | null
-  riskLevel: $Enums.RiskLevel | null
-  sentiment: $Enums.ClauseSentiment | null
+  severityWeight: number | null
+  position: number | null
+  partyEffectHint: $Enums.ClauseSentiment | null
   explanation: string | null
+  justification: string | null
   isActive: boolean | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -39,12 +53,14 @@ export type RuleMinAggregateOutputType = {
 
 export type RuleMaxAggregateOutputType = {
   id: string | null
+  ruleId: string | null
   name: string | null
   category: $Enums.ClauseCategory | null
-  pattern: string | null
-  riskLevel: $Enums.RiskLevel | null
-  sentiment: $Enums.ClauseSentiment | null
+  severityWeight: number | null
+  position: number | null
+  partyEffectHint: $Enums.ClauseSentiment | null
   explanation: string | null
+  justification: string | null
   isActive: boolean | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -52,12 +68,15 @@ export type RuleMaxAggregateOutputType = {
 
 export type RuleCountAggregateOutputType = {
   id: number
+  ruleId: number
   name: number
   category: number
-  pattern: number
-  riskLevel: number
-  sentiment: number
+  patterns: number
+  severityWeight: number
+  position: number
+  partyEffectHint: number
   explanation: number
+  justification: number
   isActive: number
   createdAt: number
   updatedAt: number
@@ -65,14 +84,26 @@ export type RuleCountAggregateOutputType = {
 }
 
 
+export type RuleAvgAggregateInputType = {
+  severityWeight?: true
+  position?: true
+}
+
+export type RuleSumAggregateInputType = {
+  severityWeight?: true
+  position?: true
+}
+
 export type RuleMinAggregateInputType = {
   id?: true
+  ruleId?: true
   name?: true
   category?: true
-  pattern?: true
-  riskLevel?: true
-  sentiment?: true
+  severityWeight?: true
+  position?: true
+  partyEffectHint?: true
   explanation?: true
+  justification?: true
   isActive?: true
   createdAt?: true
   updatedAt?: true
@@ -80,12 +111,14 @@ export type RuleMinAggregateInputType = {
 
 export type RuleMaxAggregateInputType = {
   id?: true
+  ruleId?: true
   name?: true
   category?: true
-  pattern?: true
-  riskLevel?: true
-  sentiment?: true
+  severityWeight?: true
+  position?: true
+  partyEffectHint?: true
   explanation?: true
+  justification?: true
   isActive?: true
   createdAt?: true
   updatedAt?: true
@@ -93,12 +126,15 @@ export type RuleMaxAggregateInputType = {
 
 export type RuleCountAggregateInputType = {
   id?: true
+  ruleId?: true
   name?: true
   category?: true
-  pattern?: true
-  riskLevel?: true
-  sentiment?: true
+  patterns?: true
+  severityWeight?: true
+  position?: true
+  partyEffectHint?: true
   explanation?: true
+  justification?: true
   isActive?: true
   createdAt?: true
   updatedAt?: true
@@ -143,6 +179,18 @@ export type RuleAggregateArgs<ExtArgs extends runtime.Types.Extensions.InternalA
   /**
    * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
    * 
+   * Select which fields to average
+  **/
+  _avg?: RuleAvgAggregateInputType
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+   * 
+   * Select which fields to sum
+  **/
+  _sum?: RuleSumAggregateInputType
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+   * 
    * Select which fields to find the minimum value
   **/
   _min?: RuleMinAggregateInputType
@@ -173,22 +221,29 @@ export type RuleGroupByArgs<ExtArgs extends runtime.Types.Extensions.InternalArg
   take?: number
   skip?: number
   _count?: RuleCountAggregateInputType | true
+  _avg?: RuleAvgAggregateInputType
+  _sum?: RuleSumAggregateInputType
   _min?: RuleMinAggregateInputType
   _max?: RuleMaxAggregateInputType
 }
 
 export type RuleGroupByOutputType = {
   id: string
+  ruleId: string
   name: string
   category: $Enums.ClauseCategory
-  pattern: string
-  riskLevel: $Enums.RiskLevel
-  sentiment: $Enums.ClauseSentiment
+  patterns: string[]
+  severityWeight: number
+  position: number
+  partyEffectHint: $Enums.ClauseSentiment
   explanation: string
+  justification: string
   isActive: boolean
   createdAt: Date
   updatedAt: Date
   _count: RuleCountAggregateOutputType | null
+  _avg: RuleAvgAggregateOutputType | null
+  _sum: RuleSumAggregateOutputType | null
   _min: RuleMinAggregateOutputType | null
   _max: RuleMaxAggregateOutputType | null
 }
@@ -213,12 +268,15 @@ export type RuleWhereInput = {
   OR?: Prisma.RuleWhereInput[]
   NOT?: Prisma.RuleWhereInput | Prisma.RuleWhereInput[]
   id?: Prisma.StringFilter<"Rule"> | string
+  ruleId?: Prisma.StringFilter<"Rule"> | string
   name?: Prisma.StringFilter<"Rule"> | string
   category?: Prisma.EnumClauseCategoryFilter<"Rule"> | $Enums.ClauseCategory
-  pattern?: Prisma.StringFilter<"Rule"> | string
-  riskLevel?: Prisma.EnumRiskLevelFilter<"Rule"> | $Enums.RiskLevel
-  sentiment?: Prisma.EnumClauseSentimentFilter<"Rule"> | $Enums.ClauseSentiment
+  patterns?: Prisma.StringNullableListFilter<"Rule">
+  severityWeight?: Prisma.IntFilter<"Rule"> | number
+  position?: Prisma.IntFilter<"Rule"> | number
+  partyEffectHint?: Prisma.EnumClauseSentimentFilter<"Rule"> | $Enums.ClauseSentiment
   explanation?: Prisma.StringFilter<"Rule"> | string
+  justification?: Prisma.StringFilter<"Rule"> | string
   isActive?: Prisma.BoolFilter<"Rule"> | boolean
   createdAt?: Prisma.DateTimeFilter<"Rule"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Rule"> | Date | string
@@ -226,12 +284,15 @@ export type RuleWhereInput = {
 
 export type RuleOrderByWithRelationInput = {
   id?: Prisma.SortOrder
+  ruleId?: Prisma.SortOrder
   name?: Prisma.SortOrder
   category?: Prisma.SortOrder
-  pattern?: Prisma.SortOrder
-  riskLevel?: Prisma.SortOrder
-  sentiment?: Prisma.SortOrder
+  patterns?: Prisma.SortOrder
+  severityWeight?: Prisma.SortOrder
+  position?: Prisma.SortOrder
+  partyEffectHint?: Prisma.SortOrder
   explanation?: Prisma.SortOrder
+  justification?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -239,34 +300,42 @@ export type RuleOrderByWithRelationInput = {
 
 export type RuleWhereUniqueInput = Prisma.AtLeast<{
   id?: string
+  ruleId?: string
   AND?: Prisma.RuleWhereInput | Prisma.RuleWhereInput[]
   OR?: Prisma.RuleWhereInput[]
   NOT?: Prisma.RuleWhereInput | Prisma.RuleWhereInput[]
   name?: Prisma.StringFilter<"Rule"> | string
   category?: Prisma.EnumClauseCategoryFilter<"Rule"> | $Enums.ClauseCategory
-  pattern?: Prisma.StringFilter<"Rule"> | string
-  riskLevel?: Prisma.EnumRiskLevelFilter<"Rule"> | $Enums.RiskLevel
-  sentiment?: Prisma.EnumClauseSentimentFilter<"Rule"> | $Enums.ClauseSentiment
+  patterns?: Prisma.StringNullableListFilter<"Rule">
+  severityWeight?: Prisma.IntFilter<"Rule"> | number
+  position?: Prisma.IntFilter<"Rule"> | number
+  partyEffectHint?: Prisma.EnumClauseSentimentFilter<"Rule"> | $Enums.ClauseSentiment
   explanation?: Prisma.StringFilter<"Rule"> | string
+  justification?: Prisma.StringFilter<"Rule"> | string
   isActive?: Prisma.BoolFilter<"Rule"> | boolean
   createdAt?: Prisma.DateTimeFilter<"Rule"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Rule"> | Date | string
-}, "id">
+}, "id" | "ruleId">
 
 export type RuleOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
+  ruleId?: Prisma.SortOrder
   name?: Prisma.SortOrder
   category?: Prisma.SortOrder
-  pattern?: Prisma.SortOrder
-  riskLevel?: Prisma.SortOrder
-  sentiment?: Prisma.SortOrder
+  patterns?: Prisma.SortOrder
+  severityWeight?: Prisma.SortOrder
+  position?: Prisma.SortOrder
+  partyEffectHint?: Prisma.SortOrder
   explanation?: Prisma.SortOrder
+  justification?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.RuleCountOrderByAggregateInput
+  _avg?: Prisma.RuleAvgOrderByAggregateInput
   _max?: Prisma.RuleMaxOrderByAggregateInput
   _min?: Prisma.RuleMinOrderByAggregateInput
+  _sum?: Prisma.RuleSumOrderByAggregateInput
 }
 
 export type RuleScalarWhereWithAggregatesInput = {
@@ -274,12 +343,15 @@ export type RuleScalarWhereWithAggregatesInput = {
   OR?: Prisma.RuleScalarWhereWithAggregatesInput[]
   NOT?: Prisma.RuleScalarWhereWithAggregatesInput | Prisma.RuleScalarWhereWithAggregatesInput[]
   id?: Prisma.StringWithAggregatesFilter<"Rule"> | string
+  ruleId?: Prisma.StringWithAggregatesFilter<"Rule"> | string
   name?: Prisma.StringWithAggregatesFilter<"Rule"> | string
   category?: Prisma.EnumClauseCategoryWithAggregatesFilter<"Rule"> | $Enums.ClauseCategory
-  pattern?: Prisma.StringWithAggregatesFilter<"Rule"> | string
-  riskLevel?: Prisma.EnumRiskLevelWithAggregatesFilter<"Rule"> | $Enums.RiskLevel
-  sentiment?: Prisma.EnumClauseSentimentWithAggregatesFilter<"Rule"> | $Enums.ClauseSentiment
+  patterns?: Prisma.StringNullableListFilter<"Rule">
+  severityWeight?: Prisma.IntWithAggregatesFilter<"Rule"> | number
+  position?: Prisma.IntWithAggregatesFilter<"Rule"> | number
+  partyEffectHint?: Prisma.EnumClauseSentimentWithAggregatesFilter<"Rule"> | $Enums.ClauseSentiment
   explanation?: Prisma.StringWithAggregatesFilter<"Rule"> | string
+  justification?: Prisma.StringWithAggregatesFilter<"Rule"> | string
   isActive?: Prisma.BoolWithAggregatesFilter<"Rule"> | boolean
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Rule"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Rule"> | Date | string
@@ -287,12 +359,15 @@ export type RuleScalarWhereWithAggregatesInput = {
 
 export type RuleCreateInput = {
   id?: string
+  ruleId: string
   name: string
   category: $Enums.ClauseCategory
-  pattern: string
-  riskLevel: $Enums.RiskLevel
-  sentiment: $Enums.ClauseSentiment
+  patterns?: Prisma.RuleCreatepatternsInput | string[]
+  severityWeight: number
+  position?: number
+  partyEffectHint: $Enums.ClauseSentiment
   explanation: string
+  justification?: string
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -300,12 +375,15 @@ export type RuleCreateInput = {
 
 export type RuleUncheckedCreateInput = {
   id?: string
+  ruleId: string
   name: string
   category: $Enums.ClauseCategory
-  pattern: string
-  riskLevel: $Enums.RiskLevel
-  sentiment: $Enums.ClauseSentiment
+  patterns?: Prisma.RuleCreatepatternsInput | string[]
+  severityWeight: number
+  position?: number
+  partyEffectHint: $Enums.ClauseSentiment
   explanation: string
+  justification?: string
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -313,12 +391,15 @@ export type RuleUncheckedCreateInput = {
 
 export type RuleUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  ruleId?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   category?: Prisma.EnumClauseCategoryFieldUpdateOperationsInput | $Enums.ClauseCategory
-  pattern?: Prisma.StringFieldUpdateOperationsInput | string
-  riskLevel?: Prisma.EnumRiskLevelFieldUpdateOperationsInput | $Enums.RiskLevel
-  sentiment?: Prisma.EnumClauseSentimentFieldUpdateOperationsInput | $Enums.ClauseSentiment
+  patterns?: Prisma.RuleUpdatepatternsInput | string[]
+  severityWeight?: Prisma.IntFieldUpdateOperationsInput | number
+  position?: Prisma.IntFieldUpdateOperationsInput | number
+  partyEffectHint?: Prisma.EnumClauseSentimentFieldUpdateOperationsInput | $Enums.ClauseSentiment
   explanation?: Prisma.StringFieldUpdateOperationsInput | string
+  justification?: Prisma.StringFieldUpdateOperationsInput | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -326,12 +407,15 @@ export type RuleUpdateInput = {
 
 export type RuleUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  ruleId?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   category?: Prisma.EnumClauseCategoryFieldUpdateOperationsInput | $Enums.ClauseCategory
-  pattern?: Prisma.StringFieldUpdateOperationsInput | string
-  riskLevel?: Prisma.EnumRiskLevelFieldUpdateOperationsInput | $Enums.RiskLevel
-  sentiment?: Prisma.EnumClauseSentimentFieldUpdateOperationsInput | $Enums.ClauseSentiment
+  patterns?: Prisma.RuleUpdatepatternsInput | string[]
+  severityWeight?: Prisma.IntFieldUpdateOperationsInput | number
+  position?: Prisma.IntFieldUpdateOperationsInput | number
+  partyEffectHint?: Prisma.EnumClauseSentimentFieldUpdateOperationsInput | $Enums.ClauseSentiment
   explanation?: Prisma.StringFieldUpdateOperationsInput | string
+  justification?: Prisma.StringFieldUpdateOperationsInput | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -339,12 +423,15 @@ export type RuleUncheckedUpdateInput = {
 
 export type RuleCreateManyInput = {
   id?: string
+  ruleId: string
   name: string
   category: $Enums.ClauseCategory
-  pattern: string
-  riskLevel: $Enums.RiskLevel
-  sentiment: $Enums.ClauseSentiment
+  patterns?: Prisma.RuleCreatepatternsInput | string[]
+  severityWeight: number
+  position?: number
+  partyEffectHint: $Enums.ClauseSentiment
   explanation: string
+  justification?: string
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -352,12 +439,15 @@ export type RuleCreateManyInput = {
 
 export type RuleUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  ruleId?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   category?: Prisma.EnumClauseCategoryFieldUpdateOperationsInput | $Enums.ClauseCategory
-  pattern?: Prisma.StringFieldUpdateOperationsInput | string
-  riskLevel?: Prisma.EnumRiskLevelFieldUpdateOperationsInput | $Enums.RiskLevel
-  sentiment?: Prisma.EnumClauseSentimentFieldUpdateOperationsInput | $Enums.ClauseSentiment
+  patterns?: Prisma.RuleUpdatepatternsInput | string[]
+  severityWeight?: Prisma.IntFieldUpdateOperationsInput | number
+  position?: Prisma.IntFieldUpdateOperationsInput | number
+  partyEffectHint?: Prisma.EnumClauseSentimentFieldUpdateOperationsInput | $Enums.ClauseSentiment
   explanation?: Prisma.StringFieldUpdateOperationsInput | string
+  justification?: Prisma.StringFieldUpdateOperationsInput | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -365,12 +455,15 @@ export type RuleUpdateManyMutationInput = {
 
 export type RuleUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  ruleId?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   category?: Prisma.EnumClauseCategoryFieldUpdateOperationsInput | $Enums.ClauseCategory
-  pattern?: Prisma.StringFieldUpdateOperationsInput | string
-  riskLevel?: Prisma.EnumRiskLevelFieldUpdateOperationsInput | $Enums.RiskLevel
-  sentiment?: Prisma.EnumClauseSentimentFieldUpdateOperationsInput | $Enums.ClauseSentiment
+  patterns?: Prisma.RuleUpdatepatternsInput | string[]
+  severityWeight?: Prisma.IntFieldUpdateOperationsInput | number
+  position?: Prisma.IntFieldUpdateOperationsInput | number
+  partyEffectHint?: Prisma.EnumClauseSentimentFieldUpdateOperationsInput | $Enums.ClauseSentiment
   explanation?: Prisma.StringFieldUpdateOperationsInput | string
+  justification?: Prisma.StringFieldUpdateOperationsInput | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -378,25 +471,35 @@ export type RuleUncheckedUpdateManyInput = {
 
 export type RuleCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
+  ruleId?: Prisma.SortOrder
   name?: Prisma.SortOrder
   category?: Prisma.SortOrder
-  pattern?: Prisma.SortOrder
-  riskLevel?: Prisma.SortOrder
-  sentiment?: Prisma.SortOrder
+  patterns?: Prisma.SortOrder
+  severityWeight?: Prisma.SortOrder
+  position?: Prisma.SortOrder
+  partyEffectHint?: Prisma.SortOrder
   explanation?: Prisma.SortOrder
+  justification?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
 
+export type RuleAvgOrderByAggregateInput = {
+  severityWeight?: Prisma.SortOrder
+  position?: Prisma.SortOrder
+}
+
 export type RuleMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
+  ruleId?: Prisma.SortOrder
   name?: Prisma.SortOrder
   category?: Prisma.SortOrder
-  pattern?: Prisma.SortOrder
-  riskLevel?: Prisma.SortOrder
-  sentiment?: Prisma.SortOrder
+  severityWeight?: Prisma.SortOrder
+  position?: Prisma.SortOrder
+  partyEffectHint?: Prisma.SortOrder
   explanation?: Prisma.SortOrder
+  justification?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -404,15 +507,31 @@ export type RuleMaxOrderByAggregateInput = {
 
 export type RuleMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
+  ruleId?: Prisma.SortOrder
   name?: Prisma.SortOrder
   category?: Prisma.SortOrder
-  pattern?: Prisma.SortOrder
-  riskLevel?: Prisma.SortOrder
-  sentiment?: Prisma.SortOrder
+  severityWeight?: Prisma.SortOrder
+  position?: Prisma.SortOrder
+  partyEffectHint?: Prisma.SortOrder
   explanation?: Prisma.SortOrder
+  justification?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+}
+
+export type RuleSumOrderByAggregateInput = {
+  severityWeight?: Prisma.SortOrder
+  position?: Prisma.SortOrder
+}
+
+export type RuleCreatepatternsInput = {
+  set: string[]
+}
+
+export type RuleUpdatepatternsInput = {
+  set?: string[]
+  push?: string | string[]
 }
 
 export type BoolFieldUpdateOperationsInput = {
@@ -423,12 +542,15 @@ export type BoolFieldUpdateOperationsInput = {
 
 export type RuleSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
+  ruleId?: boolean
   name?: boolean
   category?: boolean
-  pattern?: boolean
-  riskLevel?: boolean
-  sentiment?: boolean
+  patterns?: boolean
+  severityWeight?: boolean
+  position?: boolean
+  partyEffectHint?: boolean
   explanation?: boolean
+  justification?: boolean
   isActive?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -436,12 +558,15 @@ export type RuleSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
 
 export type RuleSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
+  ruleId?: boolean
   name?: boolean
   category?: boolean
-  pattern?: boolean
-  riskLevel?: boolean
-  sentiment?: boolean
+  patterns?: boolean
+  severityWeight?: boolean
+  position?: boolean
+  partyEffectHint?: boolean
   explanation?: boolean
+  justification?: boolean
   isActive?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -449,12 +574,15 @@ export type RuleSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
 
 export type RuleSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
+  ruleId?: boolean
   name?: boolean
   category?: boolean
-  pattern?: boolean
-  riskLevel?: boolean
-  sentiment?: boolean
+  patterns?: boolean
+  severityWeight?: boolean
+  position?: boolean
+  partyEffectHint?: boolean
   explanation?: boolean
+  justification?: boolean
   isActive?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -462,30 +590,36 @@ export type RuleSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
 
 export type RuleSelectScalar = {
   id?: boolean
+  ruleId?: boolean
   name?: boolean
   category?: boolean
-  pattern?: boolean
-  riskLevel?: boolean
-  sentiment?: boolean
+  patterns?: boolean
+  severityWeight?: boolean
+  position?: boolean
+  partyEffectHint?: boolean
   explanation?: boolean
+  justification?: boolean
   isActive?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type RuleOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "category" | "pattern" | "riskLevel" | "sentiment" | "explanation" | "isActive" | "createdAt" | "updatedAt", ExtArgs["result"]["rule"]>
+export type RuleOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "ruleId" | "name" | "category" | "patterns" | "severityWeight" | "position" | "partyEffectHint" | "explanation" | "justification" | "isActive" | "createdAt" | "updatedAt", ExtArgs["result"]["rule"]>
 
 export type $RulePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "Rule"
   objects: {}
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
+    ruleId: string
     name: string
     category: $Enums.ClauseCategory
-    pattern: string
-    riskLevel: $Enums.RiskLevel
-    sentiment: $Enums.ClauseSentiment
+    patterns: string[]
+    severityWeight: number
+    position: number
+    partyEffectHint: $Enums.ClauseSentiment
     explanation: string
+    justification: string
     isActive: boolean
     createdAt: Date
     updatedAt: Date
@@ -913,12 +1047,15 @@ export interface Prisma__RuleClient<T, Null = never, ExtArgs extends runtime.Typ
  */
 export interface RuleFieldRefs {
   readonly id: Prisma.FieldRef<"Rule", 'String'>
+  readonly ruleId: Prisma.FieldRef<"Rule", 'String'>
   readonly name: Prisma.FieldRef<"Rule", 'String'>
   readonly category: Prisma.FieldRef<"Rule", 'ClauseCategory'>
-  readonly pattern: Prisma.FieldRef<"Rule", 'String'>
-  readonly riskLevel: Prisma.FieldRef<"Rule", 'RiskLevel'>
-  readonly sentiment: Prisma.FieldRef<"Rule", 'ClauseSentiment'>
+  readonly patterns: Prisma.FieldRef<"Rule", 'String[]'>
+  readonly severityWeight: Prisma.FieldRef<"Rule", 'Int'>
+  readonly position: Prisma.FieldRef<"Rule", 'Int'>
+  readonly partyEffectHint: Prisma.FieldRef<"Rule", 'ClauseSentiment'>
   readonly explanation: Prisma.FieldRef<"Rule", 'String'>
+  readonly justification: Prisma.FieldRef<"Rule", 'String'>
   readonly isActive: Prisma.FieldRef<"Rule", 'Boolean'>
   readonly createdAt: Prisma.FieldRef<"Rule", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Rule", 'DateTime'>
