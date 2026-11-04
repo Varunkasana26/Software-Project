@@ -69,11 +69,13 @@
       "category": "penalty",
       "patterns": [
         "salary in lieu",
-        "in lieu of[^.]{0,30}notice"
+        "(?:unserved|un-served)[^.]{0,30}notice",
+        "in lieu of[^.]{0,30}unserved"
       ],
       "severity_weight": 3,
       "party_effect_hint": "unfavorable",
-      "explanation": "Salary is owed instead of notice if the notice period is not served."
+      "explanation": "Salary is owed instead of notice if the notice period is not served.",
+      "justification": "'Payment in lieu of notice' is an ordinary option. Only salary owed for a notice period that was NOT served is a penalty."
     },
     {
       "rule_id": "PEN-008",
@@ -95,6 +97,28 @@
       "severity_weight": 3,
       "party_effect_hint": "favorable",
       "explanation": "A grace period delays any late charge."
+    },
+    {
+      "rule_id": "PEN-010",
+      "category": "penalty",
+      "patterns": [
+        "\\b(?:employer|landlord|company|owner)\\b[^.]{0,60}\\b(?:deduct\\w*|withh[oe]ld\\w*|recover\\w*)\\b[^.]{0,60}\\b(?:salary|wages|pay|deposit|amounts?)\\b"
+      ],
+      "severity_weight": 3,
+      "party_effect_hint": "unfavorable",
+      "explanation": "The employer or landlord may deduct or recover money from the employee or tenant.",
+      "justification": "Deduction and recovery clauses are the usual way a stronger party takes money back; written from the employee/tenant side."
+    },
+    {
+      "rule_id": "PEN-011",
+      "category": "penalty",
+      "patterns": [
+        "\\b(?:client|customer)\\b[^.]{0,60}\\b(?:deduct\\w*|withh[oe]ld\\w*)\\b"
+      ],
+      "severity_weight": 3,
+      "party_effect_hint": "favorable",
+      "explanation": "The client may deduct from the provider's fee.",
+      "justification": "Deduction or withholding by the paying client is the usual delay-penalty mechanism; written from the client side, so it is flipped for the freelancer."
     },
     {
       "rule_id": "RGT-001",
@@ -168,24 +192,99 @@
       "explanation": "Work done in the person's own time with their own resources stays theirs."
     },
     {
+      "rule_id": "RGT-008",
+      "category": "right",
+      "patterns": [
+        "\\bmay\\b(?!\\s+not)",
+        "\\b(?:is|are)\\s+(?:permitted|allowed)\\s+to\\b",
+        "\\breserves?\\s+the\\s+right\\b"
+      ],
+      "severity_weight": 1,
+      "party_effect_hint": "neutral",
+      "explanation": "A permission is stated. Ordinary rights are neutral.",
+      "justification": "Permission verbs are the standard way a contract grants a right (cue only, weight 1). 'may not' is a prohibition and is excluded."
+    },
+    {
+      "rule_id": "RGT-009",
+      "category": "right",
+      "patterns": [
+        "\\b(?:is|are|shall\\s+be)\\s+entitled\\s+to\\b",
+        "\\b(?:has|have)\\s+the\\s+right\\s+to\\b"
+      ],
+      "severity_weight": 2,
+      "party_effect_hint": "neutral",
+      "explanation": "An entitlement is stated.",
+      "justification": "'entitled to' and 'has the right to' state an entitlement more specifically than 'may'."
+    },
+    {
+      "rule_id": "RGT-010",
+      "category": "right",
+      "patterns": [
+        "\\b(?:paid|earned|annual|casual|sick|maternity|paternity)\\s+(?:\\w+\\s+)?leave\\b",
+        "\\b(?:health|medical|life|accident)\\s+insurance\\b",
+        "\\bprovident\\s+fund\\b",
+        "\\bgratuity\\b",
+        "\\bbonus(?:es)?\\b"
+      ],
+      "severity_weight": 2,
+      "party_effect_hint": "favorable",
+      "explanation": "A standard employee benefit is granted.",
+      "justification": "Paid leave, insurance cover, provident fund, gratuity and bonus are the usual statutory or customary employee benefits."
+    },
+    {
+      "rule_id": "RGT-011",
+      "category": "right",
+      "patterns": [
+        "\\b(?:enter|entry|inspect(?:ion)?|access)\\b[^.]{0,80}\\b(?:\\d+|twelve|twenty[- ]four|forty[- ]eight|seventy[- ]two)(?:\\s*\\(\\d+\\))?\\s*hours?['’]?\\s+(?:prior\\s+|advance\\s+)?(?:written\\s+)?notice"
+      ],
+      "severity_weight": 2,
+      "party_effect_hint": "favorable",
+      "explanation": "Entry or inspection needs advance notice, which protects the occupant.",
+      "justification": "Advance notice before entry is the standard tenant protection in a lease. Unrestricted entry is covered by RGT-005."
+    },
+    {
+      "rule_id": "RGT-012",
+      "category": "right",
+      "patterns": [
+        "\\b(?:use|enjoy|access)\\b[^.]{0,60}\\b(?:common\\s+areas?|parking|amenities|facilities)\\b"
+      ],
+      "severity_weight": 2,
+      "party_effect_hint": "favorable",
+      "explanation": "The user is given use of amenities or common areas.",
+      "justification": "Parking, common areas and amenities are the usual rights a lease grants beyond the unit itself."
+    },
+    {
+      "rule_id": "RGT-013",
+      "category": "right",
+      "patterns": [
+        "\\bportfolio\\b"
+      ],
+      "severity_weight": 2,
+      "party_effect_hint": "unfavorable",
+      "explanation": "The creator may show the finished work in a portfolio.",
+      "justification": "A portfolio-display right is a common freelance clause (hint is written from the client side: it limits the client, so it is favorable only for the freelancer)."
+    },
+    {
       "rule_id": "TRM-001",
       "category": "termination",
       "patterns": [
-        "\\b(three|five|seven|ten)\\s*\\(\\d+\\)\\s*days?\\s+(written\\s+)?notice"
+        "\\b(?:three|five|seven|ten|[1-9]|10)(?:\\s*\\(\\d+\\))?[\\s-]*(?:calendar\\s+|business\\s+)?days?['’]?\\s+(?:prior\\s+)?(?:written\\s+)?notice\\b"
       ],
       "severity_weight": 3,
       "party_effect_hint": "unfavorable",
-      "explanation": "Very short notice period (10 days or less)."
+      "explanation": "Very short notice period (10 days or less).",
+      "justification": "Short notice is a risk however it is written: digits or words, with or without a bracketed number, with 'prior'."
     },
     {
       "rule_id": "TRM-002",
       "category": "termination",
       "patterns": [
-        "\\b(fourteen|fifteen|thirty|forty-five|sixty|ninety)\\s*\\(\\d+\\)\\s*days?'?\\s+(written\\s+)?notice"
+        "\\b(?:\\d+|(?:one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|fourteen|fifteen|twenty|thirty|forty|forty-five|sixty|ninety))(?:\\s*\\(\\d+\\))?[\\s-]*(?:calendar\\s+|business\\s+|working\\s+)?(?:days?|weeks?|months?)['’]?\\s+(?:prior\\s+)?(?:written\\s+)?notice\\b"
       ],
-      "severity_weight": 1,
+      "severity_weight": 2,
       "party_effect_hint": "neutral",
-      "explanation": "A normal notice period (14 to 90 days)."
+      "explanation": "A normal notice period (14 to 90 days).",
+      "justification": "A stated notice period (days, weeks or months; words or digits) is the standard termination mechanism. Neutral by itself."
     },
     {
       "rule_id": "TRM-003",
@@ -231,23 +330,25 @@
       "rule_id": "TRM-007",
       "category": "termination",
       "patterns": [
-        "cure[^.]{0,40}\\b(three|five|seven|ten)\\s*\\(\\d+\\)\\s*days?",
-        "\\b(three|five|seven|ten)\\s*\\(\\d+\\)\\s*days?[^.]{0,40}cure"
+        "(?:cure|remed(?:y|ied)|rectif(?:y|ied))[^.]{0,40}\\b(?:three|five|seven|ten|[1-9]|10)(?:\\s*\\(\\d+\\))?[\\s-]*days?",
+        "\\b(?:three|five|seven|ten|[1-9]|10)(?:\\s*\\(\\d+\\))?[\\s-]*days?[^.]{0,40}(?:cure|remed(?:y|ied)|rectif(?:y|ied))"
       ],
       "severity_weight": 3,
       "party_effect_hint": "unfavorable",
-      "explanation": "A breach must be fixed within a very short cure period."
+      "explanation": "A breach must be fixed within a very short cure period.",
+      "justification": "Cure periods are often written with 'remedy' or 'rectify' instead of 'cure', and with or without a bracketed number."
     },
     {
       "rule_id": "TRM-008",
       "category": "termination",
       "patterns": [
-        "cure[^.]{0,40}\\b(thirty|forty-five|sixty|ninety)\\s*\\(\\d+\\)\\s*days?",
-        "\\b(thirty|forty-five|sixty|ninety)\\s*\\(\\d+\\)\\s*days?[^.]{0,40}cure"
+        "(?:cure|remed(?:y|ied)|rectif(?:y|ied))[^.]{0,40}\\b(?:thirty|forty-five|sixty|ninety|30|45|60|90)(?:\\s*\\(\\d+\\))?[\\s-]*days?",
+        "\\b(?:thirty|forty-five|sixty|ninety|30|45|60|90)(?:\\s*\\(\\d+\\))?[\\s-]*days?[^.]{0,40}(?:cure|remed(?:y|ied)|rectif(?:y|ied))"
       ],
       "severity_weight": 3,
       "party_effect_hint": "favorable",
-      "explanation": "A breach can be fixed within a long cure period (30 days or more)."
+      "explanation": "A breach can be fixed within a long cure period (30 days or more).",
+      "justification": "Same wording variants as TRM-007, for long cure periods."
     },
     {
       "rule_id": "TRM-009",
@@ -303,25 +404,50 @@
       "explanation": "The agreement renews unless either side gives notice."
     },
     {
+      "rule_id": "TRM-014",
+      "category": "termination",
+      "patterns": [
+        "\\b(?:terminat(?:e|es|ed|ing|ion)|resign(?:s|ed|ation)?|cancel(?:s|led|lation)?)\\b"
+      ],
+      "severity_weight": 2,
+      "party_effect_hint": "neutral",
+      "explanation": "The clause is about ending the agreement.",
+      "justification": "Terminate, resign, cancel and end are the topic words of an exit clause."
+    },
+    {
+      "rule_id": "TRM-015",
+      "category": "termination",
+      "patterns": [
+        "\\b(?:remed(?:y|ies|ied)|rectif(?:y|ied|ication)|cure[ds]?)\\b[^.]{0,60}\\b(?:breach|default|failure)\\b",
+        "\\b(?:breach|default)\\b[^.]{0,60}\\b(?:remed(?:y|ied)|rectif(?:y|ied)|cure[ds]?)\\b"
+      ],
+      "severity_weight": 2,
+      "party_effect_hint": "neutral",
+      "explanation": "A breach can be fixed within a period before the agreement can end.",
+      "justification": "Cure or remedy periods are a standard breach mechanism; CUAD termination notes use the same vocabulary."
+    },
+    {
       "rule_id": "PAY-001",
       "category": "payment_term",
       "patterns": [
         "\\b(rent|salary)\\b[^.]{0,60}(on or before|due)"
       ],
-      "severity_weight": 1,
+      "severity_weight": 2,
       "party_effect_hint": "neutral",
-      "explanation": "States when rent or salary is due."
+      "explanation": "States when rent or salary is due.",
+      "justification": "Category priority: a stated due date for rent or salary is a payment term, ahead of the generic duty cue."
     },
     {
       "rule_id": "PAY-002",
       "category": "payment_term",
       "patterns": [
-        "(due|payable) within\\s+[a-z\\-]+\\s*\\(\\d+\\)\\s*days",
-        "within\\s+[a-z\\-]+\\s*\\(\\d+\\)\\s*days of (the )?(invoice|receiving)"
+        "(?:due|payable) within\\s+[a-z\\-]+\\s*\\(\\d+\\)\\s*days",
+        "\\bwithin\\s+(?:\\d+|(?:one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|fourteen|fifteen|twenty|thirty|forty|forty-five|sixty|ninety))(?:\\s*\\(\\d+\\))?\\s+(?:calendar\\s+|business\\s+|working\\s+)?days?\\s+(?:of|after|from|following)\\s+(?:the\\s+)?(?:invoice|receipt|date of invoice|due date)"
       ],
-      "severity_weight": 1,
+      "severity_weight": 2,
       "party_effect_hint": "neutral",
-      "explanation": "States the number of days allowed to pay an invoice."
+      "explanation": "States the number of days allowed to pay an invoice.",
+      "justification": "Invoice payment windows are written 'within N days of/after receipt or invoice' as well as 'due within'."
     },
     {
       "rule_id": "PAY-003",
@@ -329,9 +455,10 @@
       "patterns": [
         "advance[^.]{0,80}balance"
       ],
-      "severity_weight": 1,
+      "severity_weight": 2,
       "party_effect_hint": "neutral",
-      "explanation": "Payment is split into an advance and a balance."
+      "explanation": "Payment is split into an advance and a balance.",
+      "justification": "Category priority only: an advance and balance split is a payment schedule."
     },
     {
       "rule_id": "PAY-004",
@@ -352,6 +479,31 @@
       "severity_weight": 3,
       "party_effect_hint": "favorable",
       "explanation": "Severance pay is promised if the person is dismissed without cause."
+    },
+    {
+      "rule_id": "PAY-006",
+      "category": "payment_term",
+      "patterns": [
+        "\\b(?:per|each|every)\\s+(?:calendar\\s+)?(?:month|year|quarter|milestone)\\b",
+        "\\binstal+ments?\\b",
+        "\\bpayable\\b"
+      ],
+      "severity_weight": 2,
+      "party_effect_hint": "neutral",
+      "explanation": "A payment schedule is stated.",
+      "justification": "Per-month and instalment wording and 'payable' are standard ways to schedule payments. ('on or before' is already covered by PAY-001.)"
+    },
+    {
+      "rule_id": "PAY-007",
+      "category": "payment_term",
+      "patterns": [
+        "\\b(?:pay|paid|payment|payments|invoices?|fees?|salary|wages|rent|remuneration|stipend)\\b",
+        "(?:\\u20b9|\\bINR\\b|\\bRs\\.?|\\bUSD\\b|\\$)\\s?\\d"
+      ],
+      "severity_weight": 1,
+      "party_effect_hint": "neutral",
+      "explanation": "Money is mentioned (cue only).",
+      "justification": "Payment words and currency amounts show a payment topic when nothing more specific matches (weight 1)."
     },
     {
       "rule_id": "OBL-001",
@@ -407,11 +559,12 @@
       "rule_id": "OBL-006",
       "category": "obligation",
       "patterns": [
-        "(landlord|owner)\\s+is\\s+responsible\\s+for[^.]{0,60}repairs"
+        "(?:landlord|owner|lessor)\\s+(?:shall\\s+be\\s+responsible\\s+for|shall\\s+(?:bear|carry\\s+out|undertake|attend\\s+to)|is\\s+responsible\\s+for)[^.]{0,80}\\b(?:repair|repairs|repairing|maintenance|maintain|maintaining)\\b"
       ],
       "severity_weight": 3,
       "party_effect_hint": "favorable",
-      "explanation": "The landlord is responsible for repairs."
+      "explanation": "The landlord is responsible for repairs.",
+      "justification": "Landlord repair duties are written 'shall be responsible for', 'shall bear' or 'is responsible for', covering repair or maintenance."
     },
     {
       "rule_id": "OBL-007",
@@ -475,6 +628,78 @@
       "explanation": "The deposit is returned quickly (30 days or less)."
     },
     {
+      "rule_id": "OBL-013",
+      "category": "obligation",
+      "patterns": [
+        "\\b(?:shall|must|agrees?\\s+to|undertakes?\\s+to|covenants?\\s+to|(?:is|are)\\s+(?:required|obliged|obligated)\\s+to|(?:is|are)\\s+responsible\\s+for)\\b"
+      ],
+      "severity_weight": 1,
+      "party_effect_hint": "neutral",
+      "explanation": "A duty is stated. Ordinary duties are neutral.",
+      "justification": "Duty verbs are the standard way a contract imposes an obligation (cue only, weight 1)."
+    },
+    {
+      "rule_id": "OBL-014",
+      "category": "obligation",
+      "patterns": [
+        "\\b(?:shall|must|will|may)\\s+not\\b",
+        "\\b(?:is|are)\\s+not\\s+(?:permitted|allowed)\\s+to\\b"
+      ],
+      "severity_weight": 1,
+      "party_effect_hint": "neutral",
+      "explanation": "A prohibition is stated. Ordinary prohibitions are neutral.",
+      "justification": "'shall not', 'must not' and 'is not permitted to' are the standard prohibition forms."
+    },
+    {
+      "rule_id": "OBL-015",
+      "category": "obligation",
+      "patterns": [
+        "(?<!non-)\\bconfidential(?:ity)?\\b",
+        "\\bnon-?disclosure\\b",
+        "\\bproprietary information\\b",
+        "\\btrade secrets?\\b",
+        "\\bnon-public\\b"
+      ],
+      "severity_weight": 2,
+      "party_effect_hint": "neutral",
+      "explanation": "A confidentiality duty is stated.",
+      "justification": "Confidentiality and non-disclosure are standard clause headings; CUAD notes list the same vocabulary. 'non-' is excluded so that 'non-confidential' is not matched."
+    },
+    {
+      "rule_id": "OBL-016",
+      "category": "obligation",
+      "patterns": [
+        "\\b(?:repair(?:s|ing)?|maintenance|maintain(?:ing)?|upkeep)\\b"
+      ],
+      "severity_weight": 2,
+      "party_effect_hint": "neutral",
+      "explanation": "Repairs or maintenance are allocated.",
+      "justification": "Repair and maintenance duties are a standard part of every lease and service contract."
+    },
+    {
+      "rule_id": "OBL-017",
+      "category": "obligation",
+      "patterns": [
+        "\\b(?:ownership|title|rights?)\\b[^.]{0,60}\\b(?:transfer|vest|pass|assign)\\w*[^.]{0,60}\\b(?:only\\s+)?(?:after|upon|on)\\b[^.]{0,40}\\bpayment\\b"
+      ],
+      "severity_weight": 2,
+      "party_effect_hint": "unfavorable",
+      "explanation": "Ownership passes only after payment, so the buyer does not own the work until it has paid in full.",
+      "justification": "Standard intellectual-property clause: ownership or title transfers on payment (hint is from the client side, so it is unfavorable to the client)."
+    },
+    {
+      "rule_id": "OBL-018",
+      "category": "obligation",
+      "patterns": [
+        "\\b(?:return|refund|repay)(?:ed|ing|s)?\\b[^.]{0,60}\\bdeposit\\b",
+        "\\bdeposit\\b[^.]{0,60}\\b(?:returned|refunded|refundable)\\b"
+      ],
+      "severity_weight": 2,
+      "party_effect_hint": "neutral",
+      "explanation": "A deposit is to be returned or refunded.",
+      "justification": "Security-deposit return is a standard tenancy clause (the quick-return case is OBL-012)."
+    },
+    {
       "rule_id": "OTH-001",
       "category": "other",
       "patterns": [
@@ -525,6 +750,32 @@
       "severity_weight": 3,
       "party_effect_hint": "unfavorable",
       "explanation": "Only the other side's chosen court may hear disputes."
+    },
+    {
+      "rule_id": "OTH-006",
+      "category": "other",
+      "patterns": [
+        "\\bgoverned\\s+by\\b[^.]{0,40}\\blaws?\\b",
+        "\\bgoverning\\s+law\\b",
+        "\\bconstrued\\s+in\\s+accordance\\s+with\\b"
+      ],
+      "severity_weight": 2,
+      "party_effect_hint": "neutral",
+      "explanation": "The governing law is named.",
+      "justification": "A governing-law clause is in almost every contract; CUAD has a Governing Law category."
+    },
+    {
+      "rule_id": "OTH-007",
+      "category": "other",
+      "patterns": [
+        "\\bjurisdiction\\b",
+        "\\bcourts?\\s+(?:at|of|in)\\b",
+        "\\bvenue\\b"
+      ],
+      "severity_weight": 2,
+      "party_effect_hint": "neutral",
+      "explanation": "The court or venue for disputes is named.",
+      "justification": "Jurisdiction and venue are the standard dispute-forum words."
     }
   ]
 }

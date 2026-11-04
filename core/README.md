@@ -54,6 +54,30 @@ pytest core/tests
 Each rule has a `severity_weight` (1-5) and a `party_effect_hint` written from the tenant / employee / recipient / client side. For landlord / employer / discloser / provider the hint is flipped.
 `risk` = sum of weights of rules that hurt the user, `benefit` = sum that help. Label is `unfavorable` if risk > benefit, `favorable` if benefit > risk, else `neutral`. `auto_score = min(10, 2 * risk)`.
 
+### What the three labels mean
+
+**For the scorer** (what the code does, per clause):
+- `unfavorable`: the matched rules that hurt the user's side outweigh the ones that help it.
+- `favorable`: the matched rules that help the user's side outweigh the ones that hurt it.
+- `neutral`: nothing that matters matched, or the two sides cancel out, or only neutral rules matched. Ordinary duty and permission cues ("shall", "may", a notice period, a payment date, a governing law) carry a `neutral` hint, so they never change the label or the score.
+- The label comes only from the `party_effect_hint` of the matched rules and the side the user is on. The scorer cannot read who benefits from a sentence on its own, so a clause is only `favorable` or `unfavorable` if some rule says so.
+
+**For the labelling convention** (the synthetic dataset in `data/labeled/`, written by people or an LLM):
+- Ordinary, standard duties and rights are `neutral`.
+- `favorable` is reserved for clear protection of the perspective party.
+- `unfavorable` is reserved for unusually burdensome, one-sided terms or penalties.
+
+**Where they differ:**
+- The labeller judges the whole clause. The scorer adds up fixed per-rule hints, so a clause with no matching rule is always `neutral`, even if a person would call it one-sided.
+- A rule hint is the same for every contract. A labeller can call the same wording neutral in one contract and favorable in another.
+- Labels are written from one side (tenant, employee, freelancer, ...). The scorer flips the hints for the opposite side, which only works if the rule patterns name the acting party (for example employer vs. client).
+- `auto_score` is a risk number from unfavorable rules only. A `favorable` or `neutral` clause scores 0 unless an unfavorable rule also matched.
+- `severity_weight` on a neutral rule only decides which category wins when several rules match (higher weight wins, then the order of the file: penalty, right, termination, payment_term, obligation, other). It does not change the risk score.
+
+### Rule coverage
+
+Rules added in phase 7 carry a one-line `justification` in `rules/rules.json` (a general drafting convention, or vocabulary from `data/cuad_keyword_notes.md`). Duty and permission cues have weight 1, topic rules (notice, payment schedule, governing law, confidentiality, deposit, repairs) weight 2, and only deductions and a few clearly one-sided terms are weighted 3.
+
 ## Data
 
 - `data/samples/`: 8 fictional contracts (`.txt`), 2 text PDFs and 1 scanned-style PDF. Rebuild PDFs with `python core/data/make_pdfs.py`.
@@ -82,7 +106,7 @@ python -m core.eval.merge_labels finalize OUT/merged_draft.csv --out-dir OUT [--
 - `finalize` refuses (exit 1, ids listed, nothing written) if any final label is blank or invalid or `resolved_by` is empty. It writes `gold.csv` and `gold.json` (a JSON list; each item also keeps `perspective` when the clauses file has one, so `party_effect` is judged for the right side).
 - Score a result with `python -m core.eval.evaluate --gold OUT/gold.json`.
 - Generated files in `data/labeled/out/` are git-ignored.
-- `gold.json` always carries `label_source = "two independent LLM passes; disagreements resolved by a team member"`. That text is only true if the passes really were independent.
+- `gold.json` records `label_source`: "single LLM pass (not independent)" when the two pass files were identical, otherwise "two independent passes; disagreements resolved by <the resolved_by names>".
 
 ## Known limits
 

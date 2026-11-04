@@ -21,6 +21,9 @@ from core.segmenter import segment_clauses
 GOLD = Path(__file__).resolve().parents[1] / "data" / "labeled" / "gold.json"
 SAMPLES = GOLD.parents[1] / "samples"
 # The gold labels are written from this side. Service and freelance contracts use the client.
+# Split of the synthetic set: rules may be written and tuned on DEV only; HOLDOUT is scored once, at the end.
+SPLITS = {"dev": ("R", "E", "F"), "holdout": ("H",)}
+CATEGORIES = ("obligation", "right", "penalty", "termination", "payment_term", "other")  # fixed order for the matrix
 SIDE = {"rental": "tenant", "employment": "employee", "nda": "recipient", "service": "client", "freelance": "client"}
 
 
@@ -46,11 +49,15 @@ def main() -> None:
         sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     ap = argparse.ArgumentParser(description="Evaluate the classifier on a labelled set.")
     ap.add_argument("--gold", type=Path, default=GOLD, help="gold file (default: data/labeled/gold.json)")
+    ap.add_argument("--split", choices=["all", *SPLITS], default="all",
+                    help="dev = ids starting R, E, F; holdout = ids starting H. Other rows are dropped before anything is scored or printed.")
     args = ap.parse_args()
     default_gold = args.gold.resolve() == GOLD.resolve()
 
     rules = load_rules()
     gold = load_gold(args.gold)
+    if args.split != "all":
+        gold = [g for g in gold if str(g.get("id", ""))[:1] in SPLITS[args.split]]
     rows, wrong = [], []
     for g in gold:
         c = classify_clause({"text": g["clause_text"]}, rules)
@@ -84,6 +91,21 @@ def main() -> None:
     eff_acc = sum(r[2] == r[3] for r in rows)
     print(f"\nCategory accuracy:     {cat_acc}/{len(rows)} = {cat_acc / len(rows):.2f}")
     print(f"party_effect accuracy: {eff_acc}/{len(rows)} = {eff_acc / len(rows):.2f}")
+
+    # Baselines that need no rules at all. The engine has to beat these to be worth anything.
+    n = len(rows)
+    top_cat, top_cat_n = Counter(r[0] for r in rows).most_common(1)[0]
+    neutral_n = sum(r[2] == "neutral" for r in rows)
+    print(f"\nEngine vs. baselines ({n} clauses, split: {args.split})")
+    print(f"  {'':44s}{'engine':>8s}{'baseline':>10s}")
+    print(f"  {'category (baseline: always ' + top_cat + ')':44s}{cat_acc / n:8.2f}{top_cat_n / n:10.2f}")
+    print(f"  {'party_effect (baseline: always neutral)':44s}{eff_acc / n:8.2f}{neutral_n / n:10.2f}")
+
+    print("\nCategory confusion matrix (rows = gold, columns = predicted)")
+    print(f"  {'':14s}" + "".join(f"{c[:8]:>10s}" for c in CATEGORIES))
+    for gold_cat in CATEGORIES:
+        counts = Counter(r[1] for r in rows if r[0] == gold_cat)
+        print(f"  {gold_cat:14s}" + "".join(f"{counts[c]:>10d}" for c in CATEGORIES))
     print("party_effect confusion (gold -> predicted):", dict(Counter((r[2], r[3]) for r in rows)))
 
     print(f"\nMisclassified clauses: {len(wrong)}")

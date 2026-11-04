@@ -24,10 +24,20 @@ LABEL_COLS = ["id", "category", "party_effect", "confidence", "split_ok", "notes
 DRAFT_COLS = ["id", "sample_file", "perspective", "clause_text",
               "pass1_category", "pass1_party_effect", "pass1_notes",
               "pass2_category", "pass2_party_effect", "pass2_notes",
-              "split_ok", "final_category", "final_party_effect", "resolved_by"]
+              "split_ok", "final_category", "final_party_effect", "resolved_by", "passes_identical"]
 SPOT_COLS = ["id", "clause_text", "label_category", "label_party_effect", "human_ok", "human_comment"]
 GOLD_COLS = ["id", "sample", "perspective", "clause_text", "category", "party_effect", "expected_rule_ids", "split_ok", "label_source"]
-LABEL_SOURCE = "two independent LLM passes; disagreements resolved by a team member"
+
+
+def label_source(rows: list[dict]) -> str:
+    """Describe where the labels came from, without claiming more than is known."""
+    flags = {norm(r.get("passes_identical")) for r in rows}
+    if flags == {"y"}:
+        return "single LLM pass (not independent)"  # compare saw two identical files
+    if flags == {"n"}:
+        people = sorted({(r.get("resolved_by") or "").strip() for r in rows} - {"agreement", ""})
+        return "two independent passes; disagreements resolved by " + (", ".join(people) if people else "nobody (the passes never disagreed)")
+    return "label source not recorded (merged_draft.csv has no passes_identical column)"
 
 
 # ---------- small helpers ----------
@@ -147,7 +157,7 @@ def cmd_compare(args) -> int:
             "pass1_category": a["category"] if a else "", "pass1_party_effect": a["party_effect"] if a else "", "pass1_notes": a["notes"] if a else "",
             "pass2_category": b["category"] if b else "", "pass2_party_effect": b["party_effect"] if b else "", "pass2_notes": b["notes"] if b else "",
             "split_ok": "n" if "n" in (a and a["split_ok"], b and b["split_ok"]) else ("y" if (a and a["split_ok"] == "y") or (b and b["split_ok"] == "y") else ""),
-            "final_category": "", "final_party_effect": "", "resolved_by": "",
+            "final_category": "", "final_party_effect": "", "resolved_by": "", "passes_identical": "y" if p1 == p2 else "n",
         }
         # Pre-fill only when both passes are valid and agree on both labels.
         agree = (a and b and all(valid(a, k) and valid(b, k) and a[k] == b[k] for k in ("category", "party_effect")))
@@ -228,6 +238,7 @@ def cmd_finalize(args) -> int:
             print(f"  {cid}: {'; '.join(reasons)}", file=sys.stderr)
         return 1
 
+    source = label_source(rows)
     gold = []
     for r in rows:
         item = {
@@ -238,7 +249,7 @@ def cmd_finalize(args) -> int:
             "party_effect": norm(r["final_party_effect"]),
             "expected_rule_ids": [],
             "split_ok": norm(r.get("split_ok")),
-            "label_source": LABEL_SOURCE,
+            "label_source": source,
         }
         if (r.get("perspective") or "").strip():
             item["perspective"] = r["perspective"].strip()  # who the party_effect is judged for
