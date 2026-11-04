@@ -1,0 +1,15 @@
+# Code owners, from OWNERS.md. The last matching pattern wins.
+# An owner only gets review requests if they have write access to the repository.
+
+# Default: root files (README, OWNERS, CONTRIBUTING, scripts, .github) and anything not listed below
+*            @Varunkasana26
+
+/core/       @Varunkasana26
+/shared/     @Varunkasana26
+/backend/    @Abhishek240514
+
+# TODO: add the GitHub usernames of the other lane owners, then uncomment.
+# Until then these lanes fall back to the default owner above.
+# /frontend/   @<HARNOOR_USERNAME>
+# /docs/       @<DAKSH_USERNAME>
+# /tests/      @<SHAURYA_USERNAME>
