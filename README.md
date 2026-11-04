@@ -42,7 +42,7 @@ Windows (PowerShell):
 git clone <repo-url> legal-document-summarizer
 cd legal-document-summarizer
 python -m venv .venv; .\.venv\Scripts\Activate.ps1
-pip install -r core\requirements.txt
+python -m pip install -r core\requirements.txt
 cd backend\api; npm install; cd ..\..
 cd frontend; npm install; cd ..
 ```
