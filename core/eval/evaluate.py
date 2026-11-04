@@ -14,7 +14,7 @@ from collections import Counter
 from pathlib import Path
 
 from core.classifier import classify_clause
-from core.rules.loader import CATEGORIES, load_rules
+from core.rules.loader import load_rules
 from core.scorer import score_clause
 from core.segmenter import segment_clauses
 
@@ -23,6 +23,7 @@ SAMPLES = GOLD.parents[1] / "samples"
 # The gold labels are written from this side. Service and freelance contracts use the client.
 # Split of the synthetic set: rules may be written and tuned on DEV only; HOLDOUT is scored once, at the end.
 SPLITS = {"dev": ("R", "E", "F"), "holdout": ("H",)}
+CATEGORIES = ("obligation", "right", "penalty", "termination", "payment_term", "other")  # fixed order for the matrix
 SIDE = {"rental": "tenant", "employment": "employee", "nda": "recipient", "service": "client", "freelance": "client"}
 
 
