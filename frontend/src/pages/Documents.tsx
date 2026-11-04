@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { listDocuments, type DocumentInfo } from "../api/client";
+import { listDocuments, processDocument, type DocumentInfo } from "../api/client";
+import { Alert } from "../components/Alert";
 import { useAuth } from "../components/Auth";
 import { PageHead } from "../components/Layout";
 import { EmptyState, ErrorState, Loading } from "../components/States";
@@ -12,6 +13,22 @@ export default function Documents() {
   const [page, setPage] = useState(1);
   const [data, setData] = useState<Awaited<ReturnType<typeof listDocuments>> | null>(null);
   const [error, setError] = useState("");
+  const [busy, setBusy] = useState<string | null>(null);
+  const [notice, setNotice] = useState("");
+
+  async function reanalyze(id: string) {
+    setBusy(id);
+    setNotice("");
+    try {
+      await processDocument(id);
+      setNotice("Analyzed again with the current rules.");
+      load();
+    } catch (e) {
+      setNotice(e instanceof Error ? e.message : "Could not analyze the document.");
+    } finally {
+      setBusy(null);
+    }
+  }
 
   const load = useCallback(() => {
     setError("");
@@ -24,6 +41,7 @@ export default function Documents() {
       <PageHead title="Documents">{user?.role === "LAWYER" ? "All uploaded documents, for review." : "Your uploaded documents."}</PageHead>
       <section className="section">
         <div className="container stack">
+          {notice && <div role="status"><Alert kind="info">{notice}</Alert></div>}
           {error ? <ErrorState message={error} onRetry={load} />
             : !data ? <Loading label="Loading documents" height={72} blocks={4} />
             : data.data.length === 0 ? <EmptyState title="No documents yet" action={<Link to="/upload" className="btn">Analyze a contract</Link>}>Upload a contract to see its risks here.</EmptyState>
@@ -38,6 +56,11 @@ export default function Documents() {
                       </div>
                       <div className="row">
                         {d.status === "COMPLETED" && <Link to={`/report/${d.id}`} className="btn btn--secondary btn--small">Open report</Link>}
+                        {user?.role !== "LAWYER" && d.status !== "PROCESSING" && (
+                          <button type="button" className="btn btn--secondary btn--small" disabled={busy === d.id} onClick={() => reanalyze(d.id)}>
+                            {busy === d.id ? "Analyzing..." : d.status === "COMPLETED" ? "Analyze again" : "Analyze"}
+                          </button>
+                        )}
                         {d.status === "COMPLETED" && user?.role === "LAWYER" && <Link to={`/review/${d.id}`} className="btn btn--secondary btn--small">Review</Link>}
                       </div>
                     </div>
