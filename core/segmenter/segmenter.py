@@ -65,14 +65,15 @@ def segment_clauses(text: str, name: str = "document") -> list[Clause]:
             current.append(line)
     flush()
 
-    # Merge tiny fragments into the previous clause.
-    merged: list[tuple[str, str]] = []
+    # Merge tiny fragments into the previous clause. Parts are collected in a list and joined once,
+    # because repeated string concatenation is quadratic on a document made of many tiny fragments.
+    merged: list[tuple[str, list[str]]] = []
     for head, body in raw:
         if merged and len(body) < MIN_CLAUSE_CHARS:
-            merged[-1] = (merged[-1][0], merged[-1][1] + " " + body)
+            merged[-1][1].append(body)
         else:
-            merged.append((head, body))
+            merged.append((head, [body]))
 
-    clauses: list[Clause] = [{"index": i, "heading": h, "text": t} for i, (h, t) in enumerate(merged)]
+    clauses: list[Clause] = [{"index": i, "heading": h, "text": " ".join(parts)} for i, (h, parts) in enumerate(merged)]
     log.info("segmented %s into %d clauses", name, len(clauses))
     return clauses
