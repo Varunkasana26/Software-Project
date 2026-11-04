@@ -27,16 +27,28 @@ function readToken(req: Request): string | null {
   return req.cookies?.[COOKIE_NAME] ?? null;
 }
 
-export function authenticate(req: Request, _res: Response, next: NextFunction) {
+function verified(req: Request): AuthUser | null {
   const token = readToken(req);
-  if (!token) return next(new AppError(401, "Sign in required.", "UNAUTHENTICATED"));
+  if (!token) return null;
   try {
     const claims = jwt.verify(token, getConfig().JWT_SECRET, { algorithms: ["HS256"] }) as jwt.JwtPayload;
-    req.user = { id: String(claims.sub), email: String(claims.email), role: claims.role as Role };
-    next();
+    return { id: String(claims.sub), email: String(claims.email), role: claims.role as Role };
   } catch {
-    next(new AppError(401, "Your session has expired. Sign in again.", "UNAUTHENTICATED"));
+    return null;
   }
+}
+
+export function authenticate(req: Request, _res: Response, next: NextFunction) {
+  const user = verified(req);
+  if (!user) return next(new AppError(401, readToken(req) ? "Your session has expired. Sign in again." : "Sign in required.", "UNAUTHENTICATED"));
+  req.user = user;
+  next();
+}
+
+/** Like authenticate, but a missing or bad token is not an error (used by GET /api/auth/me). */
+export function optionalAuth(req: Request, _res: Response, next: NextFunction) {
+  req.user = verified(req) ?? undefined;
+  next();
 }
 
 /** Use after authenticate. */

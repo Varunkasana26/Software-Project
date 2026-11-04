@@ -50,5 +50,5 @@ export function logout(_req: Request, res: Response) {
 }
 
 export function me(req: Request, res: Response) {
-  res.json({ user: req.user });
+  res.json({ user: req.user ?? null });
 }
