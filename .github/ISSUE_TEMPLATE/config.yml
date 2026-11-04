@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Project documentation
+    url: https://github.com/Varunkasana26/Software-Project/blob/main/README.md
+    about: Read the README and docs/known-limitations.md before opening an issue.
