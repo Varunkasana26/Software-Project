@@ -31,7 +31,7 @@ Linux or macOS:
 git clone <repo-url> legal-document-summarizer
 cd legal-document-summarizer
 python3 -m venv .venv && source .venv/bin/activate
-pip install -r core/requirements.txt
+python -m pip install -r core/requirements.txt
 (cd backend/api && npm install)
 (cd frontend && npm install)
 ```

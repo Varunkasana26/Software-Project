@@ -16,8 +16,8 @@ function Start-Svc($name, $file, $argList, $dir) {
   return $p
 }
 function Wait-For($name, $url, $text) {
-  for ($i = 0; $i -lt 60; $i++) {
-    try { if ((Invoke-WebRequest -UseBasicParsing -Uri $url -TimeoutSec 2).Content -match $text) { Write-Host "  OK   $name  $url"; return $true } } catch {}
+  for ($i = 0; $i -lt 40; $i++) {  # up to about 40 x (8 s timeout + 1 s)
+    try { if ((Invoke-WebRequest -UseBasicParsing -Uri $url -TimeoutSec 8).Content -match $text) { Write-Host "  OK   $name  $url"; return $true } } catch {}
     Start-Sleep -Seconds 1
   }
   Write-Host "  FAIL $name  $url  (see $logs\$name.log and $name.err.log)"
