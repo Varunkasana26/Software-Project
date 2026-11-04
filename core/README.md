@@ -82,7 +82,7 @@ python -m core.eval.merge_labels finalize OUT/merged_draft.csv --out-dir OUT [--
 - `finalize` refuses (exit 1, ids listed, nothing written) if any final label is blank or invalid or `resolved_by` is empty. It writes `gold.csv` and `gold.json` (a JSON list; each item also keeps `perspective` when the clauses file has one, so `party_effect` is judged for the right side).
 - Score a result with `python -m core.eval.evaluate --gold OUT/gold.json`.
 - Generated files in `data/labeled/out/` are git-ignored.
-- `gold.json` always carries `label_source = "two independent LLM passes; disagreements resolved by a team member"`. That text is only true if the passes really were independent.
+- `gold.json` records `label_source`: "single LLM pass (not independent)" when the two pass files were identical, otherwise "two independent passes; disagreements resolved by <the resolved_by names>".
 
 ## Known limits
 
