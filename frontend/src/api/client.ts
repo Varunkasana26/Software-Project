@@ -60,9 +60,9 @@ interface BackendClause {
 function fromContract(r: ContractReport): ReportView {
   return {
     summary: r.summary,
-    topRisks: r.top_risks,
-    obligations: r.obligations,
-    exitConditions: r.exit_conditions,
+    topRisks: r.top_risks.map((i) => i.text),
+    obligations: r.obligations.map((i) => i.text),
+    exitConditions: r.exit_conditions.map((i) => i.text),
     clauses: r.clauses.map((c) => ({
       id: c.id,
       text: c.text,

@@ -3,13 +3,26 @@
   "title": "Report",
   "type": "object",
   "required": ["id", "document_id", "summary", "clauses"],
+  "$defs": {
+    "reportItem": {
+      "type": "object",
+      "required": ["clause_index", "text", "rule_id", "score", "label"],
+      "properties": {
+        "clause_index": { "type": "integer", "description": "Position of the clause in the document, from 0" },
+        "text": { "type": "string" },
+        "rule_id": { "type": ["string", "null"], "description": "Strongest matched rule" },
+        "score": { "type": "number", "description": "lawyer_override if set, else the auto score" },
+        "label": { "enum": ["FAVORABLE", "UNFAVORABLE", "NEUTRAL"] }
+      }
+    }
+  },
   "properties": {
     "id": { "type": "string" },
     "document_id": { "type": "string" },
     "summary": { "type": "string" },
-    "top_risks": { "type": "array", "items": { "type": "string" } },
-    "obligations": { "type": "array", "items": { "type": "string" } },
-    "exit_conditions": { "type": "array", "items": { "type": "string" } },
+    "top_risks": { "type": "array", "items": { "$ref": "#/$defs/reportItem" } },
+    "obligations": { "type": "array", "items": { "$ref": "#/$defs/reportItem" } },
+    "exit_conditions": { "type": "array", "items": { "$ref": "#/$defs/reportItem" } },
     "clauses": { "type": "array", "items": { "$ref": "clause.schema.json" } }
   }
 }

@@ -3,19 +3,20 @@ import uuid
 from collections import Counter
 from typing import Optional
 
-SNIPPET = 220  # characters of clause text shown in report lists
-
-
 def _effective(c: dict) -> float:
     """A lawyer's override wins when shown; the original auto_score is always kept."""
     return c["lawyer_override"] if c.get("lawyer_override") is not None else c["auto_score"]
 
 
-def _item(c: dict) -> str:
-    """List item with the matched rule_id(s) in front."""
-    ids = ",".join(c["matched_rule_ids"])
-    text = c["text"] if len(c["text"]) <= SNIPPET else c["text"][:SNIPPET] + "..."
-    return f"[{ids}] {text}"
+def _item(c: dict) -> dict:
+    """One entry of top_risks / obligations / exit_conditions (reportItem in report.schema.json)."""
+    return {
+        "clause_index": c["index"],
+        "text": c["text"],
+        "rule_id": c["matched_rule_ids"][0] if c["matched_rule_ids"] else None,
+        "score": _effective(c),
+        "label": c["label"].upper(),
+    }
 
 
 def build_report(scored_clauses: list[dict], document_id: str = "") -> dict:
@@ -42,7 +43,7 @@ def build_report(scored_clauses: list[dict], document_id: str = "") -> dict:
     matched = [c for c in scored_clauses if c["matched_rule_ids"]]
     risky = [c for c in matched if c["label"] != "favorable" and _effective(c) > 0]
     risky.sort(key=lambda c: (-_effective(c), c["index"]))  # highest severity first
-    top_risks = [_item(c) + f" (score {_effective(c):g})" for c in risky[:5]]
+    top_risks = [_item(c) for c in risky[:5]]
 
     obligations = [_item(c) for c in matched if c["category"] in ("obligation", "payment_term")]
     exit_conditions = [_item(c) for c in matched if c["category"] == "termination"]
