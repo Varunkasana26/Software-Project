@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Rule",
+  "type": "object",
+  "required": [
+    "rule_id",
+    "category",
+    "patterns",
+    "severity_weight",
+    "party_effect_hint",
+    "explanation"
+  ],
+  "properties": {
+    "rule_id": {
+      "type": "string",
+      "description": "Stable unique id, for example PEN-004"
+    },
+    "category": {
+      "enum": [
+        "obligation",
+        "right",
+        "penalty",
+        "termination",
+        "payment_term",
+        "other"
+      ]
+    },
+    "patterns": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "maxLength": 500
+      },
+      "description": "Case-insensitive regular expressions (Python re)"
+    },
+    "severity_weight": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 5
+    },
+    "party_effect_hint": {
+      "enum": [
+        "favorable",
+        "unfavorable",
+        "neutral"
+      ],
+      "description": "Effect on the tenant, employee, recipient or client side"
+    },
+    "explanation": {
+      "type": "string"
+    },
+    "justification": {
+      "type": "string"
+    },
+    "is_active": {
+      "type": "boolean"
+    }
+  }
+}

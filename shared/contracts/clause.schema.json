@@ -2,22 +2,89 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Clause",
   "type": "object",
-  "required": ["id", "document_id", "text"],
+  "required": [
+    "id",
+    "document_id",
+    "text"
+  ],
   "properties": {
-    "id": { "type": "string" },
-    "document_id": { "type": "string" },
-    "text": { "type": "string" },
-    "category": { "enum": ["OBLIGATION", "RIGHT", "PENALTY", "TERMINATION", "PAYMENT_TERM", "OTHER"] },
-    "sentiment": { "enum": ["FAVORABLE", "UNFAVORABLE", "NEUTRAL"] },
-    "rule_id": { "type": ["string", "null"], "description": "Id of the rule that matched this clause" },
+    "id": {
+      "type": "string"
+    },
+    "document_id": {
+      "type": "string"
+    },
+    "text": {
+      "type": "string"
+    },
+    "category": {
+      "enum": [
+        "OBLIGATION",
+        "RIGHT",
+        "PENALTY",
+        "TERMINATION",
+        "PAYMENT_TERM",
+        "OTHER"
+      ]
+    },
+    "sentiment": {
+      "enum": [
+        "FAVORABLE",
+        "UNFAVORABLE",
+        "NEUTRAL"
+      ]
+    },
+    "rule_id": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Id of the rule that matched this clause"
+    },
     "score": {
       "type": "object",
-      "required": ["auto"],
+      "required": [
+        "auto"
+      ],
       "properties": {
-        "auto": { "type": "number", "description": "Original automatic score. Never overwritten." },
-        "lawyer_override": { "type": ["number", "null"], "description": "Optional score set by a lawyer" }
+        "auto": {
+          "type": "number",
+          "description": "Original automatic score. Never overwritten."
+        },
+        "lawyer_override": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "description": "Optional score set by a lawyer"
+        }
       }
     },
-    "explanation": { "type": "string" }
+    "explanation": {
+      "type": "string"
+    },
+    "lawyer_override_reason": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Why a lawyer changed the score"
+    },
+    "overridden_at": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time"
+    },
+    "matched_rule_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "index": {
+      "type": "integer"
+    }
   }
 }

@@ -3,6 +3,7 @@
 This service has no authentication. It is meant to be called only by backend/api on the same machine,
 so keep it bound to 127.0.0.1 (the uvicorn default) and never expose port 8001 publicly.
 """
+import json
 import logging
 import sys
 from pathlib import Path
@@ -10,25 +11,33 @@ from pathlib import Path
 # Make `import core...` work when uvicorn is started from inside core/.
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
+from typing import Optional  # noqa: E402
+
 from fastapi import FastAPI, Request  # noqa: E402
 from fastapi.responses import JSONResponse  # noqa: E402
 from pydantic import BaseModel, ValidationError  # noqa: E402
 
 from core.parser import MAX_BYTES, ParseError, check_text_size, parse_document  # noqa: E402
 from core.pipeline import analyze_text  # noqa: E402
+from core.rules import RuleError, compile_rule, compile_rules  # noqa: E402
 
 log = logging.getLogger(__name__)
 app = FastAPI(title="Legal Document Summarizer - core")
 
 # HTTP status for each ParseError code.
 STATUS = {"FILE_TOO_LARGE": 413, "DOCUMENT_TOO_LARGE": 413, "UNSUPPORTED_TYPE": 415,
-          "SCANNED_PDF_UNSUPPORTED": 422, "TOO_MANY_PAGES": 422, "PARSE_FAILED": 422}
+          "SCANNED_PDF_UNSUPPORTED": 422, "TOO_MANY_PAGES": 422, "PARSE_FAILED": 422, "INVALID_RULES": 422}
 BODY_LIMIT = MAX_BYTES + 1024 * 1024  # file limit plus room for form fields and multipart framing
 
 
 class AnalyzeRequest(BaseModel):
     document_text: str
     user_party: str
+    rules: Optional[list[dict]] = None  # see shared/contracts/rule.schema.json
+
+
+class ValidateRulesRequest(BaseModel):
+    rules: list[dict]
 
 
 def _error(status: int, code: str, message: str) -> JSONResponse:
@@ -48,6 +57,18 @@ async def limit_body_size(request: Request, call_next):
 @app.get("/health")
 def health():
     return {"status": "ok"}
+
+
+@app.post("/validate-rules")
+def validate_rules(body: ValidateRulesRequest):
+    """Check candidate rules with the same loader the analysis uses. Returns the problems, if any."""
+    problems = []
+    for rule in body.rules[:500]:
+        try:
+            compile_rule(rule)
+        except RuleError as exc:
+            problems.append({"rule_id": str(rule.get("rule_id", "")), "message": str(exc)})
+    return {"valid": not problems, "problems": problems}
 
 
 async def _read_limited(upload) -> bytes:
@@ -77,17 +98,22 @@ async def analyze(request: Request):
                 raise ParseError("UNSUPPORTED_TYPE", "Only .txt and .pdf files are supported.")
             parsed = parse_document(await _read_limited(upload), name)
             text, party = parsed["text"], str(form.get("user_party") or "")
+            raw_rules = json.loads(form.get("rules")) if form.get("rules") else None  # JSON text in a form field
         else:
             body = AnalyzeRequest(**(await request.json()))
             check_text_size(body.document_text)
-            text, party, name = body.document_text, body.user_party, "request"
+            text, party, name, raw_rules = body.document_text, body.user_party, "request", body.rules
     except ParseError as exc:
         return _error(STATUS.get(exc.code, 400), exc.code, exc.message)
     except ValidationError as exc:
         # Name the bad fields only. Do not echo the submitted values back.
         fields = "; ".join(f"{'.'.join(map(str, e['loc']))}: {e['msg']}" for e in exc.errors())
         return _error(422, "INVALID_REQUEST", f"Invalid request: {fields}")
-    except (ValueError, TypeError):
+    except (ValueError, TypeError):  # includes malformed JSON in the rules field
         return _error(422, "INVALID_REQUEST", "The request body must be valid JSON with document_text and user_party.")
 
-    return analyze_text(text, party, name=name)
+    try:
+        rules = compile_rules(raw_rules) if raw_rules is not None else None
+    except RuleError as exc:
+        return _error(422, "INVALID_RULES", str(exc))
+    return analyze_text(text, party, name=name, rules=rules)

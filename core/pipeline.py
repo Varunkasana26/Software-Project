@@ -9,10 +9,11 @@ from core.scorer import score_clause
 from core.segmenter import segment_clauses
 
 
-def analyze_text(text: str, user_party: Optional[str], document_id: str = "",
-                 name: str = "document", use_llm: bool = False) -> dict:
-    """Return a Report dict (see shared/contracts/report.schema.json)."""
-    rules = load_rules()
+def analyze_text(text: str, user_party: Optional[str], document_id: str = "", name: str = "document",
+                 use_llm: bool = False, rules: Optional[list[dict]] = None) -> dict:
+    """Return a Report dict (see shared/contracts/report.schema.json).
+    `rules` are already compiled rules (rules.loader.compile_rules); default: core/rules/rules.json."""
+    rules = rules if rules is not None else load_rules()
     explain = llm_explain if use_llm else explain_clause
     rows = []
     for clause in segment_clauses(text, name):
