@@ -67,3 +67,35 @@ def test_finalize_refuses_blank_labels_and_lists_the_ids(tmp_path, capsys):
     assert code == 1
     assert "R10" in err and "R02" not in err
     assert not (tmp_path / "gold" / "gold.json").exists()  # nothing is written when refusing
+
+
+def finalize_source(tmp_path, capsys, pass1: str, pass2: str, resolved: dict | None = None) -> str:
+    """Run compare, optionally fill blank rows (id -> (category, effect, name)), finalize, return label_source."""
+    import json
+    compare(tmp_path, pass1, pass2, capsys)
+    draft = tmp_path / "out" / "merged_draft.csv"
+    if resolved:
+        with open(draft, encoding="utf-8-sig", newline="") as f:
+            reader = csv.DictReader(f)
+            data = list(reader)
+        for r in data:
+            if r["id"] in resolved:
+                r["final_category"], r["final_party_effect"], r["resolved_by"] = resolved[r["id"]]
+        with open(draft, "w", encoding="utf-8-sig", newline="") as f:
+            writer = csv.DictWriter(f, fieldnames=reader.fieldnames)
+            writer.writeheader()
+            writer.writerows(data)
+    assert main(["finalize", str(draft), "--out-dir", str(tmp_path / "gold")]) == 0
+    return json.loads((tmp_path / "gold" / "gold.json").read_text(encoding="utf-8"))[0]["label_source"]
+
+
+def test_label_source_says_single_pass_when_files_are_identical(tmp_path, capsys):
+    labels = HEADER + "R02,payment_term,neutral,high,y,\nR10,penalty,unfavorable,high,y,\n"
+    assert finalize_source(tmp_path, capsys, labels, labels) == "single LLM pass (not independent)"
+
+
+def test_label_source_names_who_resolved_disagreements(tmp_path, capsys):
+    pass1 = HEADER + "R02,payment_term,neutral,high,y,\nR10,penalty,unfavorable,high,y,\n"
+    pass2 = HEADER + "R02,payment_term,neutral,high,y,\nR10,obligation,unfavorable,low,y,\n"
+    source = finalize_source(tmp_path, capsys, pass1, pass2, {"R10": ("penalty", "unfavorable", "varun")})
+    assert source == "two independent passes; disagreements resolved by varun"
