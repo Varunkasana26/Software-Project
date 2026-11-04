@@ -12,3 +12,5 @@ evidence/assets/
 *.otf
 # The specimen page embeds the source site's look and text; keep it local.
 artifacts/style-specimen.html
+# Raw extraction of the reference page (CSS class names and selectors that carry its product names). Keep it local.
+raw/
