@@ -47,7 +47,7 @@ export interface User { id: string; email: string; role: Role }
 export const register = (email: string, password: string) => request<{ user: User }>("/api/auth/register", { method: "POST", headers: json, body: JSON.stringify({ email, password }) });
 export const login = (email: string, password: string) => request<{ user: User }>("/api/auth/login", { method: "POST", headers: json, body: JSON.stringify({ email, password }) });
 export const logout = () => request<void>("/api/auth/logout", { method: "POST" });
-export const me = () => request<{ user: User }>("/api/auth/me");
+export const me = () => request<{ user: User | null }>("/api/auth/me"); // user is null when signed out
 
 // ---- Documents ----
 export interface DocumentInfo { id: string; fileName: string; fileSize: number; status: "UPLOADED" | "PROCESSING" | "COMPLETED" | "FAILED"; party: string; failureCode: string | null; createdAt: string }

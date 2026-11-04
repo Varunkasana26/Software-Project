@@ -25,13 +25,13 @@ describe("Auth", () => {
     expect(unknown.body).toEqual(bad.body); // same answer, so the response does not reveal which emails exist
   });
 
-  it("logs in, returns the user on /me, and refuses /me without a valid token", async () => {
+  it("logs in, returns the user on /me, and answers /me with user null when signed out", async () => {
     await request(app).post("/api/auth/register").send(creds);
     const login = await request(app).post("/api/auth/login").send(creds);
     expect(login.status).toBe(200);
     const me = await request(app).get("/api/auth/me").set("Authorization", `Bearer ${login.body.token}`);
     expect(me.body.user.email).toBe("alice@example.com");
-    expect((await request(app).get("/api/auth/me")).status).toBe(401);
-    expect((await request(app).get("/api/auth/me").set("Authorization", "Bearer not-a-token")).status).toBe(401);
+    expect((await request(app).get("/api/auth/me")).body).toEqual({ user: null }); // signed out: not an error
+    expect((await request(app).get("/api/auth/me").set("Authorization", "Bearer not-a-token")).body).toEqual({ user: null });
   });
 });

@@ -11,3 +11,4 @@ test_uploads/
 !.env.example
 *.log
 .DS_Store
+.run/
