@@ -61,6 +61,29 @@ Each rule has a `severity_weight` (1-5) and a `party_effect_hint` written from t
 - `data/cuad_keyword_notes.md`: keyword ideas from CUAD for review. **Not used in `rules.json`.**
 - `data/cuad/`: the downloaded CUAD dataset (git-ignored, 97 MB).
 
+## Merging two labelling passes (`eval/merge_labels.py`)
+
+Turns two label files (for example from two LLM passes) into one gold set, with a human settling every disagreement. Standard library only; `import-xlsx` also needs `openpyxl`.
+
+```bash
+# 1. Workbook (sheets Clauses and Labels) to clauses.csv and pass1.csv
+python -m core.eval.merge_labels import-xlsx core/data/labeled/FILE.xlsx --out-dir core/data/labeled/out
+
+# 2. Compare two passes (same columns: id,category,party_effect,confidence,split_ok,notes).
+#    Prints agreement and Cohen's kappa; writes merged_draft.csv, disagreements.csv, spotcheck.csv
+python -m core.eval.merge_labels compare pass1.csv pass2.csv --clauses clauses.csv --out-dir OUT [--spotcheck-size 10] [--seed 42]
+
+# 3. After a person fills final_category, final_party_effect and resolved_by for every blank row of merged_draft.csv
+python -m core.eval.merge_labels finalize OUT/merged_draft.csv --out-dir OUT [--spotcheck OUT/spotcheck.csv]
+```
+
+- `compare` exits 1 if it finds invalid values, duplicate ids, ids in only one pass, or ids missing from the clauses file, and lists them. Agreed rows are pre-filled with `resolved_by = agreement`; any row where the passes differ is left blank.
+- `spotcheck.csv` is a seeded sample of the agreed rows. A person fills `human_ok` (y or n); `finalize --spotcheck` reports how many were y.
+- `finalize` refuses (exit 1, ids listed, nothing written) if any final label is blank or invalid or `resolved_by` is empty. It writes `gold.csv` and `gold.json` (a JSON list; each item also keeps `perspective` when the clauses file has one, so `party_effect` is judged for the right side).
+- Score a result with `python -m core.eval.evaluate --gold OUT/gold.json`.
+- Generated files in `data/labeled/out/` are git-ignored.
+- `gold.json` always carries `label_source = "two independent LLM passes; disagreements resolved by a team member"`. That text is only true if the passes really were independent.
+
 ## Known limits
 
 - Rules are keyword patterns. A rule cannot tell which party is acting, so asymmetric clauses (for example "Client can leave in 30 days, Provider needs 90") can be scored wrong.
