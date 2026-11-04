@@ -1,164 +1,104 @@
-import { prisma, PrismaClient } from "../lib/prisma";
-import { extractTextFromFile } from "../lib/fileExtractor";
-import { getClauseEngine } from "./clauseEngine";
-import {
-  DocumentStatus,
-  ClauseCategory,
-  ClauseSentiment,
-  RiskLevel,
-  DocumentWithRelations,
-  ClauseWithRelations,
-  ReportWithRelations,
-} from "../types";
-import { AppError, NotFoundError } from "../middleware/errorHandler";
 import fs from "fs";
-import path from "path";
+import { Prisma } from "../generated/prisma";
+import { prisma } from "../lib/prisma";
+import { AppError, NotFoundError } from "../middleware/errorHandler";
+import { AuthUser, ClauseCategory, ClauseSentiment, DocumentStatus, Role } from "../types";
+import { analyzeFile } from "./coreClient";
+import { getActiveCoreRules } from "./ruleService";
+import { clauseView, documentView, reportView } from "./serialize";
 
-type TransactionClient = Omit<PrismaClient, "$connect" | "$disconnect" | "$on" | "$transaction" | "$use" | "$extends">;
+const STALE_LOCK_MS = 5 * 60 * 1000; // a document stuck in PROCESSING longer than this can be processed again
 
-export async function createDocument(
-  fileName: string,
-  fileType: string,
-  storagePath: string,
-  fileSize: number
-): Promise<DocumentWithRelations> {
-  return prisma.document.create({
-    data: {
-      fileName,
-      fileType,
-      storagePath,
-      fileSize,
-      status: DocumentStatus.UPLOADED,
-    },
-  });
+interface DocumentRow { id: string; ownerId: string; fileName: string; fileType: string; storagePath: string; fileSize: number; status: string; party: string; failureCode: string | null; createdAt: Date }
+
+/**
+ * The only access rule for documents. The owner can do everything. A lawyer can read (and override scores) because
+ * review is their job. An admin manages rules and users and cannot read documents. A document the caller may not
+ * see is reported as "not found", so its existence is not revealed.
+ */
+export async function getAccessibleDocument(id: string, user: AuthUser, opts: { write?: boolean } = {}): Promise<DocumentRow> {
+  const doc = (await prisma.document.findUnique({ where: { id } })) as DocumentRow | null;
+  const isOwner = doc?.ownerId === user.id;
+  const mayRead = isOwner || user.role === Role.LAWYER;
+  if (!doc || !(opts.write ? isOwner : mayRead)) throw new NotFoundError("Document");
+  return doc;
 }
 
-export async function getDocumentById(id: string): Promise<DocumentWithRelations | null> {
-  return prisma.document.findUnique({
-    where: { id },
-    include: {
-      clauses: true,
-      report: true,
-    },
+export async function createDocument(user: AuthUser, file: { originalname: string; mimetype: string; path: string; size: number }, party: string) {
+  const doc = await prisma.document.create({
+    data: { ownerId: user.id, fileName: file.originalname, fileType: file.mimetype, storagePath: file.path, fileSize: file.size, party, status: DocumentStatus.UPLOADED },
   });
+  return documentView(doc);
 }
 
-export async function getDocuments(
-  page: number,
-  limit: number,
-  status?: DocumentStatus
-): Promise<{ data: DocumentWithRelations[]; total: number }> {
-  const where = status ? { status } : {};
-  const [data, total] = await Promise.all([
-    prisma.document.findMany({
-      where,
-      orderBy: { createdAt: "desc" },
-      skip: (page - 1) * limit,
-      take: limit,
-      include: {
-        clauses: true,
-        report: true,
-      },
-    }),
+export async function listDocuments(user: AuthUser, page: number, limit: number, status?: DocumentStatus) {
+  const where = { ...(user.role === Role.LAWYER ? {} : { ownerId: user.id }), ...(status ? { status } : {}) };
+  const [rows, total] = await Promise.all([
+    prisma.document.findMany({ where, orderBy: { createdAt: "desc" }, skip: (page - 1) * limit, take: limit }),
     prisma.document.count({ where }),
   ]);
-  return { data, total };
+  return { data: rows.map(documentView), total };
 }
 
-export async function getDocumentClauses(id: string): Promise<ClauseWithRelations[]> {
-  const document = await prisma.document.findUnique({ where: { id } });
-  if (!document) {
-    throw new NotFoundError("Document", id);
-  }
-  return prisma.clause.findMany({
-    where: { documentId: id },
-    orderBy: { createdAt: "asc" },
+export async function getClauses(doc: DocumentRow) {
+  const clauses = await prisma.clause.findMany({ where: { documentId: doc.id }, orderBy: { index: "asc" } });
+  return clauses.map(clauseView);
+}
+
+export async function getReportView(doc: DocumentRow) {
+  const report = await prisma.report.findUnique({ where: { documentId: doc.id } });
+  if (!report) throw new AppError(404, "Report not found for this document. Process the document first.", "NO_REPORT");
+  const clauses = await prisma.clause.findMany({ where: { documentId: doc.id } });
+  return reportView(doc, report, clauses);
+}
+
+export async function processDocument(doc: DocumentRow): Promise<void> {
+  // Take the lock in one statement, so two requests cannot both start.
+  const lock = await prisma.document.updateMany({
+    where: { id: doc.id, OR: [{ status: { not: DocumentStatus.PROCESSING } }, { updatedAt: { lt: new Date(Date.now() - STALE_LOCK_MS) } }] },
+    data: { status: DocumentStatus.PROCESSING, failureCode: null },
   });
-}
-
-export async function getDocumentReport(id: string): Promise<ReportWithRelations | null> {
-  const document = await prisma.document.findUnique({ where: { id } });
-  if (!document) {
-    throw new NotFoundError("Document", id);
-  }
-  return prisma.report.findUnique({ where: { documentId: id } });
-}
-
-export async function processDocument(documentId: string): Promise<void> {
-  const document = await prisma.document.findUnique({ where: { id: documentId } });
-  if (!document) {
-    throw new NotFoundError("Document", documentId);
-  }
-
-  if (document.status === DocumentStatus.PROCESSING) {
-    throw new AppError(409, "Document is already being processed");
-  }
-
-  await prisma.document.update({
-    where: { id: documentId },
-    data: { status: DocumentStatus.PROCESSING },
-  });
+  if (lock.count === 0) throw new AppError(409, "Document is already being processed.", "ALREADY_PROCESSING");
 
   try {
-    const text = await extractTextFromFile(document.storagePath);
-    if (!text.trim()) {
-      throw new AppError(400, "No text could be extracted from the document");
-    }
-
-    const engine = getClauseEngine();
-    const result = await engine.processDocument(text);
-
-    await prisma.$transaction(async (tx: TransactionClient) => {
-      await tx.clause.createMany({
-        data: result.clauses.map((c) => ({
-          documentId,
-          text: c.text,
-          category: c.category,
-          sentiment: c.sentiment,
-          riskLevel: c.riskLevel,
-          explanation: c.explanation,
-        })),
-      });
-
+    const rules = await getActiveCoreRules();
+    const result = await analyzeFile({ filePath: doc.storagePath, party: doc.party, rules });
+    const clauses = result.clauses.map((c, i) => ({
+      documentId: doc.id,
+      index: c.index ?? i,
+      heading: c.heading ?? "",
+      text: c.text,
+      category: c.category as ClauseCategory,
+      sentiment: c.sentiment as ClauseSentiment,
+      ruleId: c.rule_id,
+      matchedRuleIds: c.matched_rule_ids ?? (c.rule_id ? [c.rule_id] : []),
+      autoScore: c.score.auto, // the automatic score is stored once and never changed by a lawyer's override
+      warning: c.warning ?? null,
+      explanation: c.explanation,
+    }));
+    await prisma.$transaction(async (tx) => {
+      // Re-processing replaces the old analysis (and any lawyer overrides on it).
+      await tx.clause.deleteMany({ where: { documentId: doc.id } });
+      await tx.report.deleteMany({ where: { documentId: doc.id } });
+      await tx.clause.createMany({ data: clauses });
       await tx.report.create({
         data: {
-          documentId,
-          summary: result.summary,
-          topRisks: result.topRisks,
-          obligations: result.obligations,
-          exitConditions: result.exitConditions,
+          documentId: doc.id, summary: result.summary, topRisks: result.top_risks as unknown as Prisma.InputJsonValue, obligations: result.obligations as unknown as Prisma.InputJsonValue,
+          exitConditions: result.exit_conditions as unknown as Prisma.InputJsonValue, warnings: result.warnings ?? [],
         },
       });
-
-      await tx.document.update({
-        where: { id: documentId },
-        data: { status: DocumentStatus.COMPLETED },
-      });
+      await tx.document.update({ where: { id: doc.id }, data: { status: DocumentStatus.COMPLETED, failureCode: null } });
     });
   } catch (error) {
-    await prisma.document.update({
-      where: { id: documentId },
-      data: { status: DocumentStatus.FAILED },
-    });
-
-    if (error instanceof AppError) throw error;
-    throw new AppError(500, "Document processing failed", error);
+    const code = error instanceof AppError ? error.code ?? "FAILED" : "FAILED";
+    await prisma.document.update({ where: { id: doc.id }, data: { status: DocumentStatus.FAILED, failureCode: code } });
+    throw error;
   }
 }
 
-export async function deleteDocument(id: string): Promise<void> {
-  const document = await prisma.document.findUnique({ where: { id } });
-  if (!document) {
-    throw new NotFoundError("Document", id);
-  }
-
-  try {
-    if (fs.existsSync(document.storagePath)) {
-      fs.unlinkSync(document.storagePath);
-    }
-  } catch {
-    // Ignore file deletion errors
-  }
-
-  await prisma.document.delete({ where: { id } });
+export async function deleteDocument(doc: DocumentRow): Promise<void> {
+  fs.rmSync(doc.storagePath, { force: true });
+  await prisma.document.delete({ where: { id: doc.id } });
 }
+
+export { documentView };

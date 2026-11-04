@@ -47,6 +47,7 @@ export type ReportCountAggregateOutputType = {
   topRisks: number
   obligations: number
   exitConditions: number
+  warnings: number
   createdAt: number
   updatedAt: number
   _all: number
@@ -76,6 +77,7 @@ export type ReportCountAggregateInputType = {
   topRisks?: true
   obligations?: true
   exitConditions?: true
+  warnings?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -157,9 +159,10 @@ export type ReportGroupByOutputType = {
   id: string
   documentId: string
   summary: string
-  topRisks: string[]
-  obligations: string[]
-  exitConditions: string[]
+  topRisks: runtime.JsonValue
+  obligations: runtime.JsonValue
+  exitConditions: runtime.JsonValue
+  warnings: string[]
   createdAt: Date
   updatedAt: Date
   _count: ReportCountAggregateOutputType | null
@@ -189,9 +192,10 @@ export type ReportWhereInput = {
   id?: Prisma.StringFilter<"Report"> | string
   documentId?: Prisma.StringFilter<"Report"> | string
   summary?: Prisma.StringFilter<"Report"> | string
-  topRisks?: Prisma.StringNullableListFilter<"Report">
-  obligations?: Prisma.StringNullableListFilter<"Report">
-  exitConditions?: Prisma.StringNullableListFilter<"Report">
+  topRisks?: Prisma.JsonFilter<"Report">
+  obligations?: Prisma.JsonFilter<"Report">
+  exitConditions?: Prisma.JsonFilter<"Report">
+  warnings?: Prisma.StringNullableListFilter<"Report">
   createdAt?: Prisma.DateTimeFilter<"Report"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Report"> | Date | string
   document?: Prisma.XOR<Prisma.DocumentScalarRelationFilter, Prisma.DocumentWhereInput>
@@ -204,6 +208,7 @@ export type ReportOrderByWithRelationInput = {
   topRisks?: Prisma.SortOrder
   obligations?: Prisma.SortOrder
   exitConditions?: Prisma.SortOrder
+  warnings?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   document?: Prisma.DocumentOrderByWithRelationInput
@@ -216,9 +221,10 @@ export type ReportWhereUniqueInput = Prisma.AtLeast<{
   OR?: Prisma.ReportWhereInput[]
   NOT?: Prisma.ReportWhereInput | Prisma.ReportWhereInput[]
   summary?: Prisma.StringFilter<"Report"> | string
-  topRisks?: Prisma.StringNullableListFilter<"Report">
-  obligations?: Prisma.StringNullableListFilter<"Report">
-  exitConditions?: Prisma.StringNullableListFilter<"Report">
+  topRisks?: Prisma.JsonFilter<"Report">
+  obligations?: Prisma.JsonFilter<"Report">
+  exitConditions?: Prisma.JsonFilter<"Report">
+  warnings?: Prisma.StringNullableListFilter<"Report">
   createdAt?: Prisma.DateTimeFilter<"Report"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Report"> | Date | string
   document?: Prisma.XOR<Prisma.DocumentScalarRelationFilter, Prisma.DocumentWhereInput>
@@ -231,6 +237,7 @@ export type ReportOrderByWithAggregationInput = {
   topRisks?: Prisma.SortOrder
   obligations?: Prisma.SortOrder
   exitConditions?: Prisma.SortOrder
+  warnings?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.ReportCountOrderByAggregateInput
@@ -245,9 +252,10 @@ export type ReportScalarWhereWithAggregatesInput = {
   id?: Prisma.StringWithAggregatesFilter<"Report"> | string
   documentId?: Prisma.StringWithAggregatesFilter<"Report"> | string
   summary?: Prisma.StringWithAggregatesFilter<"Report"> | string
-  topRisks?: Prisma.StringNullableListFilter<"Report">
-  obligations?: Prisma.StringNullableListFilter<"Report">
-  exitConditions?: Prisma.StringNullableListFilter<"Report">
+  topRisks?: Prisma.JsonWithAggregatesFilter<"Report">
+  obligations?: Prisma.JsonWithAggregatesFilter<"Report">
+  exitConditions?: Prisma.JsonWithAggregatesFilter<"Report">
+  warnings?: Prisma.StringNullableListFilter<"Report">
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Report"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Report"> | Date | string
 }
@@ -255,9 +263,10 @@ export type ReportScalarWhereWithAggregatesInput = {
 export type ReportCreateInput = {
   id?: string
   summary: string
-  topRisks?: Prisma.ReportCreatetopRisksInput | string[]
-  obligations?: Prisma.ReportCreateobligationsInput | string[]
-  exitConditions?: Prisma.ReportCreateexitConditionsInput | string[]
+  topRisks: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  obligations: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  exitConditions: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  warnings?: Prisma.ReportCreatewarningsInput | string[]
   createdAt?: Date | string
   updatedAt?: Date | string
   document: Prisma.DocumentCreateNestedOneWithoutReportInput
@@ -267,9 +276,10 @@ export type ReportUncheckedCreateInput = {
   id?: string
   documentId: string
   summary: string
-  topRisks?: Prisma.ReportCreatetopRisksInput | string[]
-  obligations?: Prisma.ReportCreateobligationsInput | string[]
-  exitConditions?: Prisma.ReportCreateexitConditionsInput | string[]
+  topRisks: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  obligations: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  exitConditions: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  warnings?: Prisma.ReportCreatewarningsInput | string[]
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -277,9 +287,10 @@ export type ReportUncheckedCreateInput = {
 export type ReportUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   summary?: Prisma.StringFieldUpdateOperationsInput | string
-  topRisks?: Prisma.ReportUpdatetopRisksInput | string[]
-  obligations?: Prisma.ReportUpdateobligationsInput | string[]
-  exitConditions?: Prisma.ReportUpdateexitConditionsInput | string[]
+  topRisks?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  obligations?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  exitConditions?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  warnings?: Prisma.ReportUpdatewarningsInput | string[]
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   document?: Prisma.DocumentUpdateOneRequiredWithoutReportNestedInput
@@ -289,9 +300,10 @@ export type ReportUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   documentId?: Prisma.StringFieldUpdateOperationsInput | string
   summary?: Prisma.StringFieldUpdateOperationsInput | string
-  topRisks?: Prisma.ReportUpdatetopRisksInput | string[]
-  obligations?: Prisma.ReportUpdateobligationsInput | string[]
-  exitConditions?: Prisma.ReportUpdateexitConditionsInput | string[]
+  topRisks?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  obligations?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  exitConditions?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  warnings?: Prisma.ReportUpdatewarningsInput | string[]
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -300,9 +312,10 @@ export type ReportCreateManyInput = {
   id?: string
   documentId: string
   summary: string
-  topRisks?: Prisma.ReportCreatetopRisksInput | string[]
-  obligations?: Prisma.ReportCreateobligationsInput | string[]
-  exitConditions?: Prisma.ReportCreateexitConditionsInput | string[]
+  topRisks: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  obligations: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  exitConditions: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  warnings?: Prisma.ReportCreatewarningsInput | string[]
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -310,9 +323,10 @@ export type ReportCreateManyInput = {
 export type ReportUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   summary?: Prisma.StringFieldUpdateOperationsInput | string
-  topRisks?: Prisma.ReportUpdatetopRisksInput | string[]
-  obligations?: Prisma.ReportUpdateobligationsInput | string[]
-  exitConditions?: Prisma.ReportUpdateexitConditionsInput | string[]
+  topRisks?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  obligations?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  exitConditions?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  warnings?: Prisma.ReportUpdatewarningsInput | string[]
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -321,9 +335,10 @@ export type ReportUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   documentId?: Prisma.StringFieldUpdateOperationsInput | string
   summary?: Prisma.StringFieldUpdateOperationsInput | string
-  topRisks?: Prisma.ReportUpdatetopRisksInput | string[]
-  obligations?: Prisma.ReportUpdateobligationsInput | string[]
-  exitConditions?: Prisma.ReportUpdateexitConditionsInput | string[]
+  topRisks?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  obligations?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  exitConditions?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  warnings?: Prisma.ReportUpdatewarningsInput | string[]
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -333,14 +348,6 @@ export type ReportNullableScalarRelationFilter = {
   isNot?: Prisma.ReportWhereInput | null
 }
 
-export type StringNullableListFilter<$PrismaModel = never> = {
-  equals?: string[] | Prisma.ListStringFieldRefInput<$PrismaModel> | null
-  has?: string | Prisma.StringFieldRefInput<$PrismaModel> | null
-  hasEvery?: string[] | Prisma.ListStringFieldRefInput<$PrismaModel>
-  hasSome?: string[] | Prisma.ListStringFieldRefInput<$PrismaModel>
-  isEmpty?: boolean
-}
-
 export type ReportCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   documentId?: Prisma.SortOrder
@@ -348,6 +355,7 @@ export type ReportCountOrderByAggregateInput = {
   topRisks?: Prisma.SortOrder
   obligations?: Prisma.SortOrder
   exitConditions?: Prisma.SortOrder
+  warnings?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -400,29 +408,11 @@ export type ReportUncheckedUpdateOneWithoutDocumentNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.ReportUpdateToOneWithWhereWithoutDocumentInput, Prisma.ReportUpdateWithoutDocumentInput>, Prisma.ReportUncheckedUpdateWithoutDocumentInput>
 }
 
-export type ReportCreatetopRisksInput = {
+export type ReportCreatewarningsInput = {
   set: string[]
 }
 
-export type ReportCreateobligationsInput = {
-  set: string[]
-}
-
-export type ReportCreateexitConditionsInput = {
-  set: string[]
-}
-
-export type ReportUpdatetopRisksInput = {
-  set?: string[]
-  push?: string | string[]
-}
-
-export type ReportUpdateobligationsInput = {
-  set?: string[]
-  push?: string | string[]
-}
-
-export type ReportUpdateexitConditionsInput = {
+export type ReportUpdatewarningsInput = {
   set?: string[]
   push?: string | string[]
 }
@@ -430,9 +420,10 @@ export type ReportUpdateexitConditionsInput = {
 export type ReportCreateWithoutDocumentInput = {
   id?: string
   summary: string
-  topRisks?: Prisma.ReportCreatetopRisksInput | string[]
-  obligations?: Prisma.ReportCreateobligationsInput | string[]
-  exitConditions?: Prisma.ReportCreateexitConditionsInput | string[]
+  topRisks: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  obligations: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  exitConditions: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  warnings?: Prisma.ReportCreatewarningsInput | string[]
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -440,9 +431,10 @@ export type ReportCreateWithoutDocumentInput = {
 export type ReportUncheckedCreateWithoutDocumentInput = {
   id?: string
   summary: string
-  topRisks?: Prisma.ReportCreatetopRisksInput | string[]
-  obligations?: Prisma.ReportCreateobligationsInput | string[]
-  exitConditions?: Prisma.ReportCreateexitConditionsInput | string[]
+  topRisks: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  obligations: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  exitConditions: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  warnings?: Prisma.ReportCreatewarningsInput | string[]
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -466,9 +458,10 @@ export type ReportUpdateToOneWithWhereWithoutDocumentInput = {
 export type ReportUpdateWithoutDocumentInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   summary?: Prisma.StringFieldUpdateOperationsInput | string
-  topRisks?: Prisma.ReportUpdatetopRisksInput | string[]
-  obligations?: Prisma.ReportUpdateobligationsInput | string[]
-  exitConditions?: Prisma.ReportUpdateexitConditionsInput | string[]
+  topRisks?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  obligations?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  exitConditions?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  warnings?: Prisma.ReportUpdatewarningsInput | string[]
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -476,9 +469,10 @@ export type ReportUpdateWithoutDocumentInput = {
 export type ReportUncheckedUpdateWithoutDocumentInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   summary?: Prisma.StringFieldUpdateOperationsInput | string
-  topRisks?: Prisma.ReportUpdatetopRisksInput | string[]
-  obligations?: Prisma.ReportUpdateobligationsInput | string[]
-  exitConditions?: Prisma.ReportUpdateexitConditionsInput | string[]
+  topRisks?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  obligations?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  exitConditions?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  warnings?: Prisma.ReportUpdatewarningsInput | string[]
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -492,6 +486,7 @@ export type ReportSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   topRisks?: boolean
   obligations?: boolean
   exitConditions?: boolean
+  warnings?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   document?: boolean | Prisma.DocumentDefaultArgs<ExtArgs>
@@ -504,6 +499,7 @@ export type ReportSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extens
   topRisks?: boolean
   obligations?: boolean
   exitConditions?: boolean
+  warnings?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   document?: boolean | Prisma.DocumentDefaultArgs<ExtArgs>
@@ -516,6 +512,7 @@ export type ReportSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extens
   topRisks?: boolean
   obligations?: boolean
   exitConditions?: boolean
+  warnings?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   document?: boolean | Prisma.DocumentDefaultArgs<ExtArgs>
@@ -528,11 +525,12 @@ export type ReportSelectScalar = {
   topRisks?: boolean
   obligations?: boolean
   exitConditions?: boolean
+  warnings?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type ReportOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "documentId" | "summary" | "topRisks" | "obligations" | "exitConditions" | "createdAt" | "updatedAt", ExtArgs["result"]["report"]>
+export type ReportOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "documentId" | "summary" | "topRisks" | "obligations" | "exitConditions" | "warnings" | "createdAt" | "updatedAt", ExtArgs["result"]["report"]>
 export type ReportInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   document?: boolean | Prisma.DocumentDefaultArgs<ExtArgs>
 }
@@ -552,9 +550,10 @@ export type $ReportPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
     id: string
     documentId: string
     summary: string
-    topRisks: string[]
-    obligations: string[]
-    exitConditions: string[]
+    topRisks: runtime.JsonValue
+    obligations: runtime.JsonValue
+    exitConditions: runtime.JsonValue
+    warnings: string[]
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["report"]>
@@ -984,9 +983,10 @@ export interface ReportFieldRefs {
   readonly id: Prisma.FieldRef<"Report", 'String'>
   readonly documentId: Prisma.FieldRef<"Report", 'String'>
   readonly summary: Prisma.FieldRef<"Report", 'String'>
-  readonly topRisks: Prisma.FieldRef<"Report", 'String[]'>
-  readonly obligations: Prisma.FieldRef<"Report", 'String[]'>
-  readonly exitConditions: Prisma.FieldRef<"Report", 'String[]'>
+  readonly topRisks: Prisma.FieldRef<"Report", 'Json'>
+  readonly obligations: Prisma.FieldRef<"Report", 'Json'>
+  readonly exitConditions: Prisma.FieldRef<"Report", 'Json'>
+  readonly warnings: Prisma.FieldRef<"Report", 'String[]'>
   readonly createdAt: Prisma.FieldRef<"Report", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Report", 'DateTime'>
 }

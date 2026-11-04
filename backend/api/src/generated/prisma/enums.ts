@@ -9,6 +9,15 @@
 * 🟢 You can import this file directly.
 */
 
+export const Role = {
+  USER: 'USER',
+  LAWYER: 'LAWYER',
+  ADMIN: 'ADMIN'
+} as const
+
+export type Role = (typeof Role)[keyof typeof Role]
+
+
 export const DocumentStatus = {
   UPLOADED: 'UPLOADED',
   PROCESSING: 'PROCESSING',
@@ -38,12 +47,3 @@ export const ClauseSentiment = {
 } as const
 
 export type ClauseSentiment = (typeof ClauseSentiment)[keyof typeof ClauseSentiment]
-
-
-export const RiskLevel = {
-  LOW: 'LOW',
-  MEDIUM: 'MEDIUM',
-  HIGH: 'HIGH'
-} as const
-
-export type RiskLevel = (typeof RiskLevel)[keyof typeof RiskLevel]

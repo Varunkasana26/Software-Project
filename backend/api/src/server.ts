@@ -1,7 +1,14 @@
+import "dotenv/config"; // load .env before anything reads the environment
 import app from "./app";
 import { getConfig } from "./config/env";
+import { seedRulesIfEmpty } from "./services/ruleService";
 
 const config = getConfig();
+
+// Fill an empty rules table from core/rules/rules.json before taking requests.
+seedRulesIfEmpty()
+  .then((n) => n && console.log(`Seeded ${n} rules from the core rules file`))
+  .catch((e) => console.error("Rule seeding failed:", e.message));
 
 const server = app.listen(config.PORT, () => {
   console.log(`Server running on http://localhost:${config.PORT}`);

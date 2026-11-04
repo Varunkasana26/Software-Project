@@ -1,149 +1,58 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import fs from "fs";
-import path from "path";
+import request from "supertest";
+import { describe, expect, it } from "vitest";
+import app from "../src/app";
+import { AppError } from "../src/middleware/errorHandler";
+import { analyzeFile, coreReport, db, makeDoc, makeUser } from "./mocks";
 
-const mockPrisma = {
-  document: {
-    findUnique: vi.fn(),
-    update: vi.fn(),
-  },
-  clause: {
-    createMany: vi.fn(),
-  },
-  report: {
-    create: vi.fn(),
-  },
-  $transaction: vi.fn(),
-};
+describe("Processing through core", () => {
+  it("sends the file, the party and the active rules to core, and stores clauses with rule id and automatic score", async () => {
+    const { user, auth } = await makeUser("USER");
+    const doc = await makeDoc(user.id, { party: "tenant" });
+    await db.rule.create({ data: { ruleId: "PEN-008", name: "x", category: "PENALTY", patterns: ["non-refundable"], severityWeight: 4, partyEffectHint: "UNFAVORABLE", explanation: "e" } });
+    await db.rule.create({ data: { ruleId: "OFF-001", name: "off", category: "OTHER", patterns: ["zzz"], severityWeight: 1, partyEffectHint: "NEUTRAL", explanation: "e", isActive: false } });
+    analyzeFile.mockResolvedValue(coreReport);
 
-vi.mock("../src/lib/prisma", () => ({
-  prisma: mockPrisma,
-}));
+    const res = await request(app).post(`/api/documents/${doc.id}/process`).set(auth);
 
-vi.mock("../src/lib/fileExtractor", () => ({
-  extractTextFromFile: vi.fn(),
-}));
-
-vi.mock("../src/services/clauseEngine", () => ({
-  getClauseEngine: vi.fn(() => ({
-    processDocument: vi.fn(),
-  })),
-  setClauseEngine: vi.fn(),
-}));
-
-describe("Document Processing Workflow", () => {
-  beforeEach(async () => {
-    vi.resetModules();
+    expect(res.status).toBe(200);
+    const call = analyzeFile.mock.calls[0][0];
+    expect(call.party).toBe("tenant");
+    expect(call.rules.map((r: { rule_id: string }) => r.rule_id)).toEqual(["PEN-008"]); // the inactive rule is not sent
+    expect(call.rules[0]).toMatchObject({ category: "penalty", party_effect_hint: "unfavorable", severity_weight: 4 });
+    expect(db.clause.rows).toHaveLength(2);
+    expect(db.clause.rows[0]).toMatchObject({ ruleId: "PEN-008", autoScore: 8, category: "PENALTY", sentiment: "UNFAVORABLE" });
+    expect(res.body.document.status).toBe("COMPLETED");
+    expect(res.body.report.top_risks[0]).toMatchObject({ rule_id: "PEN-008", score: 8, label: "UNFAVORABLE" }); // reportItem object, not a string
   });
 
-  it("extracts text from PDF and processes through engine", async () => {
-    const { processDocument } = await import("../src/services/documentService");
-    const { extractTextFromFile } = await import("../src/lib/fileExtractor");
-    const { getClauseEngine } = await import("../src/services/clauseEngine");
+  it("returns a clear error and stores nothing when core is unreachable (no fake results)", async () => {
+    const { user, auth } = await makeUser("USER");
+    const doc = await makeDoc(user.id);
+    analyzeFile.mockRejectedValue(new AppError(502, "The analysis service is not reachable.", "CORE_UNREACHABLE"));
 
-    const mockEngine = {
-      processDocument: vi.fn().mockResolvedValue({
-        clauses: [
-          {
-            text: "Party shall deliver goods",
-            category: "OBLIGATION",
-            sentiment: "NEUTRAL",
-            riskLevel: "LOW",
-            explanation: "Standard obligation clause",
-          },
-        ],
-        summary: "Document contains 1 obligation(s).",
-        topRisks: [],
-        obligations: ["Party shall deliver goods"],
-        exitConditions: [],
-      }),
-    };
+    const res = await request(app).post(`/api/documents/${doc.id}/process`).set(auth);
 
-    vi.mocked(getClauseEngine).mockReturnValue(mockEngine as any);
-    vi.mocked(extractTextFromFile).mockResolvedValue("Party shall deliver goods on time.");
-    
-    mockPrisma.document.findUnique.mockResolvedValue({
-      id: "doc-1",
-      fileName: "test.pdf",
-      fileType: "application/pdf",
-      storagePath: "uploads/test.pdf",
-      status: "UPLOADED",
-      fileSize: 1024,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    });
-    mockPrisma.document.update.mockResolvedValue({} as any);
-    mockPrisma.clause.createMany.mockResolvedValue({ count: 1 });
-    mockPrisma.report.create.mockResolvedValue({} as any);
-    mockPrisma.$transaction.mockImplementation(async (fn) => fn(mockPrisma));
-
-    await processDocument("doc-1");
-
-    expect(extractTextFromFile).toHaveBeenCalledWith("uploads/test.pdf");
-    expect(mockEngine.processDocument).toHaveBeenCalledWith("Party shall deliver goods on time.");
-    expect(mockPrisma.document.update).toHaveBeenCalledWith({
-      where: { id: "doc-1" },
-      data: { status: "PROCESSING" },
-    });
-    expect(mockPrisma.clause.createMany).toHaveBeenCalled();
-    expect(mockPrisma.report.create).toHaveBeenCalled();
+    expect(res.status).toBe(502);
+    expect(res.body.code).toBe("CORE_UNREACHABLE");
+    expect(db.clause.rows).toHaveLength(0);
+    expect(db.report.rows).toHaveLength(0);
+    expect(db.document.rows[0]).toMatchObject({ status: "FAILED", failureCode: "CORE_UNREACHABLE" });
   });
 
-  it("handles processing failure and updates status to FAILED", async () => {
-    const { processDocument } = await import("../src/services/documentService");
-    const { extractTextFromFile } = await import("../src/lib/fileExtractor");
-    const { getClauseEngine } = await import("../src/services/clauseEngine");
-
-    const mockEngine = {
-      processDocument: vi.fn().mockRejectedValue(new Error("Engine error")),
-    };
-
-    vi.mocked(getClauseEngine).mockReturnValue(mockEngine as any);
-    vi.mocked(extractTextFromFile).mockResolvedValue("Some text");
-    
-    mockPrisma.document.findUnique.mockResolvedValue({
-      id: "doc-1",
-      fileName: "test.pdf",
-      fileType: "application/pdf",
-      storagePath: "uploads/test.pdf",
-      status: "UPLOADED",
-      fileSize: 1024,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    });
-    mockPrisma.document.update.mockResolvedValue({} as any);
-    mockPrisma.$transaction.mockImplementation(async (fn) => fn(mockPrisma));
-
-    await expect(processDocument("doc-1")).rejects.toThrow("Document processing failed");
-    expect(mockPrisma.document.update).toHaveBeenCalledWith({
-      where: { id: "doc-1" },
-      data: { status: "FAILED" },
-    });
+  it("passes core's rejection of a scanned PDF through with its status and code", async () => {
+    const { user, auth } = await makeUser("USER");
+    const doc = await makeDoc(user.id, { fileName: "scan.pdf" });
+    analyzeFile.mockRejectedValue(new AppError(422, "This PDF has no readable text (it looks scanned). OCR is not supported.", "SCANNED_PDF_UNSUPPORTED"));
+    const res = await request(app).post(`/api/documents/${doc.id}/process`).set(auth);
+    expect(res.status).toBe(422);
+    expect(res.body.code).toBe("SCANNED_PDF_UNSUPPORTED");
   });
 
-  it("handles empty text extraction", async () => {
-    const { processDocument } = await import("../src/services/documentService");
-    const { extractTextFromFile } = await import("../src/lib/fileExtractor");
-
-    vi.mocked(extractTextFromFile).mockResolvedValue("");
-    
-    mockPrisma.document.findUnique.mockResolvedValue({
-      id: "doc-1",
-      fileName: "test.pdf",
-      fileType: "application/pdf",
-      storagePath: "uploads/test.pdf",
-      status: "UPLOADED",
-      fileSize: 1024,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    });
-    mockPrisma.document.update.mockResolvedValue({} as any);
-    mockPrisma.$transaction.mockImplementation(async (fn) => fn(mockPrisma));
-
-    await expect(processDocument("doc-1")).rejects.toThrow("No text could be extracted");
-    expect(mockPrisma.document.update).toHaveBeenCalledWith({
-      where: { id: "doc-1" },
-      data: { status: "FAILED" },
-    });
+  it("refuses a second process request while one is running", async () => {
+    const { user, auth } = await makeUser("USER");
+    const doc = await makeDoc(user.id, { status: "PROCESSING" });
+    const res = await request(app).post(`/api/documents/${doc.id}/process`).set(auth);
+    expect(res.status).toBe(409);
+    expect(analyzeFile).not.toHaveBeenCalled();
   });
 });
