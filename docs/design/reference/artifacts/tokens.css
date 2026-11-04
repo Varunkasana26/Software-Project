@@ -1,0 +1,18 @@
+:root {
+  --color-bg-page: rgb(255, 255, 255);
+  --color-text-primary: rgb(29, 29, 31);
+  --color-surface-card: rgb(255, 255, 255);
+  --color-border-default: rgb(29, 29, 31);
+  --color-accent: #111111;
+  --font-body: "SF Pro Text", "SF Pro Icons", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --type-body-size: 17px;
+  --type-body-line-height: 25px;
+  --type-body-weight: 400;
+  --type-body-letter-spacing: -0.374px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --radius-md: 0px;
+  --shadow-none: none;
+  --shadow-surface: none;
+  --border-default: 0px none rgb(29, 29, 31);
+}

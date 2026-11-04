@@ -1,0 +1,32 @@
+{
+  "items": [
+    {
+      "id": "ev:screenshot/home",
+      "type": "screenshot",
+      "path": "evidence/screenshots/home.png",
+      "description": "Baseline page screenshot at extraction viewport.",
+      "capturedAt": "2026-11-04T02:17:33Z"
+    },
+    {
+      "id": "ev:computed/body",
+      "type": "computed-style",
+      "path": "raw/computed-styles.json",
+      "description": "Computed style extraction for page and sampled components.",
+      "capturedAt": "2026-11-04T02:17:33Z"
+    },
+    {
+      "id": "ev:script/library-detect",
+      "type": "script",
+      "path": "raw/library-detect.json",
+      "description": "Client-side animation and UI library detection.",
+      "capturedAt": "2026-11-04T02:17:33Z"
+    },
+    {
+      "id": "ev:animation/transition-scan",
+      "type": "animation",
+      "path": "raw/transition-scan.json",
+      "description": "Computed transition pattern scan.",
+      "capturedAt": "2026-11-04T02:17:33Z"
+    }
+  ]
+}
