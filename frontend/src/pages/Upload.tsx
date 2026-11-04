@@ -1,45 +1,124 @@
-import { useState, type FormEvent } from "react";
+import { useRef, useState, type DragEvent, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
-import { processDocument, uploadDocument } from "../api/client";
+import { ApiError, processDocument, uploadDocument } from "../api/client";
+import { Alert } from "../components/Alert";
+import { CheckIcon, UploadIcon } from "../components/Icons";
+import { PageHead } from "../components/Layout";
+
+const MAX_MB = 10;
+const PARTIES = [
+  ["tenant", "Tenant"], ["landlord", "Landlord"], ["employee", "Employee"], ["employer", "Employer"],
+  ["recipient", "Recipient"], ["discloser", "Discloser"], ["client", "Client"], ["provider", "Provider"],
+] as const;
+
+// Check the file in the browser first so the user gets a clear message before any upload.
+function checkFile(file: File): string {
+  const name = file.name.toLowerCase();
+  if (!name.endsWith(".pdf") && !name.endsWith(".txt")) return "This file type is not supported. Upload a PDF (.pdf) or a plain text file (.txt).";
+  if (file.size === 0) return "This file is empty. Choose a different file.";
+  if (file.size > MAX_MB * 1024 * 1024) return `This file is ${(file.size / 1048576).toFixed(1)} MB. The limit is ${MAX_MB} MB.`;
+  return "";
+}
+
+// Turn a server rejection into a plain sentence.
+function explain(err: unknown): string {
+  if (!(err instanceof ApiError)) return "Upload failed. Try again.";
+  if (err.code === "SCANNED_PDF_UNSUPPORTED") return "This PDF looks scanned (it contains only images). Scanned documents are not supported. Upload a text-based PDF or a .txt file.";
+  if (err.code === "FILE_TOO_LARGE" || err.status === 413) return `The server rejected this file as too large. The limit is ${MAX_MB} MB.`;
+  if (err.code === "UNSUPPORTED_TYPE" || err.message.includes("Only PDF and plain text")) return "The server only accepts PDF (.pdf) and plain text (.txt) files.";
+  return err.message;
+}
 
 export default function Upload() {
   const [file, setFile] = useState<File | null>(null);
-  // TODO(backend): the API does not accept a role yet; it is collected but not sent.
-  const [role, setRole] = useState("tenant");
-  const [error, setError] = useState("");
-  const [busy, setBusy] = useState(false);
+  const [party, setParty] = useState(sessionStorage.getItem("party") ?? "");
+  const [fileError, setFileError] = useState("");
+  const [partyError, setPartyError] = useState("");
+  const [serverError, setServerError] = useState("");
+  const [step, setStep] = useState<"" | "Uploading" | "Analyzing">("");
+  const [over, setOver] = useState(false);
+  const input = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
+
+  function choose(f: File | undefined) {
+    setServerError("");
+    if (!f) return;
+    const problem = checkFile(f);
+    setFileError(problem);
+    setFile(problem ? null : f);
+  }
+
+  function onDrop(e: DragEvent) {
+    e.preventDefault();
+    setOver(false);
+    choose(e.dataTransfer.files[0]);
+  }
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
-    if (!file) return;
-    setError("");
-    setBusy(true);
+    setServerError("");
+    if (!file) return setFileError("Choose a file to analyze.");
+    if (!party) return setPartyError("Choose which party you are.");
+    sessionStorage.setItem("party", party);
     try {
+      setStep("Uploading");
       const { id } = await uploadDocument(file);
+      setStep("Analyzing");
       await processDocument(id);
       navigate(`/report/${id}`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Upload failed");
-    } finally {
-      setBusy(false);
+      setServerError(explain(err));
+      setStep("");
     }
   }
 
   return (
-    <form onSubmit={onSubmit}>
-      <h1>Upload a document</h1>
-      <label htmlFor="file">Document (.pdf or .txt)</label>
-      <input id="file" type="file" accept=".pdf,.txt" required onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
-      <label htmlFor="role">My role</label>
-      <select id="role" value={role} onChange={(e) => setRole(e.target.value)}>
-        <option value="tenant">Tenant</option>
-        <option value="landlord">Landlord</option>
-      </select>
-      <p>
-        <button type="submit" disabled={busy || !file}>{busy ? "Analyzing..." : "Upload and analyze"}</button>
-      </p>
-      {error && <p className="error" role="alert">{error}</p>}
-    </form>
+    <>
+      <PageHead title="Analyze a contract">Upload a contract, say which side you are on, and get its risks, obligations and exit conditions.</PageHead>
+      <section className="section">
+        <div className="container" style={{ maxWidth: 720 }}>
+          <form onSubmit={onSubmit} noValidate>
+            <div className="field">
+              <span className="label" id="file-label">Document</span>
+              <div className={`dropzone${over ? " dropzone--over" : ""}`}
+                onDragOver={(e) => { e.preventDefault(); setOver(true); }} onDragLeave={() => setOver(false)} onDrop={onDrop}>
+                <UploadIcon />
+                {file ? (
+                  <p><CheckIcon /> <strong>{file.name}</strong> <span className="muted">({file.size < 1024 ? `${file.size} bytes` : `${(file.size / 1024).toFixed(0)} KB`})</span></p>
+                ) : (
+                  <p>Drag a file here, or choose one.</p>
+                )}
+                <input ref={input} id="file" className="visually-hidden file-input" type="file" accept=".pdf,.txt,application/pdf,text/plain"
+                  aria-describedby="file-help file-error" onChange={(e) => choose(e.target.files?.[0])} />
+                <label htmlFor="file" className="btn btn--secondary">{file ? "Choose a different file" : "Choose file"}</label>
+              </div>
+              <p id="file-help" className="help">PDF or plain text, up to {MAX_MB} MB. Scanned PDFs (images only) are not supported.</p>
+              {fileError && <div id="file-error" className="field-error" role="alert">{fileError}</div>}
+            </div>
+
+            <fieldset className="field" aria-describedby="party-help party-error">
+              <legend>Which party are you?</legend>
+              <div className="options" role="radiogroup">
+                {PARTIES.map(([value, label]) => (
+                  <label className="option" key={value}>
+                    <input type="radio" name="party" value={value} checked={party === value}
+                      onChange={() => { setParty(value); setPartyError(""); }} />
+                    <span><span className="check"><CheckIcon /></span>{label}</span>
+                  </label>
+                ))}
+              </div>
+              <p id="party-help" className="help">Risks are judged from your side. {/* TODO(backend): the API ignores the party for now; party-specific scoring needs the core service. */}</p>
+              {partyError && <div id="party-error" className="field-error" role="alert">{partyError}</div>}
+            </fieldset>
+
+            {serverError && <div className="field"><Alert kind="error">{serverError}</Alert></div>}
+            <div className="row">
+              <button type="submit" className="btn" disabled={!!step} style={{ minWidth: 200 }}>{step ? `${step}...` : "Upload and analyze"}</button>
+              {step && <span role="status" className="muted">{step === "Uploading" ? "Sending your file" : "Reading clauses, this can take a moment"}</span>}
+            </div>
+          </form>
+        </div>
+      </section>
+    </>
   );
 }

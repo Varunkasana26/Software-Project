@@ -1,40 +1,158 @@
-import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
-import { getReport, type ReportView } from "../api/client";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { Link, useParams } from "react-router-dom";
+import { getReport, type ClauseView, type ItemView, type ReportView } from "../api/client";
+import { ChevronIcon } from "../components/Icons";
+import { PageHead } from "../components/Layout";
+import { clauseTier, effectiveScore, RiskBadge, tierFromScore, type Tier } from "../components/RiskBadge";
+import { EmptyState, ErrorState, Loading } from "../components/States";
+
+const humanize = (s: string) => s.charAt(0) + s.slice(1).toLowerCase().replace(/_/g, " ");
+const TIERS: [Tier, string][] = [["high", "High risk"], ["medium", "Medium risk"], ["low", "Low risk or favorable"], ["neutral", "Neutral"]];
+
+function Items({ items, ordered, empty }: { items: ItemView[]; ordered?: boolean; empty: string }) {
+  const [open, setOpen] = useState<Record<number, boolean>>({});
+  if (items.length === 0) return <p className="muted">{empty}</p>;
+  const List = ordered ? "ol" : "ul";
+  return (
+    <List className="items">
+      {items.map((it, i) => (
+        <li key={i}>
+          <div className="item-meta">
+            <RiskBadge tier={it.score === null ? (it.label === "UNFAVORABLE" ? "medium" : "neutral") : it.label === "FAVORABLE" ? "low" : tierFromScore(it.score)} score={it.score} label={it.label} />
+            <span className="muted small">{it.ruleId ? <>Rule <code>{it.ruleId}</code></> : "Rule not reported"}</span>
+          </div>
+          <p className={open[i] ? "" : "clamp"} style={{ margin: 0 }}>{it.text}</p>
+          {it.text.length > 160 && (
+            <button type="button" className="link-btn" aria-expanded={!!open[i]} onClick={() => setOpen({ ...open, [i]: !open[i] })}>
+              {open[i] ? "Show less" : "Show full clause"}
+            </button>
+          )}
+        </li>
+      ))}
+    </List>
+  );
+}
+
+function ClauseCard({ clause, docId }: { clause: ClauseView; docId: string }) {
+  const [open, setOpen] = useState(false);
+  const tier = clauseTier(clause);
+  const panel = `why-${clause.id}`;
+  return (
+    <article className="card" aria-label={`Clause ${clause.index + 1}`}>
+      <div className="clause-head">
+        <strong>Clause {clause.index + 1}</strong>
+        <span className="tag">{humanize(clause.category)}</span>
+        <RiskBadge tier={tier} score={effectiveScore(clause)} label={clause.label} />
+        {clause.ruleId ? <code>{clause.ruleId}</code> : <span className="muted small">No rule id</span>}
+      </div>
+      <p style={{ margin: 0 }}>{clause.text}</p>
+      <div className="clause-scores">
+        <span>Auto score: {clause.autoScore ?? "not reported"}</span>
+        {clause.override && (
+          <span>Lawyer override: <strong>{clause.override.score}</strong> (auto score <span className="struck">{clause.autoScore ?? "n/a"}</span> kept on record)</span>
+        )}
+      </div>
+      <button type="button" className="disclosure" aria-expanded={open} aria-controls={panel} onClick={() => setOpen(!open)}>
+        <ChevronIcon /> Why this was flagged
+      </button>
+      {open && (
+        <div id={panel} className="disclosure-panel">
+          <p style={{ margin: 0 }}>{clause.explanation || "No explanation available."}</p>
+          {clause.override && <p className="small muted" style={{ margin: "8px 0 0" }}>Override reason: {clause.override.reason}</p>}
+          <p className="small" style={{ margin: "8px 0 0" }}><Link to={`/review/${docId}`}>Review this clause</Link></p>
+        </div>
+      )}
+    </article>
+  );
+}
 
 export default function Report() {
   const { id = "" } = useParams();
   const [report, setReport] = useState<ReportView | null>(null);
   const [error, setError] = useState("");
+  const [category, setCategory] = useState("ALL");
+  const [tier, setTier] = useState<Tier | "ALL">("ALL");
 
-  useEffect(() => {
+  const load = useCallback(() => {
     setReport(null);
     setError("");
-    getReport(id)
-      .then(setReport)
-      .catch((e) => setError(e instanceof Error ? e.message : "Failed to load report"));
+    getReport(id).then(setReport).catch((e) => setError(e instanceof Error ? e.message : "Could not load the report."));
   }, [id]);
+  useEffect(load, [load]);
 
-  if (error) return <p className="error" role="alert">{error}</p>;
-  if (!report) return <p>Loading...</p>;
+  const categories = useMemo(() => [...new Set(report?.clauses.map((c) => c.category) ?? [])], [report]);
+  const shown = useMemo(
+    () => (report?.clauses ?? []).filter((c) => (category === "ALL" || c.category === category) && (tier === "ALL" || clauseTier(c) === tier)),
+    [report, category, tier],
+  );
+
+  if (error) return <><PageHead title="Report" /><section className="section"><div className="container"><ErrorState message={error} onRetry={load} /></div></section></>;
+  if (!report) return <><PageHead title="Report" /><section className="section"><div className="container"><Loading label="Loading report" /></div></section></>;
+
+  const high = report.clauses.filter((c) => clauseTier(c) === "high").length;
+  const medium = report.clauses.filter((c) => clauseTier(c) === "medium").length;
+  const party = sessionStorage.getItem("party");
 
   return (
-    <div>
-      <h1>Report</h1>
-      <p>{report.summary}</p>
-      <h2>Top 5 risks</h2>
-      <ol>{report.topRisks.slice(0, 5).map((r, i) => <li key={i}>{r}</li>)}</ol>
-      <h2>Obligations</h2>
-      <ul>{report.obligations.map((o, i) => <li key={i}>{o}</li>)}</ul>
-      <h2>Exit conditions</h2>
-      <ul>{report.exitConditions.map((x, i) => <li key={i}>{x}</li>)}</ul>
-      <h2>Clauses</h2>
-      {report.clauses.map((c) => (
-        <div className="clause" key={c.id}>
-          <p>{c.text}</p>
-          <p>Category: {c.category} | Risk: {c.risk} | Rule: {c.ruleId ?? "n/a"}</p>
+    <>
+      <PageHead title="Contract report" mock={report.isMock ? "Mock data" : undefined}>{report.summary}</PageHead>
+      <section className="band" style={{ paddingBottom: 32 }}>
+        <div className="container grid-3">
+          <div><div className="stat">{report.clauses.length}</div><div className="muted">clauses read</div></div>
+          <div><div className="stat">{high}</div><div className="muted">high risk</div></div>
+          <div><div className="stat">{medium}</div><div className="muted">medium risk</div></div>
         </div>
-      ))}
-    </div>
+      </section>
+
+      <section className="section">
+        <div className="container stack">
+          {party && <p className="muted small">Judged from the {party}'s side.</p>}
+          {report.warnings.map((w) => <p key={w} className="muted small">{w}</p>)}
+          <div className="layout-2">
+            <div>
+              <h2>Top 5 risks</h2>
+              <Items items={report.topRisks.slice(0, 5)} ordered empty="No risks were found." />
+            </div>
+            <aside className="stack">
+              <div className="card"><h3>Obligations</h3><Items items={report.obligations} empty="No obligations were found." /></div>
+              <div className="card"><h3>Exit conditions</h3><Items items={report.exitConditions} empty="No exit conditions were found." /></div>
+            </aside>
+          </div>
+        </div>
+      </section>
+
+      <section className="section section--alt">
+        <div className="container">
+          <h2>All clauses</h2>
+          <div className="stack">
+            <div role="group" aria-label="Filter by category" className="options">
+              <button type="button" className="chip" aria-pressed={category === "ALL"} onClick={() => setCategory("ALL")}>All categories</button>
+              {categories.map((c) => (
+                <button key={c} type="button" className="chip" aria-pressed={category === c} onClick={() => setCategory(c)}>{humanize(c)}</button>
+              ))}
+            </div>
+            <div role="group" aria-label="Filter by risk" className="options">
+              <button type="button" className="chip" aria-pressed={tier === "ALL"} onClick={() => setTier("ALL")}>All risk levels</button>
+              {TIERS.map(([t, label]) => (
+                <button key={t} type="button" className="chip" aria-pressed={tier === t} onClick={() => setTier(t)}>{label}</button>
+              ))}
+            </div>
+            <div className="row row--between">
+              <p role="status" aria-live="polite" style={{ margin: 0 }}>Showing {shown.length} of {report.clauses.length} clauses</p>
+              {(category !== "ALL" || tier !== "ALL") && (
+                <button type="button" className="btn btn--secondary btn--small" onClick={() => { setCategory("ALL"); setTier("ALL"); }}>Clear filters</button>
+              )}
+            </div>
+            {report.clauses.length === 0 ? (
+              <EmptyState title="No clauses were found">The document may be empty or in an unexpected format.</EmptyState>
+            ) : shown.length === 0 ? (
+              <EmptyState title="No clauses match these filters" action={<button type="button" className="btn" onClick={() => { setCategory("ALL"); setTier("ALL"); }}>Clear filters</button>} />
+            ) : (
+              <div>{shown.map((c) => <ClauseCard key={c.id} clause={c} docId={report.documentId} />)}</div>
+            )}
+          </div>
+        </div>
+      </section>
+    </>
   );
 }
