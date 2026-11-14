@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 # Starts core (8001), backend (8000) and frontend (5173), waits for each health check, and prints the URLs.
 # Needs: python 3.11+, node 20+, and backend/api/.env (copy .env.example and fill it in). See README.md.
+# With --offline no database and no .env are needed: the backend keeps data in memory and creates the public demo accounts.
 set -u
+OFFLINE=0; [ "${1:-}" = "--offline" ] && OFFLINE=1
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 # Pick the first python that really runs (on Windows, python3 can be a Microsoft Store stub that does nothing).
 PY=""
@@ -12,7 +14,7 @@ done
 LOGS="$ROOT/.run"
 mkdir -p "$LOGS"
 
-[ -f "$ROOT/backend/api/.env" ] || { echo "Missing backend/api/.env. Copy backend/api/.env.example to backend/api/.env and fill it in."; exit 1; }
+[ "$OFFLINE" = 1 ] || [ -f "$ROOT/backend/api/.env" ] || { echo "Missing backend/api/.env. Copy backend/api/.env.example to backend/api/.env and fill it in."; exit 1; }
 [ -d "$ROOT/backend/api/node_modules" ] || { echo "Run 'npm install' in backend/api first (see README.md)."; exit 1; }
 [ -d "$ROOT/frontend/node_modules" ] || { echo "Run 'npm install' in frontend first (see README.md)."; exit 1; }
 
@@ -21,7 +23,7 @@ cleanup() { echo; echo "Stopping..."; for p in "${PIDS[@]}"; do kill "$p" 2>/dev
 trap cleanup EXIT INT TERM
 
 (cd "$ROOT/core" && exec "$PY" -m uvicorn service.main:app --port 8001) >"$LOGS/core.log" 2>&1 & PIDS+=($!)
-(cd "$ROOT/backend/api" && exec npm run dev) >"$LOGS/backend.log" 2>&1 & PIDS+=($!)
+(cd "$ROOT/backend/api" && if [ "$OFFLINE" = 1 ]; then export OFFLINE_DEMO=true; fi; exec npm run dev) >"$LOGS/backend.log" 2>&1 & PIDS+=($!)
 (cd "$ROOT/frontend" && exec npm run dev -- --port 5173 --strictPort) >"$LOGS/frontend.log" 2>&1 & PIDS+=($!)
 
 wait_for() { # name url expected-text
@@ -51,5 +53,6 @@ echo "Ready:"
 echo "  App (open this)  http://localhost:5173"
 echo "  API              http://localhost:8000/api"
 echo "  Core             http://localhost:8001/health"
+[ "$OFFLINE" = 1 ] && echo "  OFFLINE DEMO MODE: no database, data is lost on restart. Demo accounts are listed on the login page and in README.md."
 echo "Logs are in $LOGS. Press Ctrl+C to stop everything."
 wait

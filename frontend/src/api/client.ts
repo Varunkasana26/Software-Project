@@ -146,3 +146,14 @@ export const listRules = (page: number, limit = 20) => request<RulePage>(`/api/r
 export const createRule = (rule: RuleInput) => request<Rule>("/api/rules", { method: "POST", headers: json, body: JSON.stringify(rule) });
 export const updateRule = (id: string, patch: Partial<RuleInput>) => request<Rule>(`/api/rules/${id}`, { method: "PATCH", headers: json, body: JSON.stringify(patch) });
 export const deleteRule = (id: string) => request<void>(`/api/rules/${id}`, { method: "DELETE" });
+
+// ---- Server mode ----
+// The backend reports "offline-demo" when it runs without a database (OFFLINE_DEMO=true). Used only to show the demo accounts.
+export async function getServerMode(): Promise<string | null> {
+  try {
+    const res = await fetch(`${BASE}/api/health`);
+    return ((await res.json()) as { mode?: string }).mode ?? null;
+  } catch {
+    return null;
+  }
+}

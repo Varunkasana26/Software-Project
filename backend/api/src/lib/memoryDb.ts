@@ -1,5 +1,5 @@
-// A small in-memory stand-in for the Prisma client, so the API can be tested without a database.
-// It supports only what the services use: equality, OR, { not }, { lt }, orderBy, skip and take.
+// A small in-memory stand-in for the Prisma client. Used by the API tests and by OFFLINE_DEMO mode (no database needed).
+// It supports only what the services use: equality, OR, { not }, { lt }, orderBy, skip and take. Data is lost on restart.
 import { randomUUID } from "crypto";
 
 type Row = Record<string, any>;
@@ -32,7 +32,6 @@ function table(defaults: () => Row = () => ({})) {
   return {
     rows,
     create: async ({ data }: Row) => { const r = { id: randomUUID(), createdAt: new Date(), updatedAt: new Date(), ...defaults(), ...data }; rows.push(r); return r; },
-    createMany: async ({ data }: Row) => { for (const d of data) await (this as any).create({ data: d }); return { count: data.length }; },
     findUnique: async ({ where }: Row) => rows.find((r) => matches(r, where)) ?? null,
     findFirst: async ({ where, orderBy }: Row = {}) => sorted(rows.filter((r) => matches(r, where)), orderBy)[0] ?? null,
     findMany: async ({ where, orderBy, skip = 0, take }: Row = {}) => sorted(rows.filter((r) => matches(r, where)), orderBy).slice(skip, take === undefined ? undefined : skip + take),
@@ -44,8 +43,8 @@ function table(defaults: () => Row = () => ({})) {
   };
 }
 
-export function createFakePrisma() {
-  const t = (d?: () => Row) => { const x = table(d); x.createMany = async ({ data }: Row) => { for (const r of data) await x.create({ data: r }); return { count: data.length }; }; return x; };
+export function createMemoryPrisma() {
+  const t = (d?: () => Row) => { const x: any = table(d); x.createMany = async ({ data }: Row) => { for (const r of data) await x.create({ data: r }); return { count: data.length }; }; return x; };
   const db: Row = {
     user: t(), document: t(() => ({ status: "UPLOADED", failureCode: null, party: "" })), clause: t(() => ({ lawyerOverride: null, lawyerOverrideReason: null, overriddenAt: null, warning: null, matchedRuleIds: [] })),
     report: t(() => ({ warnings: [] })), rule: t(() => ({ justification: "", isActive: true, position: 0 })),

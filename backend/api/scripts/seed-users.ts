@@ -2,13 +2,8 @@
 // Run: npm run seed:users
 import "dotenv/config";
 import bcrypt from "bcryptjs";
+import { DEMO_ACCOUNTS as DEMO } from "../src/lib/demoAccounts";
 import { prisma } from "../src/lib/prisma";
-
-const DEMO = [
-  { email: "demo.user@example.com", password: "DemoUser-2026!", role: "USER" },
-  { email: "demo.lawyer@example.com", password: "DemoLawyer-2026!", role: "LAWYER" },
-  { email: "demo.admin@example.com", password: "DemoAdmin-2026!", role: "ADMIN" },
-] as const;
 
 async function main() {
   for (const u of DEMO) {
