@@ -16,11 +16,19 @@ function Start-Svc($name, $file, $argList, $dir) {
   return $p
 }
 function Wait-For($name, $url, $text) {
-  for ($i = 0; $i -lt 40; $i++) {  # up to about 40 x (8 s timeout + 1 s)
+  $end = (Get-Date).AddSeconds(90)  # give each service up to 90 seconds in total
+  while ((Get-Date) -lt $end) {
     try { if ((Invoke-WebRequest -UseBasicParsing -Uri $url -TimeoutSec 8).Content -match $text) { Write-Host "  OK   $name  $url"; return $true } } catch {}
     Start-Sleep -Seconds 1
   }
   Write-Host "  FAIL $name  $url  (see $logs\$name.log and $name.err.log)"
+  try { Invoke-WebRequest -UseBasicParsing -Uri $url -TimeoutSec 20 | Out-Null } catch {
+    $body = ""; try { $body = (New-Object System.IO.StreamReader($_.Exception.Response.GetResponseStream())).ReadToEnd() } catch {}
+    if ($body -match '"database":"disconnected"') {
+      Write-Host "       The backend is running but cannot reach the DATABASE. Check DATABASE_URL in backendpi\.env,"
+      Write-Host "       that the Supabase project is not paused (dashboard > Restore project), and your network."
+    }
+  }
   return $false
 }
 
@@ -31,7 +39,7 @@ try {
 
   Write-Host "Waiting for the services..."
   $ok = (Wait-For "core" "http://localhost:8001/health" '"ok"')
-  $ok = (Wait-For "backend" "http://localhost:8000/api/health" "healthy") -and $ok
+  $ok = (Wait-For "backend" "http://localhost:8000/api/health" '"status":"healthy"') -and $ok
   $ok = (Wait-For "frontend" "http://localhost:5173/" "root") -and $ok
   if (-not $ok) { exit 1 }
 

@@ -138,5 +138,7 @@ How we work is in [CONTRIBUTING.md](CONTRIBUTING.md) and [OWNERS.md](OWNERS.md).
 
 - **Backend says `Environment validation failed`**: `backend/api/.env` is missing a value (`DATABASE_URL`, `JWT_SECRET`).
 - **`ENOTFOUND db.xxxx.supabase.co`**: use the pooler host (step 2).
+- **"The database is not reachable" (503), or start-all says the backend cannot reach the DATABASE**: a free Supabase project pauses after about a week without use. Open the Supabase dashboard and click **Restore project**, then check `DATABASE_URL` in `backend/api/.env`.
+- **"Cannot reach the API at http://localhost:8000"** on the login page: the backend is not running, or `VITE_API_URL` is wrong. Run `scripts/start-all`, open http://localhost:8000/api/health, and read `.run/backend.log`.
 - **The app says "analysis service is not running"**: core on port 8001 is not up; see `.run/core.log`.
 - **Port already in use**: stop the old process (`netstat -ano | findstr :8000` on Windows, `lsof -i :8000` elsewhere).

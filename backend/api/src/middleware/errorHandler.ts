@@ -26,6 +26,13 @@ export class ValidationError extends AppError {
   }
 }
 
+/** True when the error means the database could not be reached (paused project, wrong URL, network), not that a query was wrong. */
+function isDatabaseDown(err: Error): boolean {
+  if (err instanceof Prisma.PrismaClientInitializationError) return true;
+  if (err instanceof Prisma.PrismaClientKnownRequestError && /^P1\d{3}$|^P2024$/.test(err.code)) return true;
+  return /timeout expired|Connection terminated|ECONNREFUSED|ETIMEDOUT|ENOTFOUND|ECONNRESET|Can't reach database/i.test(`${err.message} ${(err as { code?: string }).code ?? ""}`);
+}
+
 export function errorHandler(err: Error, _req: Request, res: Response, _next: NextFunction) {
   if (err instanceof ZodError) {
     // Field names and messages only; never the submitted values.
@@ -38,6 +45,9 @@ export function errorHandler(err: Error, _req: Request, res: Response, _next: Ne
 
   // Log the real cause on the server only. The client gets a fixed message (no Prisma meta, no stack).
   console.error("Unhandled error:", err);
+  if (isDatabaseDown(err)) {
+    return res.status(503).json({ error: "The database is not reachable right now. Try again in a minute; if it keeps happening, tell the person running the server.", code: "DATABASE_UNAVAILABLE" });
+  }
   if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {
     return res.status(409).json({ error: "That value already exists.", code: "CONFLICT" });
   }

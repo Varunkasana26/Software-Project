@@ -9,6 +9,7 @@ const config = getConfig();
 const pool = new Pool({
   connectionString: config.DATABASE_URL,
   ssl: config.DB_SSL ? { rejectUnauthorized: false } : undefined,
+  connectionTimeoutMillis: 10_000, // fail fast when the database is paused or unreachable instead of hanging the request
 });
 const adapter = new PrismaPg(pool);
 

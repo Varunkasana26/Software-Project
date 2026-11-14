@@ -25,17 +25,24 @@ trap cleanup EXIT INT TERM
 (cd "$ROOT/frontend" && exec npm run dev -- --port 5173 --strictPort) >"$LOGS/frontend.log" 2>&1 & PIDS+=($!)
 
 wait_for() { # name url expected-text
-  for _ in $(seq 1 60); do
-    if curl -fs "$2" 2>/dev/null | grep -q "$3"; then echo "  OK   $1  $2"; return 0; fi
+  end=$((SECONDS + 90))  # give each service up to 90 seconds in total
+  while [ "$SECONDS" -lt "$end" ]; do
+    if curl -fs -m 5 "$2" 2>/dev/null | grep -q "$3"; then echo "  OK   $1  $2"; return 0; fi
     sleep 1
   done
-  echo "  FAIL $1  $2  (see $LOGS/$4.log)"; tail -8 "$LOGS/$4.log"; return 1
+  echo "  FAIL $1  $2  (see $LOGS/$4.log)"; tail -8 "$LOGS/$4.log"
+  body="$(curl -s -m 20 "$2" 2>/dev/null)"
+  if echo "$body" | grep -q '"database":"disconnected"'; then
+    echo "       The backend is running but cannot reach the DATABASE. Check DATABASE_URL in backend/api/.env,"
+    echo "       that the Supabase project is not paused (dashboard > Restore project), and your network."
+  fi
+  return 1
 }
 
 echo "Waiting for the services..."
 ok=0
 wait_for core     http://localhost:8001/health  '"ok"'      core     || ok=1
-wait_for backend  http://localhost:8000/api/health healthy  backend  || ok=1
+wait_for backend  http://localhost:8000/api/health '"status":"healthy"'  backend  || ok=1
 wait_for frontend http://localhost:5173/        'root'      frontend || ok=1
 [ "$ok" = 0 ] || exit 1
 

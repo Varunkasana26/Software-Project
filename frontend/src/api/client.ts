@@ -25,7 +25,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   try {
     res = await fetch(`${BASE}${path}`, { ...init, credentials: "include" });
   } catch {
-    throw new ApiError("Cannot reach the server. Check that the API is running.", 0, "NETWORK");
+    throw new ApiError(`Cannot reach the API at ${BASE}. Check that the backend is running (scripts/start-all), that ${BASE}/api/health opens in the browser, and that VITE_API_URL in frontend/.env points to it. If it opens but sign-in still fails, FRONTEND_URL in backend/api/.env must be exactly this page's address.`, 0, "NETWORK");
   }
   if (res.status === 204) return undefined as T;
   const body = await res.json().catch(() => ({}));
