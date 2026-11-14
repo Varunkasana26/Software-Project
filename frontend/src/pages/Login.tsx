@@ -1,10 +1,20 @@
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { getServerMode } from "../api/client";
 import { Alert } from "../components/Alert";
 import { useAuth } from "../components/Auth";
 import { PageHead } from "../components/Layout";
 
+// Public local-demo accounts. They only exist when the backend runs in offline demo mode (see README.md).
+const DEMO_ACCOUNTS = [
+  { role: "User", email: "demo.user@example.com", password: "DemoUser-2026!" },
+  { role: "Lawyer", email: "demo.lawyer@example.com", password: "DemoLawyer-2026!" },
+  { role: "Admin", email: "demo.admin@example.com", password: "DemoAdmin-2026!" },
+];
+
 export default function Login() {
+  const [offline, setOffline] = useState(false);
+  useEffect(() => { getServerMode().then((m) => setOffline(m === "offline-demo")); }, []);
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -36,6 +46,20 @@ export default function Login() {
       <PageHead title={mode === "signin" ? "Sign in" : "Create an account"}>Sign in to analyze contracts and review results.</PageHead>
       <section className="section">
         <div className="container" style={{ maxWidth: 480 }}>
+          {offline && (
+            <div className="field">
+              <Alert kind="info">
+                <strong>Offline demo mode.</strong> The server runs without a database, so data is lost when it stops. Use a demo account:
+                <div className="row" style={{ marginTop: 8 }}>
+                  {DEMO_ACCOUNTS.map((a) => (
+                    <button key={a.role} type="button" className="btn btn--secondary btn--small" onClick={() => { setEmail(a.email); setPassword(a.password); setMode("signin"); setError(""); }}>
+                      Fill in {a.role}
+                    </button>
+                  ))}
+                </div>
+              </Alert>
+            </div>
+          )}
           <form onSubmit={onSubmit} noValidate>
             <div className="field">
               <label htmlFor="email">Email</label>

@@ -44,6 +44,7 @@ This page says what the project does not do, and what the numbers do not prove. 
 | Re-analysing a document replaces its clauses, so lawyer overrides on that document are lost. | Carry overrides over by matching clause text. |
 | `LAWYER` and `ADMIN` accounts can only be created by an operator (`npm run seed:users`). There is no password reset, no email check and no user management screen. | Add an admin screen for users and a reset flow. |
 | The demo accounts and their passwords are public (in `README.md`). They are for a local demo only. | Remove them in any shared deployment. |
+| Offline demo mode (`start-all --offline`) stores everything in memory and has public demo accounts. It exists so teammates can run the app without the database password, and the backend refuses to start with it in production. It does not exercise the real database. | Deploy a hosted demo (frontend, backend and core) with its own database instead of sharing credentials. |
 | The database connection accepts the Supabase certificate without pinning it (`rejectUnauthorized: false`). | Pin the CA certificate. |
 | The cookie is not `Secure` by default (`COOKIE_SECURE=false`), because the demo runs over http. | Set it to `true` behind HTTPS. |
 | Rate limiting is in-memory per process, and is off in tests. | Use a shared store when running more than one process. |

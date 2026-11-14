@@ -18,13 +18,19 @@ SAMPLES = [("rental_landlord_friendly.txt", "tenant"), ("employment_1.txt", "emp
 
 
 def main() -> int:
-    print("Creating demo accounts (user, lawyer, admin)...")
-    done = subprocess.run("npm run seed:users", cwd=ROOT / "backend" / "api", shell=True, capture_output=True, text=True)
-    if done.returncode != 0:
+    offline = "--offline" in sys.argv  # offline demo backend: the accounts already exist in memory
+    done = None
+    if offline:
+        print("Offline demo: the backend created the demo accounts when it started.")
+    else:
+        print("Creating demo accounts (user, lawyer, admin)...")
+        done = subprocess.run("npm run seed:users", cwd=ROOT / "backend" / "api", shell=True, capture_output=True, text=True)
+    if done is not None and done.returncode != 0:
         print(done.stdout[-600:], done.stderr[-600:])
         print("Could not create the accounts. Is backend/api/.env filled in and the schema pushed (npm run db:push)?")
         return 1
-    print("\n".join(line for line in done.stdout.splitlines() if "@" in line))
+    if done is not None:
+        print("\n".join(line for line in done.stdout.splitlines() if "@" in line))
 
     with httpx.Client(timeout=60) as client:
         login = client.post(f"{API}/auth/login", json=USER)
