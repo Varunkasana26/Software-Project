@@ -2,7 +2,8 @@ import { useRef, useState, type DragEvent, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { ApiError, processDocument, uploadDocument } from "../api/client";
 import { Alert } from "../components/Alert";
-import { CheckIcon, UploadIcon } from "../components/Icons";
+import { CheckIcon } from "../components/Icons";
+import UploadRig from "../components/UploadRig";
 import { PageHead } from "../components/Layout";
 
 const MAX_MB = 10;
@@ -39,6 +40,7 @@ export default function Upload() {
   const [serverError, setServerError] = useState("");
   const [step, setStep] = useState<"" | "Uploading" | "Analyzing">("");
   const [over, setOver] = useState(false);
+  const [progress,setProgress]=useState(0);
   const input = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
 
@@ -64,13 +66,13 @@ export default function Upload() {
     sessionStorage.setItem("party", party);
     try {
       setStep("Uploading");
-      const { id } = await uploadDocument(file, party);
+      const { id } = await uploadDocument(file, party, setProgress);setProgress(100);
       setStep("Analyzing");
       await processDocument(id);
       navigate(`/report/${id}`);
     } catch (err) {
       setServerError(explain(err));
-      setStep("");
+      setStep("");setProgress(0);
     }
   }
 
@@ -84,7 +86,7 @@ export default function Upload() {
               <span className="label" id="file-label">Document</span>
               <div className={`dropzone${over ? " dropzone--over" : ""}`}
                 onDragOver={(e) => { e.preventDefault(); setOver(true); }} onDragLeave={() => setOver(false)} onDrop={onDrop}>
-                <UploadIcon />
+                <div role="button" tabIndex={0} aria-label="Choose a contract file" className="rig-action" onClick={()=>input.current?.click()} onKeyDown={e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();input.current?.click()}}}><UploadRig state={step||"Idle"} progress={progress}/><span>{step||"Choose or drop a document"}</span></div>
                 {file ? (
                   <p><CheckIcon /> <strong>{file.name}</strong> <span className="muted">({file.size < 1024 ? `${file.size} bytes` : `${(file.size / 1024).toFixed(0)} KB`})</span></p>
                 ) : (

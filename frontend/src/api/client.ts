@@ -52,11 +52,8 @@ export const me = () => request<{ user: User | null }>("/api/auth/me"); // user 
 // ---- Documents ----
 export interface DocumentInfo { id: string; fileName: string; fileSize: number; status: "UPLOADED" | "PROCESSING" | "COMPLETED" | "FAILED"; party: string; failureCode: string | null; createdAt: string }
 
-export function uploadDocument(file: File, party: string) {
-  const form = new FormData();
-  form.append("file", file);
-  form.append("party", party);
-  return request<{ id: string }>("/api/documents", { method: "POST", body: form });
+export function uploadDocument(file: File, party: string, onProgress: (percent: number) => void): Promise<{id:string}> {
+  return new Promise((resolve,reject)=>{const form=new FormData();form.append("file",file);form.append("party",party);const xhr=new XMLHttpRequest();xhr.open("POST",`${BASE}/api/documents`);xhr.withCredentials=true;xhr.upload.onprogress=e=>{if(e.lengthComputable)onProgress(Math.round(e.loaded/e.total*100));};xhr.onerror=()=>reject(new ApiError("Network error while uploading. Check your connection and retry.",0,"NETWORK"));xhr.onload=()=>{const body=JSON.parse(xhr.responseText||"{}");if(xhr.status>=200&&xhr.status<300)resolve(body);else reject(new ApiError(body.error??`Request failed (${xhr.status})`,xhr.status,body.code));};xhr.send(form);});
 }
 export const processDocument = (id: string) => request<{ document: DocumentInfo }>(`/api/documents/${id}/process`, { method: "POST" });
 export const getDocument = (id: string) => request<DocumentInfo>(`/api/documents/${id}`);
