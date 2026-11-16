@@ -28,3 +28,10 @@ Text uses system sans; headings use Iowan Old Style, Georgia, Times New Roman. L
 Motion tokens: `--dur-fast:.15s`, `--dur:.35s`, `--dur-slow:.8s`, `--ease:cubic-bezier(.2,.8,.2,1)`, `--ease-slide:cubic-bezier(.77,0,.18,1)`. Use transform, opacity and filter for decorative motion; SVG path morph is reserved for the upload rig. Risk animations are restrained. Reduced motion disables decoration and snaps state to its final value. Every interactive control has a visible focus outline. Risks always pair an icon and label with the score; HIGH RISK starts at effective score 8, including lawyer overrides.
 
 The nav is a scrollable glass pill with a spring active marker. Login uses a sliding panel. Upload progress comes from XHR. Report cards expose the rule IDs, matched IDs, explanation, original score and override. Admin rule activation remains a button with pressed state. At mobile widths, content stacks and tables scroll within their own wrapper.
+
+
+## Interaction motion additions
+
+`PlayfulButton` is used for sign-in and demo-account filling. Its key cue, press scale, loading dots, success check and burst use transform and opacity; reduced-motion users see final states without decoration. Demo-account inputs are filled under React control and stop the sequence when the user edits either field.
+
+`DissolveText` animates upload-button label changes: the outgoing label separates into letters, drifts, blurs and fades, then the incoming label fades in. It never gates form submission, and reduced motion shows the current label immediately. The upload progress display eases toward each real XHR percentage with a short requestAnimationFrame step, snaps to 100% on completion, and drives the button fill and rig together.

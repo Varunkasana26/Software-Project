@@ -1,10 +1,11 @@
-import { useRef, useState, type DragEvent, type FormEvent, type CSSProperties } from "react";
+import { useEffect, useRef, useState, type DragEvent, type FormEvent, type CSSProperties } from "react";
 import { useNavigate } from "react-router-dom";
 import { ApiError, processDocument, uploadDocument } from "../api/client";
 import { Alert } from "../components/Alert";
 import { CheckIcon } from "../components/Icons";
 import UploadRig from "../components/UploadRig";
 import { PageHead } from "../components/Layout";
+import { DissolveText } from "../components/DissolveText";
 
 const MAX_MB = 10;
 const PARTIES = [
@@ -41,6 +42,8 @@ export default function Upload() {
   const [step, setStep] = useState<"" | "Uploading" | "Uploaded" | "Analyzing" | "Done" | "Failed">("");
   const [over, setOver] = useState(false);
   const [progress,setProgress]=useState(0);
+  const [displayProgress,setDisplayProgress]=useState(0);
+  useEffect(()=>{let frame=0;const advance=()=>{setDisplayProgress(v=>{if(v>=progress)return v;return Math.min(progress,v+Math.max(1,(progress-v)*.18))});if(displayProgress<progress)frame=requestAnimationFrame(advance)};frame=requestAnimationFrame(advance);return()=>cancelAnimationFrame(frame)},[progress]);
   const [live,setLive]=useState("");
   const busy=step==="Uploading"||step==="Analyzing";
   const input = useRef<HTMLInputElement>(null);
@@ -87,7 +90,7 @@ export default function Upload() {
               <span className="label" id="file-label">Document</span>
               <div className={`dropzone${over ? " dropzone--over" : ""}`}
                 onDragOver={(e) => { e.preventDefault(); setOver(true); }} onDragLeave={() => setOver(false)} onDrop={onDrop}>
-                <div role="button" tabIndex={0} aria-label="Choose a contract file" className="rig-action" onClick={()=>input.current?.click()} onKeyDown={e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();input.current?.click()}}}><UploadRig state={step||"Idle"} progress={progress}/><span>{step==="Failed"?"Upload failed":step||"Choose or drop a document"}</span></div>
+                <div role="button" tabIndex={0} aria-label="Choose a contract file" className="rig-action" onClick={()=>input.current?.click()} onKeyDown={e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();input.current?.click()}}}><UploadRig state={step||"Idle"} progress={Math.round(displayProgress)}/><span>{step==="Failed"?"Upload failed":step||"Choose or drop a document"}</span></div>
                 {file ? (
                   <p><CheckIcon /> <strong>{file.name}</strong> <span className="muted">({file.size < 1024 ? `${file.size} bytes` : `${(file.size / 1024).toFixed(0)} KB`})</span></p>
                 ) : (
@@ -119,7 +122,7 @@ export default function Upload() {
             {serverError && <div className="field" role="alert"><Alert kind="error"><strong>Upload failed.</strong> {serverError}</Alert></div>}
             <div className="visually-hidden" aria-live="polite">{live}</div>
             <div className="row">
-              <button type="submit" className={`btn upload-submit ${busy?"running":""} ${step==="Failed"?"failed":""}`} disabled={busy} aria-label={busy?`${step} ${progress}%`:step==="Failed"?"Failed. Try again":"Upload and analyze"} style={{ minWidth: 200,"--progress-scale":progress/100} as CSSProperties}><span className="upload-fill"/><span className="upload-label">{step==="Uploading"?`Uploading ${progress}%`:step==="Analyzing"?"Analyzing…":step==="Done"?"✓ Done":step==="Failed"?"Failed. Try again":"Upload and analyze"}</span></button>
+              <button type="submit" className={`btn upload-submit ${busy?"running":""} ${step==="Failed"?"failed":""}`} disabled={busy} aria-label={busy?`${step} ${Math.round(displayProgress)}%`:step==="Failed"?"Failed. Try again":"Upload and analyze"} style={{ minWidth: 200,"--progress-scale":displayProgress/100} as CSSProperties}><span className="upload-fill"/><span className="upload-label"><DissolveText>{step==="Uploading"?`Uploading ${Math.round(displayProgress)}%`:step==="Analyzing"?"Analyzing…":step==="Done"?"✓ Done":step==="Failed"?"Failed. Try again":"Upload and analyze"}</DissolveText></span></button>
               {step==="Failed"&&<button type="button" className="btn btn--secondary" onClick={()=>{setStep("");setProgress(0);setServerError("");setLive("")}}>Try again</button>}
             </div>
           </form>
