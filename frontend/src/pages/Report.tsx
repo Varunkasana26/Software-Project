@@ -40,12 +40,12 @@ function ClauseCard({ clause, docId }: { clause: ClauseView; docId: string }) {
   const tier = clauseTier(clause);
   const panel = `why-${clause.id}`;
   return (
-    <article className="card" aria-label={`Clause ${clause.index + 1}`}>
+    <article className={`card risk ${effectiveScore(clause)>=8?"high":""}`} aria-label={`Clause ${clause.index + 1}`}>
       <div className="clause-head">
         <strong>Clause {clause.index + 1}</strong>
         <span className="tag">{humanize(clause.category)}</span>
         <RiskBadge tier={tier} score={effectiveScore(clause)} label={clause.label} />
-        {clause.ruleId ? <code>{clause.ruleId}</code> : <span className="muted small">No rule id</span>}
+        {clause.ruleId && <code>{clause.ruleId}</code>}
       </div>
       <p style={{ margin: 0 }}>{clause.text}</p>
       <div className="clause-scores">
@@ -59,7 +59,7 @@ function ClauseCard({ clause, docId }: { clause: ClauseView; docId: string }) {
       </button>
       {open && (
         <div id={panel} className="disclosure-panel">
-          <p style={{ margin: 0 }}>{clause.explanation || "No explanation available."}</p>
+          <p style={{ margin: 0 }}>{clause.explanation || "Explanation not reported."}</p><p className="small">Rule: {clause.ruleId ?? "not reported"} · Matched: {clause.matchedRuleIds.join(", ") || "not reported"}</p>
           {clause.override && <p className="small muted" style={{ margin: "8px 0 0" }}>Override reason: {clause.override.reason}</p>}
           {user?.role === "LAWYER" && <p className="small" style={{ margin: "8px 0 0" }}><Link to={`/review/${docId}`}>Review this clause</Link></p>}
         </div>
@@ -93,7 +93,8 @@ export default function Report() {
   if (error) return <><PageHead title="Report" /><section className="section"><div className="container"><ErrorState message={error} onRetry={load} /></div></section></>;
   if (!report) return <><PageHead title="Report" /><section className="section"><div className="container"><Loading label="Loading report" /></div></section></>;
 
-  const high = report.clauses.filter((c) => clauseTier(c) === "high").length;
+  const high = report.clauses.filter((c) => effectiveScore(c) >= 8).length;
+  const overall = report.clauses.length ? report.clauses.map(effectiveScore).sort((a,b)=>b-a).slice(0,5).reduce((a,b)=>a+b,0)/Math.min(5,report.clauses.length) : 0;
   const medium = report.clauses.filter((c) => clauseTier(c) === "medium").length;
   const party = info?.party;
 
@@ -101,7 +102,7 @@ export default function Report() {
     <>
       <PageHead title={info?.fileName ?? "Contract report"} mock={report.isDemo ? "Demo data" : undefined}>{report.summary}</PageHead>
       <section className="band" style={{ paddingBottom: 32 }}>
-        <div className="container grid-3">
+        <div className="container grid-3"><div className="card gauge"><svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="54"/><circle className="gauge-value" cx="60" cy="60" r="54" style={{strokeDashoffset:339.3*(1-overall/10)}}/></svg><strong>{overall.toFixed(1)}<small>/10</small></strong><p>Mean of the five highest effective clause scores</p></div>
           <div><div className="stat">{report.clauses.length}</div><div className="muted">clauses read</div></div>
           <div><div className="stat">{high}</div><div className="muted">high risk</div></div>
           <div><div className="stat">{medium}</div><div className="muted">medium risk</div></div>
@@ -110,7 +111,8 @@ export default function Report() {
 
       <section className="section">
         <div className="container stack">
-          {party ? <p className="muted small">Judged from the {party}'s side.</p> : <p className="muted small">No side was chosen, so every clause is labelled neutral.</p>}
+          {high>0&&<div className="alert risk-alert" role="alert"><span className="dot"/><strong>{high} high-risk clauses need attention before you sign</strong></div>}
+          {party ? <p className="muted small">Judged from the {party}'s side.</p> : <p className="muted small">No side was chosen in this document.</p>}
           {report.warnings.map((w) => <p key={w} className="muted small">Note: {w}</p>)}
           <div className="layout-2">
             <div>
@@ -156,7 +158,7 @@ export default function Report() {
             )}
           </div>
         </div>
-      </section>
+      <p className="muted small">Not legal advice. First-pass aid only. <a href="/limitations">Read known limitations</a>.</p></section>
     </>
   );
 }
