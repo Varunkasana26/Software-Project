@@ -1,4 +1,4 @@
-import { useRef, useState, type DragEvent, type FormEvent } from "react";
+import { useRef, useState, type DragEvent, type FormEvent, type CSSProperties } from "react";
 import { useNavigate } from "react-router-dom";
 import { ApiError, processDocument, uploadDocument } from "../api/client";
 import { Alert } from "../components/Alert";
@@ -38,18 +38,20 @@ export default function Upload() {
   const [fileError, setFileError] = useState("");
   const [partyError, setPartyError] = useState("");
   const [serverError, setServerError] = useState("");
-  const [step, setStep] = useState<"" | "Uploading" | "Analyzing">("");
+  const [step, setStep] = useState<"" | "Uploading" | "Uploaded" | "Analyzing" | "Done" | "Failed">("");
   const [over, setOver] = useState(false);
   const [progress,setProgress]=useState(0);
+  const [live,setLive]=useState("");
+  const busy=step==="Uploading"||step==="Analyzing";
   const input = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
 
   function choose(f: File | undefined) {
-    setServerError("");
+    setServerError("");setStep("");setProgress(0);
     if (!f) return;
     const problem = checkFile(f);
     setFileError(problem);
-    setFile(problem ? null : f);
+    setFile(problem ? null : f);if(problem){setServerError(problem);setStep("Failed");setLive(`Upload failed: ${problem}`)}
   }
 
   function onDrop(e: DragEvent) {
@@ -61,18 +63,17 @@ export default function Upload() {
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     setServerError("");
+    if (busy) return;
     if (!file) return setFileError("Choose a file to analyze.");
     if (!party) return setPartyError("Choose which party you are.");
     sessionStorage.setItem("party", party);
     try {
-      setStep("Uploading");
-      const { id } = await uploadDocument(file, party, setProgress);setProgress(100);
-      setStep("Analyzing");
-      await processDocument(id);
-      navigate(`/report/${id}`);
+      setStep("Uploading");setLive("Uploading 0%");
+      const { id } = await uploadDocument(file, party, p=>{setProgress(p);setLive(`Uploading ${p}%`)});setProgress(100);setStep("Uploaded");setLive("Uploaded");
+      await new Promise(r=>setTimeout(r,250));setStep("Analyzing");setLive("Analyzing");
+      await processDocument(id);setStep("Done");setLive("Uploaded");setTimeout(()=>navigate(`/report/${id}`),700);
     } catch (err) {
-      setServerError(explain(err));
-      setStep("");setProgress(0);
+      const reason=explain(err);setServerError(reason);setStep("Failed");setLive(`Upload failed: ${reason}`);
     }
   }
 
@@ -86,7 +87,7 @@ export default function Upload() {
               <span className="label" id="file-label">Document</span>
               <div className={`dropzone${over ? " dropzone--over" : ""}`}
                 onDragOver={(e) => { e.preventDefault(); setOver(true); }} onDragLeave={() => setOver(false)} onDrop={onDrop}>
-                <div role="button" tabIndex={0} aria-label="Choose a contract file" className="rig-action" onClick={()=>input.current?.click()} onKeyDown={e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();input.current?.click()}}}><UploadRig state={step||"Idle"} progress={progress}/><span>{step||"Choose or drop a document"}</span></div>
+                <div role="button" tabIndex={0} aria-label="Choose a contract file" className="rig-action" onClick={()=>input.current?.click()} onKeyDown={e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();input.current?.click()}}}><UploadRig state={step||"Idle"} progress={progress}/><span>{step==="Failed"?"Upload failed":step||"Choose or drop a document"}</span></div>
                 {file ? (
                   <p><CheckIcon /> <strong>{file.name}</strong> <span className="muted">({file.size < 1024 ? `${file.size} bytes` : `${(file.size / 1024).toFixed(0)} KB`})</span></p>
                 ) : (
@@ -115,10 +116,11 @@ export default function Upload() {
               {partyError && <div id="party-error" className="field-error" role="alert">{partyError}</div>}
             </fieldset>
 
-            {serverError && <div className="field"><Alert kind="error">{serverError}</Alert></div>}
+            {serverError && <div className="field" role="alert"><Alert kind="error"><strong>Upload failed.</strong> {serverError}</Alert></div>}
+            <div className="visually-hidden" aria-live="polite">{live}</div>
             <div className="row">
-              <button type="submit" className="btn" disabled={!!step} style={{ minWidth: 200 }}>{step ? `${step}...` : "Upload and analyze"}</button>
-              {step && <span role="status" className="muted">{step === "Uploading" ? "Sending your file" : "Reading clauses, this can take a moment"}</span>}
+              <button type="submit" className={`btn upload-submit ${busy?"running":""} ${step==="Failed"?"failed":""}`} disabled={busy} aria-label={busy?`${step} ${progress}%`:step==="Failed"?"Failed. Try again":"Upload and analyze"} style={{ minWidth: 200,"--progress-scale":progress/100} as CSSProperties}><span className="upload-fill"/><span className="upload-label">{step==="Uploading"?`Uploading ${progress}%`:step==="Analyzing"?"Analyzing…":step==="Done"?"✓ Done":step==="Failed"?"Failed. Try again":"Upload and analyze"}</span></button>
+              {step==="Failed"&&<button type="button" className="btn btn--secondary" onClick={()=>{setStep("");setProgress(0);setServerError("");setLive("")}}>Try again</button>}
             </div>
           </form>
         </div>
