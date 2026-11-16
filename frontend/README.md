@@ -28,3 +28,8 @@ The API uses an httpOnly cookie session. Offline demo mode is supported by `../s
 Reports use `reportItem` objects and full clauses from the live report response. The optional `/report/demo` development route uses `src/api/mock.ts` and is explicitly demo data. No mock-backed auth, upload, override or rules remain. USER can analyze and read own documents; LAWYER can review documents and override clauses; ADMIN can manage rules.
 
 The report's overall gauge is the mean of up to five highest effective clause scores (override when present, otherwise auto score). High risk means effective score at least 8. This is a first-pass aid, not legal advice.
+
+
+## Document and lawyer review routes
+
+`/documents` shows the document list for every signed-in role. For LAWYER accounts, selecting a document changes the URL to `/documents/:id` and opens its clauses and override controls beside the list. USER and ADMIN accounts remain on the document list if they visit that URL. The former `/review/:id` route redirects to `/documents/:id`. Reports open at `/report/:id`.

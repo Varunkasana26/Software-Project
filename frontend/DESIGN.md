@@ -45,3 +45,7 @@ The Report dashboard uses a 12-column desktop grid, two columns on tablet, and o
 
 
 Login mode changes follow a slide-first sequence: the cover moves for 0.8 seconds, then the newly revealed form content fades and rises in an 80 ms stagger. Content from the covered form fades out at slide start. The inactive form is inert and hidden from assistive technology; focus moves to the revealed Email field. Reduced motion switches forms immediately without delay.
+
+## Merged Documents and lawyer review
+
+`/documents` serves every signed-in role. Lawyers select a row to open a review pane at `/documents/:id`; other roles retain the normal document list and are redirected back to it if they request a review-style URL. `/review/:id` redirects to the merged workspace. The review panel preserves automatic scores beside saved lawyer overrides and uses effective score for clause ordering and risk presentation. Navigation labels dissolve on click without delaying navigation; the active capsule measures the link box, and reduced motion skips the effect.
