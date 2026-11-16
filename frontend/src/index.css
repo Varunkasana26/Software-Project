@@ -230,3 +230,6 @@ body:before,body:after{content:"";position:fixed;z-index:-1;width:260px;height:2
 @media(prefers-reduced-motion:reduce){.playful-button,.key-icon,.playful-outline .playful-icon{transition:none}.playful-button:hover,.playful-button.pressed{transform:none}.playful-button:hover .key-icon{animation:none;opacity:1;transform:none}.play-dots i{animation:none}.play-success svg,.play-success i{animation:none;transform:none;opacity:1}.login-form.has-error{animation:none}.t.go i,.dissolve.back{animation:none!important;opacity:1}.ripple{display:none}}
 .playful-button{isolation:isolate}.playful-button .ripple{z-index:-1}
 @media(max-width:640px){.login-box{height:700px}.login-form{position:absolute;inset:160px 0 0;padding:20px 24px}.cover{height:160px}.login-box.signup .cover{transform:translateY(540px)}}
+.playful-button{isolation:isolate}.playful-button .ripple{z-index:-1}
+@media(max-width:640px){.login-box{height:700px}.login-form{position:absolute;inset:160px 0 0;padding:20px 24px}.cover{height:160px}.login-box.signup .cover{transform:translateY(540px)}}
+@media(prefers-reduced-motion:reduce){.fill-highlight input{animation:none}}
