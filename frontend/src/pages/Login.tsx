@@ -41,47 +41,5 @@ export default function Login() {
     }
   }
 
-  return (
-    <>
-      <PageHead title={mode === "signin" ? "Sign in" : "Create an account"}>Sign in to analyze contracts and review results.</PageHead>
-      <section className="section">
-        <div className="container" style={{ maxWidth: 480 }}>
-          {offline && (
-            <div className="field">
-              <Alert kind="info">
-                <strong>Offline demo mode.</strong> The server runs without a database, so data is lost when it stops. Use a demo account:
-                <div className="row" style={{ marginTop: 8 }}>
-                  {DEMO_ACCOUNTS.map((a) => (
-                    <button key={a.role} type="button" className="btn btn--secondary btn--small" onClick={() => { setEmail(a.email); setPassword(a.password); setMode("signin"); setError(""); }}>
-                      Fill in {a.role}
-                    </button>
-                  ))}
-                </div>
-              </Alert>
-            </div>
-          )}
-          <form onSubmit={onSubmit} noValidate>
-            <div className="field">
-              <label htmlFor="email">Email</label>
-              <input id="email" type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)}
-                aria-invalid={!!error && !email.includes("@")} aria-describedby={error ? "login-error" : undefined} />
-            </div>
-            <div className="field">
-              <label htmlFor="password">Password</label>
-              <input id="password" type="password" autoComplete={mode === "signin" ? "current-password" : "new-password"} value={password}
-                onChange={(e) => setPassword(e.target.value)} aria-invalid={!!error && !password} aria-describedby={error ? "login-error" : "password-help"} />
-              {mode === "signup" && <p id="password-help" className="help">At least 8 characters.</p>}
-            </div>
-            {error && <div id="login-error" className="field"><Alert kind="error">{error}</Alert></div>}
-            <div className="row">
-              <button type="submit" className="btn" disabled={busy}>{busy ? "Please wait..." : mode === "signin" ? "Sign in" : "Create account"}</button>
-              <button type="button" className="link-btn" onClick={() => { setError(""); setMode(mode === "signin" ? "signup" : "signin"); }}>
-                {mode === "signin" ? "Create an account" : "I already have an account"}
-              </button>
-            </div>
-          </form>
-        </div>
-      </section>
-    </>
-  );
+  return <section className="login-wrap"><div className={`login-box ${mode}`}><form className="login-form signin-form" onSubmit={onSubmit} noValidate><h1>Sign in</h1><p className="muted">Return to your documents and reviews.</p><label>Email<input type="email" autoComplete="email" value={email} onChange={e=>setEmail(e.target.value)}/></label><label>Password<input type="password" autoComplete="current-password" value={password} onChange={e=>setPassword(e.target.value)}/></label>{error&&mode==="signin"&&<p className="field-error" role="alert">{error}</p>}<button className="btn" disabled={busy}>{busy?"Please wait…":"Sign in"}</button><button type="button" className="link-btn" onClick={()=>{setError("");setMode("signup")}}>Create an account</button></form><form className="login-form signup-form" onSubmit={onSubmit} noValidate><h1>Create account</h1><p className="muted">Start reviewing a contract in minutes.</p><label>Email<input type="email" autoComplete="email" value={email} onChange={e=>setEmail(e.target.value)}/></label><label>Password<input type="password" autoComplete="new-password" value={password} onChange={e=>setPassword(e.target.value)}/></label><small>At least 8 characters.</small>{error&&mode==="signup"&&<p className="field-error" role="alert">{error}</p>}<button className="btn" disabled={busy}>{busy?"Please wait…":"Create account"}</button><button type="button" className="link-btn" onClick={()=>{setError("");setMode("signin")}}>Sign in</button></form><div className="cover"><div><h2>{mode==="signin"?"Welcome back.":"Start the first page."}</h2><p>Legal documents, made clearer.</p></div></div></div>{offline&&<div className="demo-hint"><strong>Offline demo mode.</strong> Data is cleared when the server stops. {DEMO_ACCOUNTS.map(a=><button key={a.role} type="button" className="btn btn--secondary btn--small" onClick={()=>{setEmail(a.email);setPassword(a.password);setMode("signin")}}>Fill in {a.role}</button>)}</div>}</section>;
 }
