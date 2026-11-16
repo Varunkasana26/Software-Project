@@ -210,3 +210,4 @@ th { font-size: var(--text-small); color: var(--color-muted); font-weight: 600; 
 .state svg { margin-bottom: var(--space-3); }
 .state p { margin-left: auto; margin-right: auto; }
 
+.t i{display:inline-block;font-style:normal;white-space:pre}.t.go i{animation:dis .75s ease-in forwards;animation-delay:var(--d)}@keyframes dis{to{opacity:0;filter:blur(7px);transform:translate(var(--dx),var(--dy)) scale(.5)}}.t.back{animation:bk .45s ease-out}@keyframes bk{from{opacity:0;filter:blur(6px)}}
