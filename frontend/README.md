@@ -32,4 +32,6 @@ The report's overall gauge is the mean of up to five highest effective clause sc
 
 ## Document and lawyer review routes
 
-`/documents` shows the document list for every signed-in role. For LAWYER accounts, selecting a document changes the URL to `/documents/:id` and opens its clauses and override controls beside the list. USER and ADMIN accounts remain on the document list if they visit that URL. The former `/review/:id` route redirects to `/documents/:id`. Reports open at `/report/:id`.
+`/documents` shows a plain, paginated document list for every signed-in role. Each document links to `/report/:id`; LAWYER accounts also see a Review link to `/review/:id`. The separate lawyer-only Review navigation item opens `/review`, a document picker, and stays active on individual review pages. USER and ADMIN accounts cannot access either review route.
+
+`/review/:id` shows one card per clause, with the original automatic score read-only, an override score stepper and slider, a reason, and Save override. It retains highest-risk-first sorting (with document order available), category/risk chips with a sliding pill, FLIP reordering, red treatment at effective score 8+, unsaved markers, save states, summary counts, and empty states. Zero-risk clauses remain available for review. Documents no longer embeds a review pane or loads reports for list summaries. API endpoints and request formats are unchanged.

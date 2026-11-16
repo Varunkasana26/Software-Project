@@ -50,6 +50,8 @@ Admin Rules summarizes the current server page, then applies search, category, e
 
 Login mode changes follow a slide-first sequence: the cover moves for 0.8 seconds, then the newly revealed form content fades and rises in an 80 ms stagger. Content from the covered form fades out at slide start. The inactive form is inert and hidden from assistive technology; focus moves to the revealed Email field. Reduced motion switches forms immediately without delay.
 
-## Merged Documents and lawyer review
+## Separate Documents and lawyer review
 
-`/documents` serves every signed-in role. Lawyers select a row to open a review pane at `/documents/:id`; other roles retain the normal document list and are redirected back to it if they request a review-style URL. `/review/:id` redirects to the merged workspace. The review panel preserves automatic scores beside saved lawyer overrides and uses effective score for clause ordering and risk presentation. Navigation labels dissolve on click without delaying navigation; the active capsule measures the link box, and reduced motion skips the effect.
+`/documents` is a plain, paginated document list for every signed-in role, with Report links and an additional Review link for lawyers. There is no two-pane workspace. The lawyer-only Review navigation item opens the `/review` document picker; `/review/:id` is a separate, role-protected page. Navigation uses the same spring capsule, dissolve labels and `aria-current` behavior for Review as for other items.
+
+Review retains one full-width card per clause with a read-only original auto score, override stepper and slider, reason, Unsaved changes chip, and Save override states (idle, saving, saved, failure). A summary strip counts clauses, high-risk clauses and overrides. Highest effective score sorts first, with document order available; category and risk chips use a sliding pill and FLIP reordering. Effective scores at 8+ receive red treatment. Empty reports and filter results show explicit empty states; zero-risk notices keep clause cards available. Cards use normal page scrolling and fields stack on mobile. Reduced motion skips decorative effects.
