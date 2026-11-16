@@ -9,7 +9,7 @@ function Svg({ children, size = 16 }: { children: ReactNode; size?: number }) {
   );
 }
 
-export const HighIcon = () => <Svg><path d="M8 2 14.5 13.5h-13z" fill="currentColor" /><path d="M8 6.5v3M8 11.6v.1" stroke="#fff" /></Svg>;
+export const HighIcon = () => <Svg><path d="M8 2 14.5 13.5h-13z" fill="currentColor" /><path d="M8 6.5v3M8 11.6v.1" stroke="var(--bg)" /></Svg>;
 export const MediumIcon = () => <Svg><path d="M8 1.8 14.2 8 8 14.2 1.8 8z" /><path d="M8 5.5v3M8 10.6v.1" /></Svg>;
 export const LowIcon = () => <Svg><circle cx="8" cy="8" r="6" /><path d="m5.3 8.2 1.9 1.9 3.5-3.9" /></Svg>;
 export const NeutralIcon = () => <Svg><circle cx="8" cy="8" r="6" /><path d="M5.5 8h5" /></Svg>;
