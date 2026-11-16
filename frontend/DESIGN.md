@@ -43,6 +43,10 @@ Clause rank uses effective score (lawyer override when present, otherwise auto s
 
 The Report dashboard uses a 12-column desktop grid, two columns on tablet, and one column on mobile. Its gauge and stat counts animate on load. Sort/filter changes use FLIP transforms, disclosure panels animate with grid row expansion, and the Top 5 and category bars enter in sequence. Reduced-motion preferences snap these elements to their final layout.
 
+## Rules admin interactions
+
+Admin Rules summarizes the current server page, then applies search, category, effect, status, and sort controls locally to that page. The paginated table scrolls inside its own container; edits use a right-side slide-over with a focus trap, discard confirmation, and field entrance stagger. Pattern checks report JavaScript syntax as advisory only; server validation remains authoritative. Weight and effect use keyboard-operable segmented controls, active state uses an `aria-pressed` switch, deletion uses a five-second inline confirmation, and save/delete/toggle results use dismissible status toasts. Row entrance, drawer movement, segmented controls, and toast timing use transforms and opacity; reduced motion snaps them to their settled state.
+
 
 Login mode changes follow a slide-first sequence: the cover moves for 0.8 seconds, then the newly revealed form content fades and rises in an 80 ms stagger. Content from the covered form fades out at slide start. The inactive form is inert and hidden from assistive technology; focus moves to the revealed Email field. Reduced motion switches forms immediately without delay.
 
