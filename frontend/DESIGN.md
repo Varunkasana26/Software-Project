@@ -35,3 +35,10 @@ The nav is a scrollable glass pill with a spring active marker. Login uses a sli
 `PlayfulButton` is used for sign-in and demo-account filling. Its key cue, press scale, loading dots, success check and burst use transform and opacity; reduced-motion users see final states without decoration. Demo-account inputs are filled under React control and stop the sequence when the user edits either field.
 
 `DissolveText` animates upload-button label changes: the outgoing label separates into letters, drifts, blurs and fades, then the incoming label fades in. It never gates form submission, and reduced motion shows the current label immediately. The upload progress display eases toward each real XHR percentage with a short requestAnimationFrame step, snaps to 100% on completion, and drives the button fill and rig together.
+
+
+## Report ranking and motion
+
+Clause rank uses effective score (lawyer override when present, otherwise auto score), descending, with clause index ascending for ties. Auto and override scores remain visible side by side. Risk bands are high at 8+, medium at 5–7, low above 0 and below 5, and neutral at 0. High-risk cards use a muted red border and tint with a slow, soft pulse; reduced motion keeps the static treatment without pulses.
+
+The Report dashboard uses a 12-column desktop grid, two columns on tablet, and one column on mobile. Its gauge and stat counts animate on load. Sort/filter changes use FLIP transforms, disclosure panels animate with grid row expansion, and the Top 5 and category bars enter in sequence. Reduced-motion preferences snap these elements to their final layout.

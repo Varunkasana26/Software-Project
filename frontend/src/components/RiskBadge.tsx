@@ -5,8 +5,8 @@ export type Tier = "high" | "medium" | "low" | "neutral";
 
 // Score is 0-10. See "Score to tier" in frontend/DESIGN.md.
 export function tierFromScore(score: number): Tier {
-  if (score >= 7) return "high";
-  if (score >= 4) return "medium";
+  if (score >= 8) return "high";
+  if (score >= 5) return "medium";
   if (score > 0) return "low";
   return "neutral";
 }
@@ -17,7 +17,6 @@ export function effectiveScore(c: Pick<ClauseView, "autoScore" | "override">): n
 }
 
 export function clauseTier(c: ClauseView): Tier {
-  if (c.label === "FAVORABLE" && !c.override) return "low";
   return tierFromScore(effectiveScore(c));
 }
 
@@ -27,7 +26,7 @@ const ICON = { high: HighIcon, medium: MediumIcon, low: LowIcon, neutral: Neutra
 // Always icon + word + number, so risk never depends on colour.
 export function RiskBadge({ tier, score, label }: { tier: Tier; score: number | null; label?: Label }) {
   const Icon = ICON[tier];
-  const text = tier === "low" && label === "FAVORABLE" ? "Favorable" : TEXT[tier];
+  const text = TEXT[tier];
   return (
     <span className={`badge badge--${tier}`}>
       <Icon />
