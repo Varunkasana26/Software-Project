@@ -244,3 +244,7 @@ body:before,body:after{content:"";position:fixed;z-index:-1;width:260px;height:2
 
 .high-stat{animation:stat-nudge 1.8s ease-in-out infinite}@keyframes stat-nudge{50%{opacity:.72}}.showing-count{display:inline-block;animation:show-count .25s ease-out}@keyframes show-count{from{opacity:0;transform:translateY(4px)}}
 @media(prefers-reduced-motion:reduce){.high-stat,.showing-count{animation:none}}
+
+/* Login mode switch: move the cover first, then reveal the active form content. */
+.login-form .stagger-item{opacity:0;transform:translateY(16px);transition:opacity .45s var(--ease),transform .45s var(--ease);transition-delay:0ms}.login-form.is-revealed .stagger-item{opacity:1;transform:translateY(0)}.login-box.has-switched:not(.is-sliding) .login-form.is-revealed .stagger-item{transition-delay:calc(var(--i)*80ms)}.login-box:not(.has-switched) .login-form.is-revealed .stagger-item{opacity:1;transform:none;transition:none}.login-box.is-sliding .login-form .stagger-item{opacity:0;transform:translateY(16px);transition-duration:.2s;transition-delay:0ms}.login-box.is-sliding .login-form[inert]{visibility:visible}.login-form[inert]{visibility:hidden;pointer-events:none}.login-form:not([inert]){visibility:visible;pointer-events:auto}
+@media(prefers-reduced-motion:reduce){.login-form .stagger-item,.login-box.is-sliding .login-form .stagger-item{transition:none!important;transition-delay:0ms!important;opacity:1;transform:none}.login-form[inert]{visibility:hidden}.login-box.is-sliding .login-form[inert]{visibility:hidden}}

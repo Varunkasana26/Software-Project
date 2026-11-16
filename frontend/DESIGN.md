@@ -42,3 +42,6 @@ The nav is a scrollable glass pill with a spring active marker. Login uses a sli
 Clause rank uses effective score (lawyer override when present, otherwise auto score), descending, with clause index ascending for ties. Auto and override scores remain visible side by side. Risk bands are high at 8+, medium at 5–7, low above 0 and below 5, and neutral at 0. High-risk cards use a muted red border and tint with a slow, soft pulse; reduced motion keeps the static treatment without pulses.
 
 The Report dashboard uses a 12-column desktop grid, two columns on tablet, and one column on mobile. Its gauge and stat counts animate on load. Sort/filter changes use FLIP transforms, disclosure panels animate with grid row expansion, and the Top 5 and category bars enter in sequence. Reduced-motion preferences snap these elements to their final layout.
+
+
+Login mode changes follow a slide-first sequence: the cover moves for 0.8 seconds, then the newly revealed form content fades and rises in an 80 ms stagger. Content from the covered form fades out at slide start. The inactive form is inert and hidden from assistive technology; focus moves to the revealed Email field. Reduced motion switches forms immediately without delay.
