@@ -38,7 +38,13 @@ export function getConfig(): EnvConfig {
     if (c.OFFLINE_DEMO && c.NODE_ENV === "production") {
       problems.OFFLINE_DEMO = ["OFFLINE_DEMO has public demo accounts and no database. It must never run with NODE_ENV=production."];
     }
-    if (!c.OFFLINE_DEMO && !c.DATABASE_URL) problems.DATABASE_URL = ["Required (or set OFFLINE_DEMO=true to run without a database)"];
+    // No DATABASE_URL outside production: start in offline demo mode instead of failing, so a fresh clone runs with no setup.
+    if (!c.OFFLINE_DEMO && !c.DATABASE_URL && c.NODE_ENV !== "production") {
+      console.warn("No DATABASE_URL is set, so the backend starts in OFFLINE DEMO mode (in-memory data, public demo accounts).");
+      console.warn("To use a real database, copy backend/api/.env.example to backend/api/.env and fill it in.");
+      c.OFFLINE_DEMO = true;
+    }
+    if (!c.OFFLINE_DEMO && !c.DATABASE_URL) problems.DATABASE_URL = ["Required in production"];
     if (!c.OFFLINE_DEMO && !c.JWT_SECRET) problems.JWT_SECRET = ["Required: at least 32 characters"];
   }
 

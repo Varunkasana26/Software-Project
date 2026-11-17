@@ -6,8 +6,12 @@ $root = Split-Path -Parent $PSScriptRoot
 $logs = Join-Path $root ".run"
 New-Item -ItemType Directory -Force $logs | Out-Null
 
+if (-not $Offline -and -not (Test-Path "$root\backend\api\.env")) {
+  Write-Host "No backend\api\.env found, so starting in OFFLINE DEMO mode (no database needed)."
+  Write-Host "To use a real database, copy backend\api\.env.example to backend\api\.env and fill it in."
+  $Offline = $true
+}
 if ($Offline) { $env:OFFLINE_DEMO = "true" }
-if (-not $Offline -and -not (Test-Path "$root\backend\api\.env")) { Write-Host "Missing backend\api\.env. Copy backend\api\.env.example to backend\api\.env and fill it in."; exit 1 }
 if (-not (Test-Path "$root\backend\api\node_modules")) { Write-Host "Run 'npm install' in backend\api first (see README.md)."; exit 1 }
 if (-not (Test-Path "$root\frontend\node_modules")) { Write-Host "Run 'npm install' in frontend first (see README.md)."; exit 1 }
 

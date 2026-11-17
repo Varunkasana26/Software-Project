@@ -4,6 +4,19 @@ A semester project. You upload a contract (a text file or a text-based PDF) and 
 
 It is rule-based, not machine learning, and it is **not legal advice**. Read [docs/known-limitations.md](docs/known-limitations.md) before trusting any number.
 
+## Quick start (no database, no `.env`, no password)
+
+You need Python 3.11+, Node 20+ and git. Then, in the project folder (Windows, macOS and Linux):
+
+```bash
+npm run setup     # once: installs the Python and npm packages
+npm run dev       # starts core, backend and frontend together
+```
+
+Open http://localhost:5173 and use the **Fill in** buttons on the login page (user, lawyer, admin). In a second terminal, `npm run demo` adds two analysed sample contracts. Press Ctrl+C to stop.
+
+With no `backend/api/.env` the backend starts in **offline demo mode**: data lives in memory and is lost on restart, and the demo accounts are public. It is for trying and demoing the app. To use a real database, follow "Run it from a fresh clone" below, which creates the `.env`.
+
 ## Architecture
 
 ```mermaid

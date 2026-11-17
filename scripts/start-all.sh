@@ -14,7 +14,11 @@ done
 LOGS="$ROOT/.run"
 mkdir -p "$LOGS"
 
-[ "$OFFLINE" = 1 ] || [ -f "$ROOT/backend/api/.env" ] || { echo "Missing backend/api/.env. Copy backend/api/.env.example to backend/api/.env and fill it in."; exit 1; }
+if [ "$OFFLINE" = 0 ] && [ ! -f "$ROOT/backend/api/.env" ]; then
+  echo "No backend/api/.env found, so starting in OFFLINE DEMO mode (no database needed)."
+  echo "To use a real database, copy backend/api/.env.example to backend/api/.env and fill it in."
+  OFFLINE=1
+fi
 [ -d "$ROOT/backend/api/node_modules" ] || { echo "Run 'npm install' in backend/api first (see README.md)."; exit 1; }
 [ -d "$ROOT/frontend/node_modules" ] || { echo "Run 'npm install' in frontend first (see README.md)."; exit 1; }
 
