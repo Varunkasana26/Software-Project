@@ -21,6 +21,9 @@ const envSchema = z.object({
   COOKIE_SECURE: flag("false"),
   // Local demo without a database: data lives in memory and the public demo accounts exist. Never for production.
   OFFLINE_DEMO: flag("false"),
+  // Optional: plain-English clause explanations from Gemini. Leave empty to turn the feature off.
+  GEMINI_API_KEY: z.preprocess((v) => (v === "" ? undefined : v), z.string().min(10).optional()), // empty = feature off
+  GEMINI_MODEL: z.string().default("gemini-2.0-flash"),
 });
 
 export type EnvConfig = Omit<z.infer<typeof envSchema>, "JWT_SECRET"> & { JWT_SECRET: string };

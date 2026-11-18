@@ -1,10 +1,10 @@
 import { Router } from "express";
 import rateLimit from "express-rate-limit";
-import { clauses, getOne, list, process_, remove, report, uploadDocument } from "../controllers/documentController";
+import { clauses, explain, getOne, list, process_, remove, report, uploadDocument } from "../controllers/documentController";
 import { authenticate } from "../middleware/auth";
 import { checkUploadedFile, handleMulterError, upload } from "../middleware/upload";
 import { validate } from "../middleware/validation";
-import { documentIdParamSchema, documentQuerySchema } from "../validators/document";
+import { clauseIdParamSchema, documentIdParamSchema, documentQuerySchema } from "../validators/document";
 
 const router = Router();
 router.use(authenticate); // every document route needs a signed-in user; ownership is checked in documentService
@@ -17,6 +17,7 @@ router.get("/", validate({ query: documentQuerySchema }), list);
 router.get("/:id", byId, getOne);
 router.get("/:id/clauses", byId, clauses);
 router.get("/:id/report", byId, report);
+router.post("/:id/clauses/:clauseId/explain", heavy, validate({ params: documentIdParamSchema.extend({ clauseId: clauseIdParamSchema.shape.id }) }), explain);
 router.post("/:id/process", heavy, byId, process_);
 router.delete("/:id", byId, remove);
 
