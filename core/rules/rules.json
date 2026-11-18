@@ -591,7 +591,8 @@
       "category": "obligation",
       "patterns": [
         "non-?compet",
-        "shall not (work for|join|compete)"
+        "shall not (work for|join|compete)",
+        "shall not.{0,250}(carry on|engage in|start|run).{0,60}business similar to"
       ],
       "severity_weight": 3,
       "party_effect_hint": "unfavorable",

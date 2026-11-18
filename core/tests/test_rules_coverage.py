@@ -49,3 +49,9 @@ def test_new_rules_carry_a_justification_and_no_rule_needs_one_to_load():
     justified = [r for r in RULES if r.get("justification")]
     assert len(justified) >= 29
     assert all(isinstance(r["justification"], str) and r["justification"].strip() and "\n" not in r["justification"] for r in justified)
+
+
+def test_non_compete_wording_without_the_word_is_found():
+    text = "A shall not, after he ceases to be the employee of Mr. B, carry on any business similar to the business of B."
+    category, ids, label = run(text, "employee")
+    assert "OBL-009" in ids and label == "unfavorable"
