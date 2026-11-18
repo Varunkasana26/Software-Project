@@ -1,162 +1,35 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import type React from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { getDocument, getReport, type ClauseView, type DocumentInfo, type ItemView, type ReportView } from "../api/client";
-import { useAuth } from "../components/Auth";
-import { ChevronIcon } from "../components/Icons";
+import { getDocument, getReport, type ClauseView, type DocumentInfo, type ReportView } from "../api/client";
+import { ChevronIcon, HighIcon } from "../components/Icons";
 import { PageHead } from "../components/Layout";
 import { clauseTier, effectiveScore, RiskBadge, tierFromScore, type Tier } from "../components/RiskBadge";
-import { EmptyState, ErrorState, Loading } from "../components/States";
+import { ErrorState, Loading } from "../components/States";
+import { useCountUp } from "../hooks/useMotion";
+import { useFlipList } from "../hooks/useFlipList";
+import { DissolveText } from "../components/DissolveText";
 
-const humanize = (s: string) => s.charAt(0) + s.slice(1).toLowerCase().replace(/_/g, " ");
-const TIERS: [Tier, string][] = [["high", "High risk"], ["medium", "Medium risk"], ["low", "Low risk or favorable"], ["neutral", "Neutral"]];
-
-function Items({ items, ordered, empty }: { items: ItemView[]; ordered?: boolean; empty: string }) {
-  const [open, setOpen] = useState<Record<number, boolean>>({});
-  if (items.length === 0) return <p className="muted">{empty}</p>;
-  const List = ordered ? "ol" : "ul";
-  return (
-    <List className="items">
-      {items.map((it, i) => (
-        <li key={i}>
-          <div className="item-meta">
-            <RiskBadge tier={it.label === "FAVORABLE" ? "low" : tierFromScore(it.score)} score={it.score} label={it.label} />
-            <span className="muted small">{it.ruleId ? <>Rule <code>{it.ruleId}</code></> : "No rule matched"}</span>
-          </div>
-          <p className={open[i] ? "" : "clamp"} style={{ margin: 0 }}>{it.text}</p>
-          {it.text.length > 160 && (
-            <button type="button" className="link-btn" aria-expanded={!!open[i]} onClick={() => setOpen({ ...open, [i]: !open[i] })}>
-              {open[i] ? "Show less" : "Show full clause"}
-            </button>
-          )}
-        </li>
-      ))}
-    </List>
-  );
-}
-
-function ClauseCard({ clause, docId }: { clause: ClauseView; docId: string }) {
-  const { user } = useAuth();
-  const [open, setOpen] = useState(false);
-  const tier = clauseTier(clause);
-  const panel = `why-${clause.id}`;
-  return (
-    <article className="card" aria-label={`Clause ${clause.index + 1}`}>
-      <div className="clause-head">
-        <strong>Clause {clause.index + 1}</strong>
-        <span className="tag">{humanize(clause.category)}</span>
-        <RiskBadge tier={tier} score={effectiveScore(clause)} label={clause.label} />
-        {clause.ruleId ? <code>{clause.ruleId}</code> : <span className="muted small">No rule id</span>}
-      </div>
-      <p style={{ margin: 0 }}>{clause.text}</p>
-      <div className="clause-scores">
-        <span>Auto score: {clause.autoScore}</span>
-        {clause.override && (
-          <span>Lawyer override: <strong>{clause.override.score}</strong> (auto score <span className="struck">{clause.autoScore}</span> kept on record)</span>
-        )}
-      </div>
-      <button type="button" className="disclosure" aria-expanded={open} aria-controls={panel} onClick={() => setOpen(!open)}>
-        <ChevronIcon /> Why this was flagged
-      </button>
-      {open && (
-        <div id={panel} className="disclosure-panel">
-          <p style={{ margin: 0 }}>{clause.explanation || "No explanation available."}</p>
-          {clause.override && <p className="small muted" style={{ margin: "8px 0 0" }}>Override reason: {clause.override.reason}</p>}
-          {user?.role === "LAWYER" && <p className="small" style={{ margin: "8px 0 0" }}><Link to={`/review/${docId}`}>Review this clause</Link></p>}
-        </div>
-      )}
-    </article>
-  );
-}
-
-export default function Report() {
-  const { id = "" } = useParams();
-  const [report, setReport] = useState<ReportView | null>(null);
-  const [info, setInfo] = useState<DocumentInfo | null>(null);
-  const [error, setError] = useState("");
-  const [category, setCategory] = useState("ALL");
-  const [tier, setTier] = useState<Tier | "ALL">("ALL");
-
-  const load = useCallback(() => {
-    setReport(null);
-    setError("");
-    getDocument(id).then(setInfo).catch(() => setInfo(null)); // file name and chosen side, shown in the header
-    getReport(id).then(setReport).catch((e) => setError(e instanceof Error ? e.message : "Could not load the report."));
-  }, [id]);
-  useEffect(load, [load]);
-
-  const categories = useMemo(() => [...new Set(report?.clauses.map((c) => c.category) ?? [])], [report]);
-  const shown = useMemo(
-    () => (report?.clauses ?? []).filter((c) => (category === "ALL" || c.category === category) && (tier === "ALL" || clauseTier(c) === tier)),
-    [report, category, tier],
-  );
-
-  if (error) return <><PageHead title="Report" /><section className="section"><div className="container"><ErrorState message={error} onRetry={load} /></div></section></>;
-  if (!report) return <><PageHead title="Report" /><section className="section"><div className="container"><Loading label="Loading report" /></div></section></>;
-
-  const high = report.clauses.filter((c) => clauseTier(c) === "high").length;
-  const medium = report.clauses.filter((c) => clauseTier(c) === "medium").length;
-  const party = info?.party;
-
-  return (
-    <>
-      <PageHead title={info?.fileName ?? "Contract report"} mock={report.isDemo ? "Demo data" : undefined}>{report.summary}</PageHead>
-      <section className="band" style={{ paddingBottom: 32 }}>
-        <div className="container grid-3">
-          <div><div className="stat">{report.clauses.length}</div><div className="muted">clauses read</div></div>
-          <div><div className="stat">{high}</div><div className="muted">high risk</div></div>
-          <div><div className="stat">{medium}</div><div className="muted">medium risk</div></div>
-        </div>
-      </section>
-
-      <section className="section">
-        <div className="container stack">
-          {party ? <p className="muted small">Judged from the {party}'s side.</p> : <p className="muted small">No side was chosen, so every clause is labelled neutral.</p>}
-          {report.warnings.map((w) => <p key={w} className="muted small">Note: {w}</p>)}
-          <div className="layout-2">
-            <div>
-              <h2>Top 5 risks</h2>
-              <Items items={report.topRisks.slice(0, 5)} ordered empty="No risks were found." />
-            </div>
-            <aside className="stack">
-              <div className="card"><h3>Obligations</h3><Items items={report.obligations} empty="No obligations were found." /></div>
-              <div className="card"><h3>Exit conditions</h3><Items items={report.exitConditions} empty="No exit conditions were found." /></div>
-            </aside>
-          </div>
-        </div>
-      </section>
-
-      <section className="section section--alt">
-        <div className="container">
-          <h2>All clauses</h2>
-          <div className="stack">
-            <div role="group" aria-label="Filter by category" className="options">
-              <button type="button" className="chip" aria-pressed={category === "ALL"} onClick={() => setCategory("ALL")}>All categories</button>
-              {categories.map((c) => (
-                <button key={c} type="button" className="chip" aria-pressed={category === c} onClick={() => setCategory(c)}>{humanize(c)}</button>
-              ))}
-            </div>
-            <div role="group" aria-label="Filter by risk" className="options">
-              <button type="button" className="chip" aria-pressed={tier === "ALL"} onClick={() => setTier("ALL")}>All risk levels</button>
-              {TIERS.map(([t, label]) => (
-                <button key={t} type="button" className="chip" aria-pressed={tier === t} onClick={() => setTier(t)}>{label}</button>
-              ))}
-            </div>
-            <div className="row row--between">
-              <p role="status" aria-live="polite" style={{ margin: 0 }}>Showing {shown.length} of {report.clauses.length} clauses</p>
-              {(category !== "ALL" || tier !== "ALL") && (
-                <button type="button" className="btn btn--secondary btn--small" onClick={() => { setCategory("ALL"); setTier("ALL"); }}>Clear filters</button>
-              )}
-            </div>
-            {report.clauses.length === 0 ? (
-              <EmptyState title="No clauses were found">The document may be empty or in an unexpected format.</EmptyState>
-            ) : shown.length === 0 ? (
-              <EmptyState title="No clauses match these filters" action={<button type="button" className="btn" onClick={() => { setCategory("ALL"); setTier("ALL"); }}>Clear filters</button>} />
-            ) : (
-              <div>{shown.map((c) => <ClauseCard key={c.id} clause={c} docId={report.documentId} />)}</div>
-            )}
-          </div>
-        </div>
-      </section>
-    </>
-  );
-}
+const humanize=(s:string)=>s.charAt(0)+s.slice(1).toLowerCase().replace(/_/g," ");
+const TIERS:[Tier,string][]=[["high","High risk"],["medium","Medium risk"],["low","Low risk or favorable"],["neutral","Neutral"]];
+function Disclosure({clause,open,toggle}:{clause:ClauseView;open:boolean;toggle:()=>void}){const id=`why-${clause.id}`;return <><button type="button" className="disclosure" aria-expanded={open} aria-controls={id} onClick={toggle}><ChevronIcon/>Why this was flagged</button><div className={`why-wrap ${open?"open":""}`}><div className="why-inner" id={id} inert={!open}><div className="why-content"><p><span className="tag">Rule {clause.ruleId??"not reported"}</span></p><p><strong>Matched rules:</strong> {clause.matchedRuleIds?.length?clause.matchedRuleIds.join(", "):"not reported"}</p><p>{clause.explanation||"Explanation not reported."}</p><p><strong>Auto {clause.autoScore}</strong>{clause.override?<> → Lawyer {clause.override.score} · {clause.override.reason||"reason not reported"}</>:" · Lawyer override not reported"}</p></div></div></div></>}
+function ClauseCard({clause,rank,open,toggle,hero=false,allMode=false,flash=false,stagger=0}:{clause:ClauseView;rank:number;open:boolean;toggle:()=>void;hero?:boolean;allMode?:boolean;flash?:boolean;stagger?:number}){const score=effectiveScore(clause),tier=clauseTier(clause),node=useRef<HTMLElement>(null),[entered,setEntered]=useState(!allMode);useEffect(()=>{if(!allMode||!node.current)return;const obs=new IntersectionObserver(entries=>{if(entries.some(e=>e.isIntersecting)){setEntered(true);obs.disconnect()}},{threshold:.08});obs.observe(node.current);return()=>obs.disconnect()},[allMode]);return <article ref={node} id={`clause-${clause.id}`} data-flip-id={clause.id} style={stagger?{"--stagger":`${stagger}ms` } as React.CSSProperties:undefined} className={`card clause-card ${stagger?"top-enter":""} ${allMode?"all-mode":""} ${entered?"entered":""} tier-${tier} ${score>=8?"high":""} ${hero?"hero-risk":""} ${hero&&flash?"flash-risk":""}`}><div className="clause-head"><strong>#{rank} by risk · Clause {clause.index+1}</strong><span className="tag">{humanize(clause.category)}</span>{hero&&<span className="hero-label"><HighIcon/> HIGHEST RISK</span>}<RiskBadge tier={tier} score={score} label={clause.label}/></div><p>{clause.text}</p><p className="small muted">Auto {clause.autoScore}{clause.override?<> → Lawyer {clause.override.score}</>:" · no lawyer override"}</p><Disclosure clause={clause} open={open} toggle={toggle}/></article>}
+function Count({value}:{value:number}){const count=useCountUp(value);return <span>{Math.round(count)}</span>}
+export default function Report(){const {id=""}=useParams();const [report,setReport]=useState<ReportView|null>(null);const [info,setInfo]=useState<DocumentInfo|null>(null);const [error,setError]=useState("");const [category,setCategory]=useState("ALL");const [tier,setTier]=useState<Tier|"ALL">("ALL");const [sort,setSort]=useState<"risk"|"document">("risk");const [topOpen,setTopOpen]=useState<string|null>(null);const [allOpen,setAllOpen]=useState<Record<string,boolean>>({});const [flash,setFlash]=useState(false);const [gaugeReady,setGaugeReady]=useState(false);useEffect(()=>{requestAnimationFrame(()=>setGaugeReady(true))},[]);const allRef=useRef<HTMLDivElement>(null);
+ const load=useCallback(()=>{setReport(null);setError("");getDocument(id).then(setInfo).catch(()=>setInfo(null));getReport(id).then(setReport).catch(e=>setError(e instanceof Error?e.message:"Could not load report."))},[id]);useEffect(load,[load]);
+ const clauses=report?.clauses??[];const ranked=useMemo(()=>[...clauses].sort((a,b)=>effectiveScore(b)-effectiveScore(a)||a.index-b.index),[clauses]);const riskRank=new Map(ranked.map((c,i)=>[c.id,i+1]));const top=ranked.filter(c=>effectiveScore(c)>0).slice(0,5);const categories=[...new Set(clauses.map(c=>c.category))];const high=clauses.filter(c=>effectiveScore(c)>=8).length;const medium=clauses.filter(c=>effectiveScore(c)>=5&&effectiveScore(c)<8).length;const low=clauses.filter(c=>effectiveScore(c)>0&&effectiveScore(c)<5).length;const neutral=clauses.length-high-medium-low;const overall=ranked.slice(0,5).length?ranked.slice(0,5).reduce((n,c)=>n+effectiveScore(c),0)/ranked.slice(0,5).length:0;const gauge=useCountUp(overall);const party=info?.party||"chosen";
+ const shown=useMemo(()=>{const list=clauses.filter(c=>(category==="ALL"||c.category===category)&&(tier==="ALL"||clauseTier(c)===tier));return list.sort((a,b)=>sort==="risk"?effectiveScore(b)-effectiveScore(a)||a.index-b.index:a.index-b.index)},[clauses,category,tier,sort]);const flipRef=useFlipList<HTMLDivElement>(`${category}|${tier}|${sort}|${shown.map(c=>c.id).join(",")}`);
+ function jump(){const c=top[0];if(!c)return;document.getElementById(`clause-${c.id}`)?.scrollIntoView({behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth",block:"center"});setFlash(true);setTimeout(()=>setFlash(false),850)}
+ if(error)return <><PageHead title="Report"/><section className="section"><div className="container"><ErrorState message={error} onRetry={load}/></div></section></>;
+ if(!report)return <><PageHead title="Report"/><section className="section"><div className="container"><Loading label="Loading report"/></div></section></>;
+ if(info?.status==="PROCESSING")return <><PageHead title="Report"/><section className="section"><div className="container"><Loading label="Document still processing"/></div></section></>;
+ return <><PageHead title={info?.fileName??"Contract report"} mock={report.isDemo?"Demo data":undefined}>{report.summary}</PageHead><div className="report-dashboard container">
+ {high>0&&<div className="alert risk-alert dashboard-alert" role="alert"><span className="dot"/><strong>{high} high-risk clauses need attention before you sign</strong><button className="btn btn--secondary btn--small" onClick={jump}>Jump to highest risk</button></div>}
+ <section className="gauge-card card"><svg viewBox="0 0 120 120" className={`risk-gauge gauge-${tierFromScore(overall)}`}><circle cx="60" cy="60" r="54"/><circle className="gauge-value" cx="60" cy="60" r="54" style={{strokeDashoffset:gaugeReady?339.3*(1-overall/10):339.3}}/></svg><strong className="gauge-number">{gauge.toFixed(1)}<small>/10</small></strong><p>{overall===0?"No risk found":"Mean of the five highest effective scores"}</p><p className="small muted">Judged from the {party}'s side. Not legal advice. First-pass aid only.</p></section>
+ <section className="stat-card card"><div className="stat-tile"><b><Count value={clauses.length}/></b><span>Clauses read</span></div><div className="stat-tile high-stat"><b><Count value={high}/></b><span>High risk</span></div><div className="stat-tile"><b><Count value={medium}/></b><span>Medium risk</span></div><div className="stat-tile"><b><Count value={low+neutral}/></b><span>Low / neutral</span></div></section>
+ <section className="category-card card"><h2>By category</h2>{categories.map((cat,i)=>{const items=clauses.filter(c=>c.category===cat);const max=Math.max(...items.map(effectiveScore),0);return <button key={cat} className="category-bar" onClick={()=>{setCategory(cat);allRef.current?.scrollIntoView({behavior:"smooth"})}}><span>{humanize(cat)} · {items.length} · max {max||"not reported"}</span><span className="bar-track"><i style={{"--bar-scale":max/10,animationDelay:`${i*100}ms`} as React.CSSProperties}/></span></button>})}</section>
+ <section className="top-card"><h2>Top 5 risks</h2>{top.length?top.map((c,i)=><ClauseCard key={c.id} clause={c} rank={i+1} open={topOpen===c.id} toggle={()=>setTopOpen(topOpen===c.id?null:c.id)} hero={i===0&&effectiveScore(c)>=8} flash={flash} stagger={i*130}/>) : <div className="empty-risk"><span aria-hidden="true">✓</span><p>No risky clauses found for the {party} side. Check that you chose the right party.</p><Link to="/upload" className="btn btn--secondary">Re-analyze as a different party</Link></div>}</section>
+ <section className="obligation-card card"><h2>Your obligations</h2>{report.obligations.length?report.obligations.map((it,i)=><p key={i}><RiskBadge tier={tierFromScore(it.score)} score={it.score} label={it.label}/>{it.text}</p>):<p className="muted">No obligations reported.</p>}</section><section className="exit-card card"><h2>Exit conditions</h2>{report.exitConditions.length?report.exitConditions.map((it,i)=><p key={i}><RiskBadge tier={tierFromScore(it.score)} score={it.score} label={it.label}/>{it.text}</p>):<p className="muted">No exit conditions reported.</p>}</section>
+ <section className="all-card card" ref={allRef}><h2>All clauses</h2><label>Sort clauses<select value={sort} onChange={e=>setSort(e.target.value as "risk"|"document")}><option value="risk">Highest risk first</option><option value="document">Document order</option></select></label><FilterRow label="Filter by category" values={[["ALL","All categories"],...categories.map(c=>[c,humanize(c)])]} selected={category} setSelected={setCategory} clauses={clauses} mode="category"/><FilterRow label="Filter by risk" values={[["ALL","All risk levels"],...TIERS.map(([t,label])=>[t,label])]} selected={tier} setSelected={v=>setTier(v as Tier|"ALL")} clauses={clauses} mode="risk"/><p role="status" aria-live="polite">Showing <span className="showing-count">{shown.length}</span> of {clauses.length} clauses</p><div className="clause-list" ref={flipRef}>{shown.map(c=><ClauseCard key={c.id} clause={c} rank={riskRank.get(c.id)??0} allMode open={!!allOpen[c.id]} toggle={()=>setAllOpen(a=>({...a,[c.id]:!a[c.id]}))}/>)}</div></section>
+ </div></>}
+function FilterRow({label,values,selected,setSelected,clauses,mode}:{label:string;values:string[][];selected:string;setSelected:(v:string)=>void;clauses:ClauseView[];mode:"category"|"risk"}){const refs=useRef(new Map<string,HTMLButtonElement>());const [update,setUpdate]=useState(0);const [clicks,setClicks]=useState<Record<string,number>>({});const active=useRef<HTMLElement|null>(null);const ind=useRef<HTMLSpanElement>(null);useEffect(()=>{active.current=refs.current.get(selected)??null;const el=active.current,parent=ind.current?.parentElement;if(!el||!ind.current)return;const i=ind.current;i.style.width=`${el.offsetWidth}px`;i.style.transform=`translateX(${el.offsetLeft}px)`;const ro=new ResizeObserver(()=>{if(active.current&&ind.current){ind.current.style.width=`${active.current.offsetWidth}px`;ind.current.style.transform=`translateX(${active.current.offsetLeft}px)`}});if(parent)ro.observe(parent);return()=>ro.disconnect()},[selected,update]);function count(v:string){return clauses.filter(c=>mode==="category"?(v==="ALL"||c.category===v):(v==="ALL"||clauseTier(c)===v)).length}return <div className="filter-row-wrap"><span className="small muted">{label}</span><div className="filter-row" role="group" aria-label={label} onScroll={()=>setUpdate(x=>x+1)}><i ref={ind} className="chip-indicator"/>{values.map(([v,text])=><button key={v} ref={el=>{if(el)refs.current.set(v,el)}} type="button" className="chip" aria-label={text} aria-pressed={selected===v} onClick={()=>{setClicks(c=>({...c,[v]:(c[v]??0)+1}));setSelected(v)}}><DissolveText trigger={clicks[v]??0}>{text}</DissolveText><span className="count"><Count value={count(v)}/></span>{v==="high"&&count(v)>0&&<i className="chip-dot"/>}</button>)}</div></div>}

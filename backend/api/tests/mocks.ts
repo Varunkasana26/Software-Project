@@ -1,8 +1,8 @@
 import { vi } from "vitest";
-import { createFakePrisma } from "./fakeDb";
+import { createMemoryPrisma } from "../src/lib/memoryDb";
 import { signToken } from "../src/middleware/auth";
 
-export const db = createFakePrisma();
+export const db = createMemoryPrisma();
 export const analyzeFile = vi.fn();
 export const validateRules = vi.fn(async () => [] as { rule_id: string; message: string }[]);
 

@@ -26,3 +26,7 @@ The Prisma schema is `api/prisma/schema.prisma`. Apply it with `npm run db:push`
 - Cross-lane calls happen only through the schemas in `shared/contracts`, never by importing another lane's code.
 - Secrets live in `api/.env` only (git-ignored). `api/.env.example` has placeholders.
 - The API tests (`npm test`) run without a database and without core: both are replaced in `tests/mocks.ts`.
+
+## Offline demo mode
+
+`OFFLINE_DEMO=true` (or `start-all --offline`) runs the backend with no database and no `.env`: `src/lib/memoryDb.ts` replaces Prisma, the three public demo accounts in `src/lib/demoAccounts.ts` are created at start-up, and rules are seeded from `core/rules/rules.json`. Data is lost on restart. `config/env.ts` refuses this mode when `NODE_ENV=production`. The same in-memory store is used by the API tests.

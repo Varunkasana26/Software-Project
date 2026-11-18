@@ -1,157 +1,57 @@
-# Design spec: Legal Document Summarizer
+# Frontend design spec
 
-Our own spec. Tokens and rules only. It was informed by one public reference (apple.com/in): large calm whitespace, centred focus, alternating light and dark bands, flat surfaces with hairline borders, pill buttons, short transitions. No logo, font file, image, illustration or copy from that site is used. Reference extraction notes: `docs/design/reference/` (screenshots and assets are git-ignored).
+Calm legal interface in light and dark monochrome with one steel blue accent. Components consume CSS variables from `src/styles/tokens.css`; layout and motion live in `src/index.css`.
 
-**Tone:** calm, high-contrast, restrained. A serious legal-risk tool. No decoration that carries no meaning.
+## Palette
 
-**Rule for risk:** colour is never the only signal. Every risk shows an icon, a word and a number.
-
-## 1. Colour tokens
-
-All text and UI colours below meet WCAG AA (4.5:1 text, 3:1 UI). Ratios were computed, not estimated.
-
-| Token | Value | Use | Contrast |
-|---|---|---|---|
-| `--color-bg` | `#ffffff` | Page background | |
-| `--color-surface` | `#f4f5f7` | Alternating bands, cards on white | |
-| `--color-ink` | `#14181f` | Body text, headings | 17.8 on bg, 16.3 on surface |
-| `--color-muted` | `#4f5868` | Secondary text | 7.2 on bg, 6.6 on surface |
-| `--color-border` | `#d5d9e0` | Dividers, card borders (decorative) | |
-| `--color-border-strong` | `#6b7385` | Input and control borders | 4.8 on bg |
-| `--color-accent` | `#0a58c9` | Primary action, links, focus | 6.5 on bg, 5.9 on surface |
-| `--color-on-accent` | `#ffffff` | Text on accent | 6.5 |
-| `--color-band` | `#0f1420` | Dark header and hero band | |
-| `--color-on-band` | `#f4f6fa` | Text on band | 17.0 |
-| `--color-on-band-muted` | `#b4bccb` | Secondary text on band | 9.6 |
-| `--color-focus-on-band` | `#7db3ff` | Focus ring on band | 8.6 |
-
-Risk and status (text on tint, each with an icon and a label):
-
-| Token set | Text | Tint | Border | Contrast | Icon | Label |
-|---|---|---|---|---|---|---|
-| `--risk-high` | `#a11217` | `#fdeced` | `#a11217` | 7.0 | triangle (filled) | High risk |
-| `--risk-medium` | `#7a4a00` | `#fff4d9` | `#7a4a00` | 6.8 | diamond | Medium risk |
-| `--risk-low` | `#14633a` | `#e5f6ec` | `#14633a` | 6.5 | circle with check | Low risk or Favorable |
-| `--risk-neutral` | `#3d4554` | `#eceef2` | `#3d4554` | 8.3 | dash in circle | Neutral or not scored |
-
-Score to tier (score is 0-10, from `score.auto`, or `score.lawyer_override` when present):
-`7-10` High, `4-6.9` Medium, `0.1-3.9` Low, `0` Neutral. A clause with label `FAVORABLE` always shows the Low/Favorable style.
-
-Error text `#a11217` on white is 8.0. Success uses `--risk-low`. Warnings use `--risk-medium`.
-
-## 2. Typography
-
-System font stack only, no font files:
-
-- `--font-sans`: `system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif`
-- `--font-mono`: `ui-monospace, "SF Mono", Menlo, Consolas, monospace` (rule ids, scores)
-
-| Token | Size | Line height | Weight | Tracking | Use |
-|---|---|---|---|---|---|
-| `--text-display` | 40px (2.5rem) | 1.15 | 600 | -0.015em | Page title on band |
-| `--text-h2` | 28px (1.75rem) | 1.2 | 600 | -0.01em | Section titles |
-| `--text-h3` | 21px (1.3125rem) | 1.3 | 600 | 0 | Card titles |
-| `--text-lead` | 18px (1.125rem) | 1.5 | 400 | 0 | Intro text |
-| `--text-body` | 16px (1rem) | 1.5 | 400 | 0 | Default |
-| `--text-small` | 14px (0.875rem) | 1.45 | 400 | 0 | Meta, helper text |
-| `--text-caption` | 12px (0.75rem) | 1.4 | 500 | 0.02em | Badges only |
-
-Below 640px: display 32px, h2 24px. Body never goes below 16px. Max line length 70ch. Weights used: 400, 500, 600.
-
-## 3. Spacing and layout
-
-4px base. Tokens: `--space-1` 4, `-2` 8, `-3` 12, `-4` 16, `-5` 24, `-6` 32, `-7` 48, `-8` 64, `-9` 96.
-
-- Container: `max-width: 1120px`, centred. Side gutters 16px (under 640px), 24px (640-959px), 32px (960px and up).
-- Breakpoints: 360 (minimum supported), 640, 960, 1280.
-- Section vertical rhythm: `--space-8` on desktop, `--space-7` on mobile. Alternate `--color-bg` and `--color-surface` bands; use `--color-band` for the app header.
-- Minimum touch target 44x44px.
-- Forms are one column up to 960px. Report uses one column under 960px and a main column plus a 320px side summary above it.
-- No horizontal scroll at 360px. Long words and rule ids wrap (`overflow-wrap: anywhere`).
-
-## 4. Radius and elevation
-
-| Token | Value | Use |
+| Token | Light | Dark |
 |---|---|---|
-| `--radius-sm` | 6px | Inputs, badges |
-| `--radius-md` | 10px | Cards, alerts |
-| `--radius-lg` | 16px | Drop zone, dialogs |
-| `--radius-pill` | 999px | Buttons, filter chips |
+| `--bg` | `#f7f7f5` | `#0a0a0b` |
+| `--surface` | `#ffffff` | `#121214` |
+| `--surface-2` | `#efefec` | `#1a1a1d` |
+| `--line` | `rgba(0,0,0,.12)` | `rgba(255,255,255,.12)` |
+| `--text` | `#111113` | `#ededea` |
+| `--muted` | `#5f5f66` | `#9a9aa0` |
+| `--accent` | `#2f4a6f` | `#7f9bbf` |
+| `--accent-hover` | `#263d5c` | `#a5bad6` |
+| `--on-accent` | `#ffffff` | `#0a0a0b` |
+| `--risk-high` | `#c62828` | `#f0686c` |
+| `--risk-med` | `#8a5a00` | `#d9a441` |
+| `--risk-low` | `#1b6e4f` | `#5bb894` |
+| `--grid` | `rgba(0,0,0,.05)` | `rgba(255,255,255,.05)` |
+| `--glass` | `rgba(255,255,255,.55)` | `rgba(255,255,255,.07)` |
 
-| Token | Value | Use |
-|---|---|---|
-| `--elev-0` | none | Default. Prefer a 1px `--color-border` over a shadow. |
-| `--elev-1` | `0 1px 2px rgba(20,24,31,0.08)` | Raised cards on hover |
-| `--elev-2` | `0 8px 24px rgba(20,24,31,0.12)` | Dialogs and menus only |
+Text uses system sans; headings use Iowan Old Style, Georgia, Times New Roman. Light/dark selection follows system on first visit, user choice is stored as `theme` in localStorage. Root controls use `data-theme`.
 
-## 5. Motion
+## Motion and components
 
-| Token | Value |
-|---|---|
-| `--motion-fast` | 120ms |
-| `--motion-base` | 200ms |
-| `--motion-slow` | 320ms |
-| `--ease` | `cubic-bezier(0.4, 0, 0.6, 1)` |
+Motion tokens: `--dur-fast:.15s`, `--dur:.35s`, `--dur-slow:.8s`, `--ease:cubic-bezier(.2,.8,.2,1)`, `--ease-slide:cubic-bezier(.77,0,.18,1)`. Use transform, opacity and filter for decorative motion; SVG path morph is reserved for the upload rig. Risk animations are restrained. Reduced motion disables decoration and snaps state to its final value. Every interactive control has a visible focus outline. Risks always pair an icon and label with the score; HIGH RISK starts at effective score 8, including lawyer overrides.
 
-Rules:
-- Animate only `opacity`, `transform`, `background-color`, `color`, `border-color`. Never animate `width`, `height`, `top` or `left` (no layout shift).
-- Expanding a clause explanation may fade in; reserve space first or push content down once, not per frame.
-- Loading uses fixed-height skeletons, not spinners that resize the page.
-- `@media (prefers-reduced-motion: reduce)`: all durations become `0.01ms` and no transforms.
-- Nothing moves unless the user acted, except the loading skeleton shimmer, which is disabled under reduced motion.
+The nav is a scrollable glass pill with a spring active marker. Login uses a sliding panel. Upload progress comes from XHR. Report cards expose the rule IDs, matched IDs, explanation, original score and override. Admin rule activation remains a button with pressed state. At mobile widths, content stacks and tables scroll within their own wrapper.
 
-## 6. Component rules
 
-**Focus (all interactive elements):** `outline: 3px solid var(--color-accent); outline-offset: 2px;` shown with `:focus-visible`. On the band use `--color-focus-on-band`. Never remove an outline without a replacement.
+## Interaction motion additions
 
-**Button:** height 44px, padding 0 `--space-5`, `--radius-pill`, weight 600.
-- Primary: `--color-accent` fill, `--color-on-accent` text.
-- Secondary: transparent, 1.5px `--color-accent` border, accent text.
-- Danger: `--risk-high` text on `--risk-high` tint with border.
-- Disabled: 55% opacity, `cursor: not-allowed`, and `aria-disabled`. Disabled buttons still explain why in nearby text.
-- Busy: label changes ("Analyzing...") and the button is disabled. Width stays fixed.
+`PlayfulButton` is used for sign-in and demo-account filling. Its key cue, press scale, loading dots, success check and burst use transform and opacity; reduced-motion users see final states without decoration. Demo-account inputs are filled under React control and stop the sequence when the user edits either field.
 
-**Form field:** visible `<label>` above the control (never placeholder-only), 44px control height, 1px `--color-border-strong`, `--radius-sm`. Helper text in `--text-small` muted. Error text under the field in `--risk-high` text with an icon, linked with `aria-describedby`, and the field gets a 2px `--risk-high` border.
+`DissolveText` animates upload-button label changes: the outgoing label separates into letters, drifts, blurs and fades, then the incoming label fades in. It never gates form submission, and reduced motion shows the current label immediately. The upload progress display eases toward each real XHR percentage with a short requestAnimationFrame step, snaps to 100% on completion, and drives the button fill and rig together.
 
-**Drop zone (upload):** `--radius-lg`, 2px dashed `--color-border-strong`, `--color-surface` fill; drag-over state: solid accent border and accent tint. It contains a real `<input type="file">` reachable by keyboard and a "Choose file" button. States: idle, drag-over, file chosen (name and size), error (alert below). Accepted: `.pdf`, `.txt`, up to 10 MB.
 
-**Party selector:** radio group with large pill options (Tenant, Landlord, Employee, Employer, Recipient, Discloser, Client, Provider). Required. Selected state uses fill, a check icon and `aria-checked`, not colour alone.
+## Report ranking and motion
 
-**Risk badge:** `--text-caption`, `--radius-sm`, tint background, 1px border, icon then label then score, for example "Triangle High risk 8". Always all three.
+Clause rank uses effective score (lawyer override when present, otherwise auto score), descending, with clause index ascending for ties. Auto and override scores remain visible side by side. Risk bands are high at 8+, medium at 5–7, low above 0 and below 5, and neutral at 0. High-risk cards use a muted red border and tint with a slow, soft pulse; reduced motion keeps the static treatment without pulses.
 
-**Summary header (report):** `--color-band` background, title in `--text-display`, counts per category, and the number of High risks.
+The Report dashboard uses a 12-column desktop grid, two columns on tablet, and one column on mobile. Its gauge and stat counts animate on load. Sort/filter changes use FLIP transforms, disclosure panels animate with grid row expansion, and the Top 5 and category bars enter in sequence. Reduced-motion preferences snap these elements to their final layout.
 
-**Section list (Top 5 risks, obligations, exit conditions):** ordered list for risks, bulleted for others. Each item: badge, clause text clamped to 3 lines with "Show full clause", and `rule_id` in mono.
+## Rules admin interactions
 
-**Clause card:** border 1px `--color-border`, `--radius-md`. Header: clause number, category chip, risk badge, `rule_id` (mono), auto score. If a lawyer override exists show "Lawyer override 3" next to "Auto 8" and keep both visible, with the original struck through only as text style, not as the only signal. Disclosure button ("Why this was flagged") uses `aria-expanded` and reveals the explanation.
+Admin Rules summarizes the current server page, then applies search, category, effect, status, and sort controls locally to that page. The paginated table scrolls inside its own container; edits use a right-side slide-over with a focus trap, discard confirmation, and field entrance stagger. Pattern checks report JavaScript syntax as advisory only; server validation remains authoritative. Weight and effect use keyboard-operable segmented controls, active state uses an `aria-pressed` switch, deletion uses a five-second inline confirmation, and save/delete/toggle results use dismissible status toasts. Row entrance, drawer movement, segmented controls, and toast timing use transforms and opacity; reduced motion snaps them to their settled state.
 
-**Filter chips (category, risk):** pill toggle buttons in a labelled group with `aria-pressed`, plus a "Clear filters" button and a live result count (`aria-live="polite"`).
 
-**Rules table (admin):** real `<table>` with `<th scope>`; at under 640px each row becomes a stacked card. Enable/disable is a labelled switch (`role="switch"`). Edit and add use an inline form or dialog with labelled fields; the regex field is monospace and shows an inline error if the server rejects it. Destructive actions ask for confirmation in the page, not with `window.confirm`.
+Login mode changes follow a slide-first sequence: the cover moves for 0.8 seconds, then the newly revealed form content fades and rises in an 80 ms stagger. Content from the covered form fades out at slide start. The inactive form is inert and hidden from assistive technology; focus moves to the revealed Email field. Reduced motion switches forms immediately without delay.
 
-**Lawyer review:** per-clause form: override score (0-10 number, labelled), reason (required, multi-line), Save. Shows original auto score as read-only text. Saving shows a status message; errors stay on screen until dismissed.
+## Separate Documents and lawyer review
 
-**Alert:** `--radius-md`, tint, border, icon, text. Error and warning use `role="alert"`; info and success use `role="status"`.
+`/documents` is a plain, paginated document list for every signed-in role, with Report links and an additional Review link for lawyers. There is no two-pane workspace. The lawyer-only Review navigation item opens the `/review` document picker; `/review/:id` is a separate, role-protected page. Navigation uses the same spring capsule, dissolve labels and `aria-current` behavior for Review as for other items.
 
-**Empty state:** icon, one sentence, and one primary action. **Loading state:** skeleton blocks the same height as the content. **Error state:** what failed, the server message if safe to show, and a Retry button.
-
-**Mock marker (development only):** pages backed by mock data show a small amber "Mock data" tag in the header, rendered only when `import.meta.env.DEV` is true. It must not appear in production builds.
-
-**Navigation:** top bar on `--color-band` with skip-to-content link (first focusable element), current page marked with `aria-current="page"`. Under 640px the links wrap to a second row; no hamburger needed (5 items).
-
-## 7. Accessibility checklist (blocking)
-
-- All functionality works by keyboard. Tab order follows reading order.
-- Visible focus on every control. Skip link present.
-- Text contrast 4.5:1, UI and focus 3:1 (tokens above already pass).
-- Colour never alone: risk uses icon, word and number.
-- Form errors announced (`role="alert"`) and tied to fields.
-- Touch targets 44px. Zoom to 200% without loss of content.
-- Reduced-motion respected.
-- One `<h1>` per page, headings in order, landmarks `header`, `nav`, `main`.
-
-## 8. Not in this spec
-
-- Dark theme (only the dark header band exists).
-- Illustration, photography, logo and custom fonts.
-- Animation beyond the rules in section 5.
+Review retains one full-width card per clause with a read-only original auto score, override stepper and slider, reason, Unsaved changes chip, and Save override states (idle, saving, saved, failure). A summary strip counts clauses, high-risk clauses and overrides. Highest effective score sorts first, with document order available; category and risk chips use a sliding pill and FLIP reordering. Effective scores at 8+ receive red treatment. Empty reports and filter results show explicit empty states; zero-risk notices keep clause cards available. Cards use normal page scrolling and fields stack on mobile. Reduced motion skips decorative effects.

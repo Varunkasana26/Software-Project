@@ -1,27 +1,7 @@
-/* Design tokens. Source of truth: frontend/DESIGN.md */
-:root {
-  --color-bg: #ffffff;
-  --color-surface: #f4f5f7;
-  --color-ink: #14181f;
-  --color-muted: #4f5868;
-  --color-border: #d5d9e0;
-  --color-border-strong: #6b7385;
-  --color-accent: #0a58c9;
-  --color-on-accent: #ffffff;
-  --color-band: #0f1420;
-  --color-on-band: #f4f6fa;
-  --color-on-band-muted: #b4bccb;
-  --color-focus-on-band: #7db3ff;
-
-  --risk-high-text: #a11217;
-  --risk-high-tint: #fdeced;
-  --risk-medium-text: #7a4a00;
-  --risk-medium-tint: #fff4d9;
-  --risk-low-text: #14633a;
-  --risk-low-tint: #e5f6ec;
-  --risk-neutral-text: #3d4554;
-  --risk-neutral-tint: #eceef2;
-
+:root{--bg:#f7f7f5; --surface:#ffffff; --surface-2:#efefec; --line:rgba(0,0,0,.12); --control-line:#77777c; --text:#111113; --muted:#5f5f66; --accent:#2f4a6f; --accent-hover:#263d5c; --on-accent:#ffffff; --risk-high:#c62828; --risk-med:#8a5a00; --risk-low:#1b6e4f; --grid:rgba(0,0,0,.05); --glass:rgba(255,255,255,.55);
+--dur-fast:.15s;--dur:.35s;--dur-slow:.8s;--ease:cubic-bezier(.2,.8,.2,1);--ease-slide:cubic-bezier(.77,0,.18,1);
+--color-bg:var(--bg);--color-surface:var(--surface-2);--color-ink:var(--text);--color-muted:var(--muted);--color-border:var(--line);--color-border-strong:var(--control-line);--color-accent:var(--accent);--color-on-accent:var(--on-accent);--color-band:var(--bg);--color-on-band:var(--text);--color-on-band-muted:var(--muted);--color-focus-on-band:var(--accent);--risk-high-text:var(--risk-high);--risk-medium-text:var(--risk-med);--risk-low-text:var(--risk-low);--risk-neutral-text:var(--muted);
+--risk-high-tint:color-mix(in srgb,var(--risk-high) 7%,var(--surface));--risk-medium-tint:color-mix(in srgb,var(--risk-med) 7%,var(--surface));--risk-low-tint:color-mix(in srgb,var(--risk-low) 7%,var(--surface));--risk-neutral-tint:color-mix(in srgb,var(--muted) 7%,var(--surface));
   --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
 
@@ -54,10 +34,10 @@
   --elev-1: 0 1px 2px rgba(20, 24, 31, 0.08);
   --elev-2: 0 8px 24px rgba(20, 24, 31, 0.12);
 
-  --motion-fast: 120ms;
-  --motion-base: 200ms;
-  --motion-slow: 320ms;
-  --ease: cubic-bezier(0.4, 0, 0.6, 1);
+  --motion-fast: .15s;
+  --motion-base: .35s;
+  --motion-slow: .8s;
+
 }
 
 @media (min-width: 640px) {
@@ -75,10 +55,7 @@
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  :root {
-    --motion-fast: 0.01ms;
-    --motion-base: 0.01ms;
-    --motion-slow: 0.01ms;
-  }
-}
+
+:root[data-theme="dark"]{--bg:#0a0a0b; --surface:#121214; --surface-2:#1a1a1d; --line:rgba(255,255,255,.12); --control-line:#808088; --text:#ededea; --muted:#9a9aa0; --accent:#7f9bbf; --accent-hover:#a5bad6; --on-accent:#0a0a0b; --risk-high:#f0686c; --risk-med:#d9a441; --risk-low:#5bb894; --grid:rgba(255,255,255,.05); --glass:rgba(255,255,255,.07);color-scheme:dark}
+:root[data-theme="light"]{color-scheme:light}
+@media(prefers-color-scheme:dark){:root:not([data-theme]){--bg:#0a0a0b; --surface:#121214; --surface-2:#1a1a1d; --line:rgba(255,255,255,.12); --control-line:#808088; --text:#ededea; --muted:#9a9aa0; --accent:#7f9bbf; --accent-hover:#a5bad6; --on-accent:#0a0a0b; --risk-high:#f0686c; --risk-med:#d9a441; --risk-low:#5bb894; --grid:rgba(255,255,255,.05); --glass:rgba(255,255,255,.07);color-scheme:dark}}

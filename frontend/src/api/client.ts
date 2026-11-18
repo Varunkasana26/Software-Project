@@ -25,7 +25,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   try {
     res = await fetch(`${BASE}${path}`, { ...init, credentials: "include" });
   } catch {
-    throw new ApiError("Cannot reach the server. Check that the API is running.", 0, "NETWORK");
+    throw new ApiError(`Cannot reach the API at ${BASE}. Check that the backend is running (scripts/start-all), that ${BASE}/api/health opens in the browser, and that VITE_API_URL in frontend/.env points to it. If it opens but sign-in still fails, FRONTEND_URL in backend/api/.env must be exactly this page's address.`, 0, "NETWORK");
   }
   if (res.status === 204) return undefined as T;
   const body = await res.json().catch(() => ({}));
@@ -52,11 +52,8 @@ export const me = () => request<{ user: User | null }>("/api/auth/me"); // user 
 // ---- Documents ----
 export interface DocumentInfo { id: string; fileName: string; fileSize: number; status: "UPLOADED" | "PROCESSING" | "COMPLETED" | "FAILED"; party: string; failureCode: string | null; createdAt: string }
 
-export function uploadDocument(file: File, party: string) {
-  const form = new FormData();
-  form.append("file", file);
-  form.append("party", party);
-  return request<{ id: string }>("/api/documents", { method: "POST", body: form });
+export function uploadDocument(file: File, party: string, onProgress: (percent: number) => void): Promise<{id:string}> {
+  return new Promise((resolve,reject)=>{const form=new FormData();form.append("file",file);form.append("party",party);const xhr=new XMLHttpRequest();xhr.open("POST",`${BASE}/api/documents`);xhr.withCredentials=true;xhr.upload.onprogress=e=>{if(e.lengthComputable)onProgress(Math.round(e.loaded/e.total*100));};xhr.onerror=()=>reject(new ApiError("Network error while uploading. Check your connection and retry.",0,"NETWORK"));xhr.onload=()=>{const body=JSON.parse(xhr.responseText||"{}");if(xhr.status>=200&&xhr.status<300)resolve(body);else reject(new ApiError(body.error??`Request failed (${xhr.status})`,xhr.status,body.code));};xhr.send(form);});
 }
 export const processDocument = (id: string) => request<{ document: DocumentInfo }>(`/api/documents/${id}/process`, { method: "POST" });
 export const getDocument = (id: string) => request<DocumentInfo>(`/api/documents/${id}`);
@@ -146,3 +143,14 @@ export const listRules = (page: number, limit = 20) => request<RulePage>(`/api/r
 export const createRule = (rule: RuleInput) => request<Rule>("/api/rules", { method: "POST", headers: json, body: JSON.stringify(rule) });
 export const updateRule = (id: string, patch: Partial<RuleInput>) => request<Rule>(`/api/rules/${id}`, { method: "PATCH", headers: json, body: JSON.stringify(patch) });
 export const deleteRule = (id: string) => request<void>(`/api/rules/${id}`, { method: "DELETE" });
+
+// ---- Server mode ----
+// The backend reports "offline-demo" when it runs without a database (OFFLINE_DEMO=true). Used only to show the demo accounts.
+export async function getServerMode(): Promise<string | null> {
+  try {
+    const res = await fetch(`${BASE}/api/health`);
+    return ((await res.json()) as { mode?: string }).mode ?? null;
+  } catch {
+    return null;
+  }
+}

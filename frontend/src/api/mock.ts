@@ -50,6 +50,9 @@ const clauses: ContractClause[] = [
   c(3, "The Landlord may increase the rent by up to 15% at any time upon fourteen (14) days written notice, including during the fixed term.", "RIGHT", "UNFAVORABLE", "RGT-001", 4, "The other side may raise the rent or fees."),
   c(4, "The Tenant shall pay monthly rent of INR 32,000 on or before the first day of each month.", "PAYMENT_TERM", "NEUTRAL", "PAY-001", 0, "States when rent or salary is due."),
   c(5, "This Agreement may be amended only in writing signed by both parties.", "OTHER", "NEUTRAL", null, 0, "No rule matched this clause, so it was not classified."),
+  c(6, "The tenant must provide thirty days written notice before ending the tenancy.", "TERMINATION", "UNFAVORABLE", "TRM-002", 6, "Notice period applies to early termination."),
+  c(7, "The employee agrees to reimburse reasonable training costs if leaving within six months.", "PAYMENT_TERM", "UNFAVORABLE", "PAY-003", 5, "Repayment obligation may apply after early departure."),
+  c(8, "The provider may change service hours with reasonable prior notice.", "RIGHT", "UNFAVORABLE", "RGT-002", 3, "The provider can adjust service hours."),
 ];
 
 const item = (k: ContractClause): ReportItem => ({ clause_index: k.index, text: k.text, rule_id: k.rule_id, score: k.score.auto, label: k.sentiment });
@@ -57,7 +60,7 @@ const item = (k: ContractClause): ReportItem => ({ clause_index: k.index, text: 
 export const mockReport: ContractReport = {
   id: "demo-report",
   document_id: "demo",
-  summary: "6 clauses (5 matched a rule): 1 obligation, 1 other, 1 payment_term, 1 penalty, 1 right, 1 termination.",
+  summary: "9 demo clauses across high, medium, low and neutral risk bands.",
   top_risks: clauses.filter((k) => k.sentiment === "UNFAVORABLE").sort((a, b) => b.score.auto - a.score.auto).slice(0, 5).map(item),
   obligations: clauses.filter((k) => k.category === "OBLIGATION" || k.category === "PAYMENT_TERM").map(item),
   exit_conditions: clauses.filter((k) => k.category === "TERMINATION").map(item),

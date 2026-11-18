@@ -1,180 +1,55 @@
-import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent, type KeyboardEvent, type ReactNode } from "react";
 import { createRule, deleteRule, listRules, updateRule, type Category, type Label, type Rule, type RuleInput, type RulePage } from "../api/client";
 import { Alert } from "../components/Alert";
 import { PageHead } from "../components/Layout";
 import { EmptyState, ErrorState, Loading } from "../components/States";
+import { DissolveText } from "../components/DissolveText";
+import { useSpringIndicator, useCountUp } from "../hooks/useMotion";
+import { useFlipList } from "../hooks/useFlipList";
+import PlayfulButton from "../components/PlayfulButton";
+import { HighIcon, LowIcon, MediumIcon, NeutralIcon } from "../components/Icons";
+import type React from "react";
 
-const CATEGORIES: Category[] = ["OBLIGATION", "RIGHT", "PENALTY", "TERMINATION", "PAYMENT_TERM", "OTHER"];
-const EFFECTS: Label[] = ["FAVORABLE", "UNFAVORABLE", "NEUTRAL"];
-const humanize = (s: string) => s.charAt(0) + s.slice(1).toLowerCase().replace(/_/g, " ");
-const BLANK: RuleInput = { ruleId: "", name: "", category: "OBLIGATION", patterns: [], severityWeight: 1, partyEffectHint: "NEUTRAL", explanation: "", justification: "", isActive: true };
-
-function RuleForm({ initial, onSaved, onCancel }: { initial: Rule | null; onSaved: () => void; onCancel: () => void }) {
-  const [form, setForm] = useState<RuleInput>(initial ?? BLANK);
-  const [patternText, setPatternText] = useState((initial?.patterns ?? []).join("\n")); // one pattern per line
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  const [serverError, setServerError] = useState("");
-  const [busy, setBusy] = useState(false);
-  const title = useRef<HTMLHeadingElement>(null);
-  useEffect(() => title.current?.focus(), []);
-  const set = <K extends keyof RuleInput>(k: K, v: RuleInput[K]) => setForm((f) => ({ ...f, [k]: v }));
-
-  async function onSubmit(e: FormEvent) {
-    e.preventDefault();
-    const patterns = patternText.split("\n").map((p) => p.trim()).filter(Boolean);
-    const next: Record<string, string> = {};
-    if (!initial && !/^[A-Za-z0-9_-]{2,40}$/.test(form.ruleId)) next.ruleId = "Use 2 to 40 letters, digits, - or _ (for example PEN-052).";
-    if (!form.name.trim()) next.name = "Enter a name.";
-    if (patterns.length === 0) next.patterns = "Enter at least one pattern.";
-    if (!form.explanation.trim()) next.explanation = "Enter an explanation shown to users.";
-    setErrors(next);
-    if (Object.keys(next).length) return;
-    setBusy(true);
-    setServerError("");
-    try {
-      // The server asks the analysis service to check the patterns, so a bad regex is refused here with a clear message.
-      if (initial) {
-        const { ruleId: _id, ...patch } = { ...form, patterns };
-        await updateRule(initial.id, patch);
-      } else {
-        await createRule({ ...form, patterns });
-      }
-      onSaved();
-    } catch (err) {
-      setServerError(err instanceof Error ? err.message : "Could not save the rule.");
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  const err = (k: string) => errors[k] && <div id={`rule-${k}-err`} className="field-error" role="alert">{errors[k]}</div>;
-  const inv = (k: string) => ({ "aria-invalid": !!errors[k], "aria-describedby": errors[k] ? `rule-${k}-err` : undefined });
-
-  return (
-    <form onSubmit={onSubmit} noValidate className="card">
-      <h2 ref={title} tabIndex={-1} style={{ fontSize: "var(--text-h3)" }}>{initial ? `Edit rule ${initial.ruleId}` : "Add rule"}</h2>
-      <div className="form-grid">
-        <div className="field"><label htmlFor="rule-ruleId">Rule id</label>
-          <input id="rule-ruleId" className="mono" type="text" value={form.ruleId} disabled={!!initial} onChange={(e) => set("ruleId", e.target.value)} {...inv("ruleId")} />{err("ruleId")}</div>
-        <div className="field"><label htmlFor="rule-name">Name</label><input id="rule-name" type="text" value={form.name} onChange={(e) => set("name", e.target.value)} {...inv("name")} />{err("name")}</div>
-        <div className="field"><label htmlFor="rule-category">Category</label>
-          <select id="rule-category" value={form.category} onChange={(e) => set("category", e.target.value as Category)}>{CATEGORIES.map((c) => <option key={c} value={c}>{humanize(c)}</option>)}</select></div>
-        <div className="field"><label htmlFor="rule-weight">Severity weight (1 to 5)</label>
-          <select id="rule-weight" value={form.severityWeight} onChange={(e) => set("severityWeight", Number(e.target.value))}>{[1, 2, 3, 4, 5].map((n) => <option key={n} value={n}>{n}</option>)}</select></div>
-        <div className="field"><label htmlFor="rule-effect">Effect for the tenant, employee, recipient or client</label>
-          <select id="rule-effect" value={form.partyEffectHint} onChange={(e) => set("partyEffectHint", e.target.value as Label)}>{EFFECTS.map((s) => <option key={s} value={s}>{humanize(s)}</option>)}</select></div>
-        <div className="field span-2"><label htmlFor="rule-patterns">Patterns (regular expressions, one per line)</label>
-          <textarea id="rule-patterns" className="mono" value={patternText} onChange={(e) => setPatternText(e.target.value)} {...inv("patterns")} />
-          <p className="help">Matched case-insensitively against each clause. Avoid nested repeats such as (a+)+; the analysis service rejects them.</p>{err("patterns")}</div>
-        <div className="field span-2"><label htmlFor="rule-explanation">Explanation</label>
-          <textarea id="rule-explanation" value={form.explanation} onChange={(e) => set("explanation", e.target.value)} {...inv("explanation")} />{err("explanation")}</div>
-        <div className="field span-2"><label htmlFor="rule-justification">Justification (optional)</label>
-          <input id="rule-justification" type="text" value={form.justification} onChange={(e) => set("justification", e.target.value)} />
-          <p className="help">Why this rule is a general drafting convention.</p></div>
-      </div>
-      {serverError && <div className="field"><Alert kind="error">{serverError}</Alert></div>}
-      <div className="row">
-        <button type="submit" className="btn" disabled={busy}>{busy ? "Saving..." : "Save rule"}</button>
-        <button type="button" className="btn btn--secondary" onClick={onCancel}>Cancel</button>
-      </div>
-    </form>
-  );
+const CATEGORIES:Category[]=["OBLIGATION","RIGHT","PENALTY","TERMINATION","PAYMENT_TERM","OTHER"];
+const EFFECTS:Label[]=["UNFAVORABLE","NEUTRAL","FAVORABLE"];
+const BLANK:RuleInput={ruleId:"",name:"",category:"OBLIGATION",patterns:[],severityWeight:1,partyEffectHint:"NEUTRAL",explanation:"",justification:"",isActive:true};
+const humanize=(s:string)=>s.charAt(0)+s.slice(1).toLowerCase().replace(/_/g," ");
+const dangerous=(s:string)=>/(\([^)]*[+*][^)]*\)[+*{])|(\.\*[+*])|([+*]\s*[+*])/.test(s);
+function Count({value}:{value:number}){const n=useCountUp(value);return <>{Math.round(n)}</>}
+function Chips<T extends string>({label,values,value,setValue,display=humanize,counts}:{label:string;values:T[];value:T;setValue:(v:T)=>void;display?:(v:T)=>string;counts?:Partial<Record<T,number>>}){const refs=useRef(new Map<string,HTMLButtonElement>()),active=useRef<HTMLElement|null>(null);active.current=refs.current.get(value)??null;const indicator=useSpringIndicator(active,value);return <div className="rules-chip-wrap"><span className="small muted">{label}</span><div className="rules-chip-row" role="group" aria-label={label}><span className="rules-chip-indicator" ref={indicator}/>{values.map(v=><button key={v} ref={el=>{if(el){refs.current.set(v,el);if(v===value)active.current=el}}} className="chip" type="button" aria-pressed={value===v} aria-label={`${display(v)}${counts?.[v]===undefined?"":`, ${counts[v]} rules`}`} onClick={()=>setValue(v)}><DissolveText>{display(v)}</DissolveText>{counts?.[v]!==undefined&&<span className="rules-count"><Count value={counts[v]!}/></span>}</button>)}</div></div>}
+function ToastItem({item:t,remove}:{item:{id:number;text:string;kind:"success"|"error"};remove:(id:number)=>void}){const timer=useRef<number|undefined>(undefined);const remaining=useRef(5000);const started=useRef(Date.now());const dismiss=()=>remove(t.id);function resume(){started.current=Date.now();timer.current=window.setTimeout(dismiss,remaining.current)}function pause(){if(timer.current!==undefined){window.clearTimeout(timer.current);remaining.current=Math.max(0,remaining.current-(Date.now()-started.current));timer.current=undefined}}useEffect(()=>{resume();return()=>{if(timer.current!==undefined)window.clearTimeout(timer.current)}},[]);return <div role={t.kind==="error"?"alert":"status"} className={`rules-toast ${t.kind}`} onMouseEnter={e=>{pause();e.currentTarget.dataset.paused="true"}} onMouseLeave={e=>{delete e.currentTarget.dataset.paused;resume()}}><span>{t.kind==="error"?<HighIcon/>:<LowIcon/>} {t.text}</span><button aria-label="Dismiss notification" onClick={dismiss}>×</button><i/></div>}
+function Toasts({items,remove}:{items:{id:number;text:string;kind:"success"|"error"}[];remove:(id:number)=>void}){return <div className="rules-toasts">{items.map(t=><ToastItem key={t.id} item={t} remove={remove}/>)}</div>}
+function RuleForm({initial,rules,onCancel,onSaved}:{initial:Rule|null;rules:Rule[];onCancel:()=>void;onSaved:(rule:Rule)=>void}){const [form,setForm]=useState<RuleInput>(initial?{...initial}:BLANK);const [patternText,setPatternText]=useState((initial?.patterns??[]).join("\n"));const [errors,setErrors]=useState<Record<string,string>>({});const [serverError,setServerError]=useState("");const [busy,setBusy]=useState(false);const [saved,setSaved]=useState(false);const [discard,setDiscard]=useState(false);const closeRef=useRef<()=>void>(()=>{});const first=useRef<HTMLInputElement>(null);const panel=useRef<HTMLDivElement>(null);const patternLines=patternText.split("\n").filter(p=>p.trim());const duplicate=!initial&&!!form.ruleId&&rules.some(r=>r.ruleId.toLowerCase()===form.ruleId.trim().toLowerCase());const changed=!initial||Object.keys(form).some(k=>form[k as keyof RuleInput]!==initial[k as keyof RuleInput])||patternText!==initial.patterns.join("\n");
+ const set=<K extends keyof RuleInput>(k:K,v:RuleInput[K])=>setForm(f=>({...f,[k]:v}));function close(){if(changed){setDiscard(true);return}onCancel()}closeRef.current=close;
+ useEffect(()=>{first.current?.focus({preventScroll:true});function key(e:globalThis.KeyboardEvent){if(e.key==="Escape"){e.preventDefault();closeRef.current()}if(e.key==="Tab"&&panel.current){const nodes=[...panel.current.querySelectorAll<HTMLElement>('button:not(:disabled),input:not(:disabled),textarea:not(:disabled),[tabindex="0"]')];if(!nodes.length)return;const firstNode=nodes[0],last=nodes[nodes.length-1];if(e.shiftKey&&document.activeElement===firstNode){e.preventDefault();last.focus()}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();firstNode.focus()}}}document.addEventListener("keydown",key);return()=>document.removeEventListener("keydown",key)},[]);
+ function segKey<T extends string>(e:KeyboardEvent<HTMLDivElement>,vals:T[],v:T,act:(n:T)=>void){if(e.key!=="ArrowRight"&&e.key!=="ArrowLeft")return;e.preventDefault();const i=vals.indexOf(v),n=(i+(e.key==="ArrowRight"?1:vals.length-1))%vals.length;act(vals[n])}
+ async function submit(e:FormEvent){e.preventDefault();const patterns=patternText.split("\n").map(p=>p.trim()).filter(Boolean);const next:Record<string,string>={};if(!initial&&duplicate)next.ruleId="Already exists.";if(!form.name.trim())next.name="Enter a name.";if(!patterns.length)next.patterns="Enter at least one pattern.";if(!form.explanation.trim())next.explanation="Enter an explanation shown to users.";setErrors(next);if(Object.keys(next).length)return;setBusy(true);setServerError("");try{let savedRule:Rule;if(initial){const {ruleId:_id,...patch}={...form,patterns};savedRule=await updateRule(initial.id,patch)}else savedRule=await createRule({...form,patterns});setSaved(true);setTimeout(()=>onSaved(savedRule),900)}catch(e){setServerError(e instanceof Error?e.message:"Could not save the rule.")}finally{setBusy(false)}}
+ let fieldIndex=0;const field=(name:string,label:string,content:ReactNode,required=false)=><div className="field rules-field" style={{"--field-delay":`${fieldIndex++*50}ms`} as React.CSSProperties}><label>{label}{required&&<small className="required-chip">Required</small>}</label>{content}</div>;
+ return <div className="rules-backdrop" onMouseDown={e=>{if(e.target===e.currentTarget)close()}}><section ref={panel} className="rules-panel" role="dialog" aria-modal="true" aria-labelledby="rule-panel-title"><header className="rules-panel-head"><h2 id="rule-panel-title" tabIndex={-1}>{initial?`Edit ${initial.ruleId}`:"Add rule"}</h2><button aria-label="Close panel" onClick={close}>×</button></header>{changed&&<span className="tag unsaved">Unsaved changes</span>}<form onSubmit={submit} noValidate><div className="rules-form-scroll">
+ {field("ruleId","Rule id",<><input ref={first} value={form.ruleId} disabled={!!initial} onChange={e=>{set("ruleId",e.target.value);setErrors(v=>({...v,ruleId:""}))}} aria-invalid={!!errors.ruleId||duplicate}/>{duplicate&&<div className="field-error" role="alert">Already exists</div>}{errors.ruleId&&<div className="field-error" role="alert">{errors.ruleId}</div>}</>,!initial)}
+ {field("name","Name",<input value={form.name} onChange={e=>set("name",e.target.value)} aria-invalid={!!errors.name}/>,true)}{errors.name&&<div role="alert" className="field-error">{errors.name}</div>}
+ {field("category","Category",<Chips label="Category" values={CATEGORIES} value={form.category} setValue={v=>set("category",v)}/>)}
+ {field("severityWeight","Severity weight",<div className="segmented" role="group" aria-label="Severity weight" onKeyDown={e=>segKey(e,["1","2","3","4","5"],String(form.severityWeight),v=>set("severityWeight",Number(v)))}><span className="segment-highlight" style={{transform:`translateX(${(form.severityWeight-1)*100}%)`}}/>{[1,2,3,4,5].map(n=><button type="button" key={n} aria-pressed={form.severityWeight===n} onClick={()=>set("severityWeight",n)}>{n}</button>)}</div>)}<div className="weight-dots" aria-label={`Weight ${form.severityWeight} of 5`}>{[1,2,3,4,5].map(n=><i key={n} className={n<=form.severityWeight?"filled":""}/>)}</div>
+ {field("effect","Effect for the tenant, employee, recipient or client",<div className="segmented effect-segment" role="group" aria-label="Effect" onKeyDown={e=>segKey(e,EFFECTS,form.partyEffectHint,v=>set("partyEffectHint",v))}><span className="effect-highlight" style={{transform:`translateX(${EFFECTS.indexOf(form.partyEffectHint)*100}%)`}}/>{EFFECTS.map(v=><button type="button" key={v} aria-pressed={form.partyEffectHint===v} onClick={()=>set("partyEffectHint",v)}>{v==="UNFAVORABLE"?<HighIcon/>:v==="FAVORABLE"?<LowIcon/>:<NeutralIcon/>}{humanize(v)}</button>)}</div>,true)}
+ {field("patterns","Patterns (regular expressions, one per line)",<><textarea className="mono" value={patternText} onChange={e=>{setPatternText(e.target.value);setErrors(v=>({...v,patterns:""}))}} aria-invalid={!!errors.patterns}/><span className="small muted">{patternText.split("\n").length} lines</span><p className="help">Advisory JavaScript syntax check only; server validation is authoritative. Python and JavaScript regex syntax differ.</p><div className="pattern-checker">{patternLines.map((line,i)=>{let invalid="";try{new RegExp(line,"i")}catch(e){invalid=e instanceof Error?e.message:"Invalid pattern"}return <div className={`pattern-check ${serverError.includes(line)?"server-rejected":""}`} style={{"--pattern-index":i} as React.CSSProperties} key={`${line}-${i}`}><span>{invalid?"×":"✓"} {invalid||"Pattern compiles in JavaScript"}</span>{dangerous(line)&&<span className="tag warning-chip"><MediumIcon/>The analysis service may reject this.</span>}</div>})}</div>{errors.patterns&&<div role="alert" className="field-error">{errors.patterns}</div>}</>,true)}
+ {field("explanation","Explanation",<><textarea value={form.explanation} maxLength={2000} onChange={e=>set("explanation",e.target.value)}/><span className="small muted">{form.explanation.length}/2000</span></>,true)}{field("justification","Justification (optional)",<><textarea value={form.justification} maxLength={500} onChange={e=>set("justification",e.target.value)}/><span className="small muted">{form.justification.length}/500</span></>)}
+ </div>{serverError&&<div role="alert" className="server-error"><Alert kind="error">{serverError}</Alert></div>}{discard&&<div className="discard-confirm"><p>Discard changes?</p><button type="button" className="btn btn--secondary btn--small" onClick={()=>setDiscard(false)}>Keep editing</button><button type="button" className="btn btn--danger btn--small" onClick={onCancel}>Discard</button></div>}<footer className="rules-panel-actions"><PlayfulButton className="btn" type="submit" busy={busy} success={saved} disabled={busy||!!initial&&!changed} aria-busy={busy}>{busy?"Saving…":saved?"✓ Saved":serverError?"Failed. Try again":"Save rule"}</PlayfulButton><button type="button" className="btn btn--secondary" onClick={close}><DissolveText>Cancel</DissolveText></button></footer></form></section></div>
 }
-
-export default function AdminRules() {
-  const [page, setPage] = useState(1);
-  const [data, setData] = useState<RulePage | null>(null);
-  const [error, setError] = useState("");
-  const [editing, setEditing] = useState<Rule | "new" | null>(null);
-  const [confirming, setConfirming] = useState<string | null>(null);
-  const [notice, setNotice] = useState<{ kind: "error" | "success"; text: string } | null>(null);
-
-  const load = useCallback(() => {
-    setError("");
-    listRules(page).then(setData).catch((e) => setError(e instanceof Error ? e.message : "Could not load rules."));
-  }, [page]);
-  useEffect(load, [load]);
-
-  async function toggle(rule: Rule) {
-    try {
-      await updateRule(rule.id, { isActive: !rule.isActive });
-      setNotice({ kind: "success", text: `${rule.ruleId} is now ${rule.isActive ? "disabled" : "enabled"}. The next analysis uses this change.` });
-      load();
-    } catch (e) { setNotice({ kind: "error", text: e instanceof Error ? e.message : "Could not update the rule." }); }
-  }
-  async function remove(rule: Rule) {
-    try {
-      await deleteRule(rule.id);
-      setConfirming(null);
-      setNotice({ kind: "success", text: `${rule.ruleId} was deleted.` });
-      load();
-    } catch (e) { setNotice({ kind: "error", text: e instanceof Error ? e.message : "Could not delete the rule." }); }
-  }
-
-  return (
-    <>
-      <PageHead title="Classification rules">These rules decide how every clause is classified and scored. A change applies to the next analysis.</PageHead>
-      <section className="section">
-        <div className="container stack">
-          {notice && <Alert kind={notice.kind}>{notice.text}</Alert>}
-          {editing ? (
-            <RuleForm initial={editing === "new" ? null : editing} onCancel={() => setEditing(null)}
-              onSaved={() => { setEditing(null); setNotice({ kind: "success", text: "Rule saved. The next analysis uses it." }); load(); }} />
-          ) : (
-            <div><button type="button" className="btn" onClick={() => { setNotice(null); setEditing("new"); }}>Add rule</button></div>
-          )}
-          {error ? <ErrorState message={error} onRetry={load} />
-            : !data ? <Loading label="Loading rules" height={56} blocks={5} />
-            : data.data.length === 0 ? <EmptyState title="No rules yet" action={<button type="button" className="btn" onClick={() => setEditing("new")}>Add the first rule</button>}>Rules decide how each clause is classified and scored.</EmptyState>
-            : (
-              <>
-                <div className="table-wrap">
-                  <table>
-                    <caption className="visually-hidden">Classification rules</caption>
-                    <thead><tr><th scope="col">Rule</th><th scope="col">Category</th><th scope="col">Weight</th><th scope="col">Effect</th><th scope="col">Pattern</th><th scope="col">Active</th><th scope="col">Actions</th></tr></thead>
-                    <tbody>
-                      {data.data.map((r) => (
-                        <tr key={r.id}>
-                          <td data-label="Rule"><strong className="mono">{r.ruleId}</strong><div className="muted small">{r.name}</div></td>
-                          <td data-label="Category">{humanize(r.category)}</td>
-                          <td data-label="Weight">{r.severityWeight}</td>
-                          <td data-label="Effect">{humanize(r.partyEffectHint)}</td>
-                          <td data-label="Pattern"><code className="pattern" title={r.patterns.join("\n")}>{r.patterns[0]}</code>{r.patterns.length > 1 && <span className="muted small"> +{r.patterns.length - 1} more</span>}</td>
-                          <td data-label="Active">
-                            <button type="button" role="switch" aria-checked={r.isActive} aria-label={`${r.ruleId} active`} className="switch" onClick={() => toggle(r)}>
-                              <span className="track"><span className="thumb" /></span>{r.isActive ? "On" : "Off"}
-                            </button>
-                          </td>
-                          <td data-label="Actions">
-                            {confirming === r.id ? (
-                              <div className="row">
-                                <span className="small">Delete this rule?</span>
-                                <button type="button" className="btn btn--danger btn--small" onClick={() => remove(r)}>Delete</button>
-                                <button type="button" className="btn btn--secondary btn--small" onClick={() => setConfirming(null)}>Cancel</button>
-                              </div>
-                            ) : (
-                              <div className="row">
-                                <button type="button" className="btn btn--secondary btn--small" aria-label={`Edit ${r.ruleId}`} onClick={() => { setNotice(null); setEditing(r); }}>Edit</button>
-                                <button type="button" className="btn btn--secondary btn--small" aria-label={`Delete ${r.ruleId}`} onClick={() => setConfirming(r.id)}>Delete</button>
-                              </div>
-                            )}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-                <div className="row row--between">
-                  <span className="muted" role="status">Page {data.page} of {Math.max(data.totalPages, 1)} ({data.total} rules)</span>
-                  <div className="row">
-                    <button type="button" className="btn btn--secondary btn--small" disabled={page <= 1} onClick={() => setPage(page - 1)}>Previous</button>
-                    <button type="button" className="btn btn--secondary btn--small" disabled={page >= data.totalPages} onClick={() => setPage(page + 1)}>Next</button>
-                  </div>
-                </div>
-              </>
-            )}
-        </div>
-      </section>
-    </>
-  );
-}
+function EffectBadge({effect}:{effect:Label}){return <span className={`effect-badge effect-${effect.toLowerCase()}`}>{effect==="UNFAVORABLE"?<HighIcon/>:effect==="FAVORABLE"?<LowIcon/>:<NeutralIcon/>}{humanize(effect)}</span>}
+function Weight({value}:{value:number}){return <span className="weight-indicator" aria-label={`Weight ${value} of 5`}>{[1,2,3,4,5].map(n=><i key={n} className={n<=value?"filled":""}/>)}<b>{value}</b></span>}
+export default function AdminRules(){const [page,setPage]=useState(1);const [data,setData]=useState<RulePage|null>(null);const [error,setError]=useState("");const [editing,setEditing]=useState<Rule|null|"new">(null);const [query,setQuery]=useState("");const [category,setCategory]=useState("ALL");const [effect,setEffect]=useState<Label|"ALL">("ALL");const [active,setActive]=useState<"ALL"|"ACTIVE"|"INACTIVE">("ALL");const [sort,setSort]=useState("id");const [toggleBusy,setToggleBusy]=useState<string|null>(null);const [failedId,setFailedId]=useState<string|null>(null);const [deleting,setDeleting]=useState<string|null>(null);const [confirming,setConfirming]=useState<string|null>(null);const [toast,setToast]=useState<{id:number;text:string;kind:"error"|"success"}[]>([]);const [announcement,setAnnouncement]=useState("");const toastId=useRef(0);const addRef=useRef<HTMLButtonElement>(null);const opener=useRef<HTMLElement|null>(null);const tableRef=useRef<HTMLDivElement>(null);const [flashId,setFlashId]=useState<string|null>(null);
+ const load=useCallback(()=>{setError("");listRules(page).then(setData).catch(e=>setError(e instanceof Error?e.message:"Could not load rules."))},[page]);useEffect(load,[load]);useEffect(()=>{if(!confirming)return;const t=setTimeout(()=>setConfirming(null),5000);return()=>clearTimeout(t)},[confirming]);
+ function notify(text:string,kind:"error"|"success"){const id=++toastId.current;setToast(t=>[...t,{id,text,kind}])}
+ const rows=data?.data??[];const shown=useMemo(()=>rows.filter(r=>(!query||`${r.ruleId} ${r.name} ${r.patterns.join(" ")}`.toLowerCase().includes(query.toLowerCase()))&&(category==="ALL"||r.category===category)&&(effect==="ALL"||r.partyEffectHint===effect)&&(active==="ALL"||(active==="ACTIVE"?r.isActive:!r.isActive))).sort((a,b)=>sort==="weight"?b.severityWeight-a.severityWeight:sort==="category"?a.category.localeCompare(b.category):a.ruleId.localeCompare(b.ruleId)),[rows,query,category,effect,active,sort]);const flip=useFlipList<HTMLTableSectionElement>(`${page}|${query}|${category}|${effect}|${active}|${sort}`);
+ async function toggle(rule:Rule){const next={...rule,isActive:!rule.isActive};setToggleBusy(rule.id);setData(d=>d?{...d,data:d.data.map(r=>r.id===rule.id?next:r)}:d);try{await updateRule(rule.id,{isActive:next.isActive});const msg=`Rule ${rule.ruleId} turned ${next.isActive?"on":"off"}`;setAnnouncement(msg);notify(`${msg}.`,"success")}catch(e){setData(d=>d?{...d,data:d.data.map(r=>r.id===rule.id?rule:r)}:d);setFailedId(rule.id);setTimeout(()=>setFailedId(null),450);notify(e instanceof Error?e.message:"Could not update the rule.","error")}finally{setToggleBusy(null)}}
+ async function remove(rule:Rule){setDeleting(rule.id);try{await deleteRule(rule.id);setConfirming(null);notify(`${rule.ruleId} deleted.`,"success");setTimeout(()=>{load();setDeleting(null)},400)}catch(e){setDeleting(null);setFailedId(rule.id);setTimeout(()=>setFailedId(null),450);notify(e instanceof Error?e.message:"Could not delete the rule.","error")}}
+ function pageTo(n:number){setPage(n);tableRef.current?.scrollIntoView({behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth",block:"start"})}function openForm(item:Rule|null|"new"){opener.current=document.activeElement as HTMLElement;setEditing(item)}function closeForm(){setEditing(null);opener.current?.focus({preventScroll:true})}
+ const total=data?.total??0;const categoryCounts:Record<string,number>={ALL:rows.length,...Object.fromEntries(CATEGORIES.map(v=>[v,rows.filter(r=>r.category===v).length]))};const effectCounts:Record<string,number>={ALL:rows.length,...Object.fromEntries(EFFECTS.map(v=>[v,rows.filter(r=>r.partyEffectHint===v).length]))};const statusCounts:Record<string,number>={ALL:rows.length,ACTIVE:rows.filter(r=>r.isActive).length,INACTIVE:rows.filter(r=>!r.isActive).length};return <><PageHead title="Classification rules">These rules decide how every clause is classified and scored. A change applies to the next analysis.</PageHead><section className="section"><div className="container rules-page">
+ {data&&<><div className="rule-summary"><div><b><Count value={total}/></b><span>Total rules</span></div><div><b><Count value={rows.filter(r=>r.isActive).length}/></b><span>Active this page</span></div><div><b><Count value={rows.filter(r=>!r.isActive).length}/></b><span>Inactive this page</span></div><div><b><Count value={rows.filter(r=>r.partyEffectHint==="UNFAVORABLE").length}/></b><span>Unfavorable this page</span></div><div><b><Count value={rows.filter(r=>r.partyEffectHint==="FAVORABLE").length}/></b><span>Favorable this page</span></div><div><b><Count value={rows.filter(r=>r.partyEffectHint==="NEUTRAL").length}/></b><span>Neutral this page</span></div></div><p className="small muted">Category and status counts describe this page of {data.limit} rules.</p></>}
+ <div className="rules-tools"><label className="rules-search">Search this page<input type="search" value={query} onChange={e=>setQuery(e.target.value)} placeholder="Rule id, name or pattern"/>{query&&<button type="button" aria-label="Clear search" className="clear-search" onClick={()=>setQuery("")}>×</button>}</label><button type="button" ref={addRef} className="btn add-rule-btn" onClick={()=>openForm("new")}><span>＋</span><DissolveText>Add rule</DissolveText></button></div>
+ <div className="rules-filter-stack"><Chips label="Category" values={["ALL",...CATEGORIES]} value={category} setValue={setCategory} counts={categoryCounts} display={v=>v==="ALL"?"All categories":humanize(v)}/><Chips<"ALL"|Label> label="Effect" values={["ALL",...EFFECTS]} value={effect} setValue={setEffect} counts={effectCounts} display={v=>v==="ALL"?"All effects":humanize(v)}/><Chips label="Status" values={["ALL","ACTIVE","INACTIVE"]} value={active} setValue={setActive} counts={statusCounts} display={v=>v==="ALL"?"All":v==="ACTIVE"?"Active only":"Inactive only"}/></div>
+ <div className="row row--between"><label>Sort by <select value={sort} onChange={e=>setSort(e.target.value)}><option value="id">Rule id</option><option value="weight">Weight (high first)</option><option value="category">Category</option></select></label><p role="status" aria-live="polite">Showing <Count value={shown.length}/> of <Count value={rows.length}/> rules · Filtering this page</p><span className="visually-hidden" aria-live="polite">{announcement}</span></div>
+ {error?<ErrorState message={error} onRetry={load}/>:!data?<Loading label="Loading rules" height={56} blocks={5}/>:!rows.length?<EmptyState title="No rules yet" action={<button className="btn" onClick={()=>openForm("new")}>Add the first rule</button>}>Rules decide how each clause is classified and scored.</EmptyState>:!shown.length?<EmptyState title="No rules match" action={<button type="button" className="btn btn--secondary" onClick={()=>{setQuery("");setCategory("ALL");setEffect("ALL");setActive("ALL")}}>Clear filters</button>}>Try changing the search or filters.</EmptyState>:<div ref={tableRef} className="rules-table-scroll"><table className="rules-table"><caption className="visually-hidden">Classification rules for this page</caption><thead><tr><th>Rule</th><th>Category</th><th>Weight</th><th>Effect</th><th>Patterns</th><th>Active</th><th>Actions</th></tr></thead><tbody ref={flip}>{shown.map((r,i)=><RuleRow key={r.id} rule={r} index={i} toggleBusy={toggleBusy===r.id} confirming={confirming===r.id} flash={flashId===r.id} failed={failedId===r.id} deleting={deleting===r.id} onToggle={()=>toggle(r)} onEdit={()=>openForm(r)} onDelete={()=>setConfirming(r.id)} onConfirm={()=>remove(r)} onCancelDelete={()=>setConfirming(null)}/>)}</tbody></table></div>}
+ {data&&data.totalPages>1&&<div className="row row--between rules-pagination" role="group" aria-label="Pagination" onKeyDown={e=>{if(e.key==="ArrowLeft"&&page>1){e.preventDefault();pageTo(page-1)}else if(e.key==="ArrowRight"&&page<data.totalPages){e.preventDefault();pageTo(page+1)}}}><span>Page <Count value={data.page}/> of <Count value={data.totalPages}/> (<Count value={data.total}/> rules)</span><div className="row"><button className="btn btn--secondary btn--small" disabled={page<=1} onClick={()=>pageTo(page-1)}><DissolveText>Previous</DissolveText></button>{Array.from({length:data.totalPages},(_,i)=>i+1).map(n=><button key={n} className="chip" aria-pressed={n===page} onClick={()=>pageTo(n)}>{n}</button>)}<button className="btn btn--secondary btn--small" disabled={page>=data.totalPages} onClick={()=>pageTo(page+1)}><DissolveText>Next</DissolveText></button></div></div>}
+ </div></section><Toasts items={toast} remove={id=>setToast(t=>t.filter(x=>x.id!==id))}/>{editing!==null&&<RuleForm key={editing==="new"?"new":editing.id} initial={editing==="new"?null:editing} rules={rows} onCancel={closeForm} onSaved={r=>{closeForm();notify("Rule saved. The next analysis uses it.","success");load();setFlashId(r.id);setTimeout(()=>setFlashId(null),850)}}/>}</>}
+function RuleRow({rule:r,index,toggleBusy,confirming,flash,failed,deleting,onToggle,onEdit,onDelete,onConfirm,onCancelDelete}:{rule:Rule;index:number;toggleBusy:boolean;confirming:boolean;flash:boolean;failed:boolean;deleting:boolean;onToggle:()=>void;onEdit:()=>void;onDelete:()=>void;onConfirm:()=>void;onCancelDelete:()=>void}){const [expanded,setExpanded]=useState(false);const [copied,setCopied]=useState<number|null>(null);const [seconds,setSeconds]=useState(5);useEffect(()=>{if(!confirming)return;setSeconds(5);const t=setInterval(()=>setSeconds(v=>Math.max(0,v-1)),1000);return()=>clearInterval(t)},[confirming]);async function copy(v:string,i:number){try{await navigator.clipboard.writeText(v);setCopied(i);setTimeout(()=>setCopied(null),1200)}catch{}}return <tr data-flip-id={r.id} className={`rule-row ${!r.isActive?"inactive":""} ${flash?"flash-rule":""} ${failed?"failed-row":""} ${deleting?"deleting-row":""}`} style={{"--row-delay":`${Math.min(index,11)*40}ms`} as React.CSSProperties}><td data-label="Rule"><strong className="mono">{r.ruleId}</strong><div className="muted small">{r.name}</div></td><td data-label="Category">{humanize(r.category)}</td><td data-label="Weight"><Weight value={r.severityWeight}/></td><td data-label="Effect"><EffectBadge effect={r.partyEffectHint}/></td><td data-label="Pattern"><div className="pattern-cell"><code>{r.patterns[0]??"—"}</code>{r.patterns.length>1&&<><button className="more-patterns" type="button" aria-expanded={expanded} onClick={()=>setExpanded(v=>!v)}>+{r.patterns.length-1} more</button><div className={`pattern-expand ${expanded?"open":""}`}><div>{r.patterns.slice(1).map((p,i)=><div className="pattern-copy" style={{"--pattern-index":i} as React.CSSProperties} key={`${i}-${p}`}><code>{p}</code><button type="button" onClick={()=>copy(p,i)}>{copied===i?"✓":"Copy"}</button></div>)}</div></div></>}</div></td><td data-label="Active"><button type="button" className="switch" aria-pressed={r.isActive} aria-label={`${r.ruleId} active`} disabled={toggleBusy} onClick={onToggle}><span className="track"><span className="thumb"/></span><span className="switch-label">{r.isActive?"On":"Off"}</span></button></td><td data-label="Actions">{confirming?<div className="delete-confirm"><span className="small">Sure? {seconds}</span><button className="btn btn--danger btn--small" onClick={onConfirm}><DissolveText>Yes</DissolveText></button><button className="btn btn--secondary btn--small" onClick={onCancelDelete}><DissolveText>No</DissolveText></button><i style={{transform:`scaleX(${seconds/5})`}}/></div>:<div className="row"><button className="btn btn--secondary btn--small" onClick={onEdit}><DissolveText>Edit</DissolveText></button><button className="btn btn--secondary btn--small" onClick={onDelete}><DissolveText>Delete</DissolveText></button></div>}</td></tr>}
