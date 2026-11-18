@@ -3,7 +3,9 @@ import { AppError } from "../middleware/errorHandler";
 import {
   createDocument, deleteDocument, documentView, getAccessibleDocument, getClauses, getReportView, listDocuments, processDocument,
 } from "../services/documentService";
+import { explainClause } from "../services/geminiClient";
 import { AuthUser } from "../types";
+import { prisma } from "../lib/prisma";
 
 const user = (req: Request): AuthUser => req.user as AuthUser; // set by authenticate
 const idOf = (req: Request): string => {
@@ -49,4 +51,13 @@ export async function process_(req: Request, res: Response) {
 export async function remove(req: Request, res: Response) {
   await deleteDocument(await getAccessibleDocument(idOf(req), user(req), { write: true }));
   res.status(204).send();
+}
+
+export async function explain(req: Request, res: Response) {
+  const doc = await getAccessibleDocument(idOf(req), user(req));
+  const clause = await prisma.clause.findFirst({ where: { id: String(req.params.clauseId), documentId: doc.id } }); // must belong to this document
+  if (!clause) throw new AppError(404, "Clause not found.", "NOT_FOUND");
+  const c = clause as unknown as { text: string; category: string; autoScore?: number; score?: number; explanation?: string | null };
+  const text = await explainClause({ text: c.text, category: String(c.category), score: Number(c.autoScore ?? c.score ?? 0), explanation: c.explanation ?? null }, doc.party);
+  res.json({ explanation: text, generatedBy: "AI" });
 }
