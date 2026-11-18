@@ -1,55 +1,37 @@
-# frontend
+# Frontend
 
-- **Owner:** Harnoor
-- **Purpose:** User interface for the Legal Document Summarizer.
-- **Belongs here:** `src/` (React + TypeScript pages, components, API client), `DESIGN.md` (design spec), dependency files.
-- **Must not be edited by others:** everything in this folder. Open a pull request or ask Harnoor.
-
-Stack: Vite, React, TypeScript, react-router. Plain CSS driven by tokens. No UI library.
+React, TypeScript, Vite and react-router. No UI or animation library. CSS variables in `src/styles/tokens.css` drive both themes.
 
 ## Run
 
 ```bash
-cp .env.example .env   # VITE_API_URL points at the Node backend (default http://localhost:8000)
+cp .env.example .env   # optional VITE_API_URL, defaults to http://localhost:8000
 npm install
-npm run dev            # http://localhost:5173
-npm run build          # type check + production build
+npm run dev
+npm run build
 ```
 
-The backend allows CORS from `http://localhost:5173` by default (`FRONTEND_URL`).
+The API uses an httpOnly cookie session. Offline demo mode is supported by `../scripts/start-all.sh --offline`; the login page shows the three local demo accounts when the backend reports offline mode.
 
-## Design
+## Real endpoints
 
-`DESIGN.md` is the spec: colour, type, spacing, radius, elevation, motion, component rules and an accessibility checklist. `src/styles/tokens.css` holds the tokens as CSS variables. Change a token there, not a hard-coded value in a component. Screenshots of every screen are in `docs/design/screens/`.
-
-## Backend endpoints used
-
-All calls are in `src/api/client.ts`.
-
-| Endpoint | Used by |
+| Endpoint | Purpose |
 |---|---|
-| `POST /api/documents` (multipart field `file`) | Upload |
-| `POST /api/documents/:id/process` | Upload |
-| `GET /api/documents/:id/report` | Report, Lawyer review |
-| `GET /api/documents/:id/clauses` | Report, Lawyer review |
-| `GET /api/rules`, `POST /api/rules`, `PATCH /api/rules/:id`, `DELETE /api/rules/:id` | Rules admin |
+| `POST /api/auth/register`, `/login`, `/logout`; `GET /api/auth/me` | Account creation, login, logout and session restoration |
+| `POST /api/documents` multipart `file`, `party` | Upload with selected contract side |
+| `POST /api/documents/:id/process` | Analyze through core |
+| `GET /api/documents`, `GET /api/documents/:id`, `GET /api/documents/:id/report`, `GET /api/documents/:id/clauses` | Document list and report data |
+| `PATCH /api/clauses/:id/override`, `DELETE /api/clauses/:id/override` | Lawyer-only score overrides; automatic score remains available |
+| `GET /api/rules`, `POST /api/rules`, `PATCH /api/rules/:id`, `DELETE /api/rules/:id` | Rule administration; writes require ADMIN |
+| `GET /api/health` | Detect offline demo mode for account hints |
 
-## Screens: real, mock or missing pieces
+Reports use `reportItem` objects and full clauses from the live report response. The optional `/report/demo` development route uses `src/api/mock.ts` and is explicitly demo data. No mock-backed auth, upload, override or rules remain. USER can analyze and read own documents; LAWYER can review documents and override clauses; ADMIN can manage rules.
 
-| Screen | Status |
-|---|---|
-| Sign in | **Mock.** No auth endpoint exists. Stores a fake token in `localStorage`. |
-| Upload | **Real.** Checks type, size and emptiness in the browser first; shows server rejections (wrong type, too large, scanned PDF) as plain messages. The chosen party is kept in `sessionStorage` only; the API does not accept it yet. |
-| Report | **Real** for `/report/<document id>`. `/report/demo` shows mock data. Real clauses have no `rule_id` and no numeric score yet (only `riskLevel`), so those show "No rule id" and "not reported". |
-| Lawyer review | **Mock save.** No override endpoint exists; overrides are stored in this browser and shown on the report. The original auto score is never overwritten. |
-| Rules admin | **Real** against `/api/rules`. |
+The report's overall gauge is the mean of up to five highest effective clause scores (override when present, otherwise auto score). High risk means effective score at least 8. This is a first-pass aid, not legal advice.
 
-In development (`npm run dev`) mock-backed pages show a small amber tag. It does not appear in production builds.
 
-## Harnoor: start here
+## Document and lawyer review routes
 
-1. Replace the mock sign-in when Abhishek's auth lands (`login` in `client.ts`) and add route protection.
-2. When the backend returns `reportItem` objects and per-clause `rule_id` and score (see `shared/contracts/report.schema.json`), drop the string handling in `getReport`.
-3. When an override endpoint exists, swap `saveOverride` in `client.ts` from the browser store to a `PATCH`.
-4. Send the party to the API once it is accepted (`Upload.tsx`).
-5. Add keyboard and screen-reader testing on real devices; automated checks here covered focus visibility, overflow and contrast tokens only.
+`/documents` shows a plain, paginated document list for every signed-in role. Each document links to `/report/:id`; LAWYER accounts also see a Review link to `/review/:id`. The separate lawyer-only Review navigation item opens `/review`, a document picker, and stays active on individual review pages. USER and ADMIN accounts cannot access either review route.
+
+`/review/:id` shows one card per clause, with the original automatic score read-only, an override score stepper and slider, a reason, and Save override. It retains highest-risk-first sorting (with document order available), category/risk chips with a sliding pill, FLIP reordering, red treatment at effective score 8+, unsaved markers, save states, summary counts, and empty states. Zero-risk clauses remain available for review. Documents no longer embeds a review pane or loads reports for list summaries. API endpoints and request formats are unchanged.

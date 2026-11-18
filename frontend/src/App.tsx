@@ -17,6 +17,7 @@ export default function App() {
         <Route path="/upload" element={<Guard><Upload /></Guard>} />
         <Route path="/documents" element={<Guard><Documents /></Guard>} />
         <Route path="/report/:id" element={<Guard><Report /></Guard>} />
+        <Route path="/review" element={<Guard roles={["LAWYER"]}><Documents /></Guard>} />
         <Route path="/review/:id" element={<Guard roles={["LAWYER"]}><LawyerReview /></Guard>} />
         <Route path="/admin/rules" element={<Guard roles={["ADMIN"]}><AdminRules /></Guard>} />
         <Route path="*" element={<Navigate to="/upload" replace />} />
