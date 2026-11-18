@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { AppError } from "../middleware/errorHandler";
 import {
-  createDocument, deleteDocument, documentView, getAccessibleDocument, getClauses, getReportView, listDocuments, processDocument,
+  createDocument, deleteDocument, documentView, getAccessibleDocument, getClauses, getReportView, listDocuments, processDocument, requestAdvice,
 } from "../services/documentService";
 import { explainClause } from "../services/geminiClient";
 import { AuthUser } from "../types";
@@ -34,11 +34,11 @@ export async function getOne(req: Request, res: Response) {
 }
 
 export async function clauses(req: Request, res: Response) {
-  res.json(await getClauses(await getAccessibleDocument(idOf(req), user(req))));
+  res.json(await getClauses(await getAccessibleDocument(idOf(req), user(req)), user(req)));
 }
 
 export async function report(req: Request, res: Response) {
-  res.json(await getReportView(await getAccessibleDocument(idOf(req), user(req))));
+  res.json(await getReportView(await getAccessibleDocument(idOf(req), user(req)), user(req)));
 }
 
 export async function process_(req: Request, res: Response) {
@@ -60,4 +60,9 @@ export async function explain(req: Request, res: Response) {
   const c = clause as unknown as { text: string; category: string; autoScore?: number; score?: number; explanation?: string | null };
   const text = await explainClause({ text: c.text, category: String(c.category), score: Number(c.autoScore ?? c.score ?? 0), explanation: c.explanation ?? null }, doc.party);
   res.json({ explanation: text, generatedBy: "AI" });
+}
+
+export async function askAdvice(req: Request, res: Response) {
+  const doc = await getAccessibleDocument(idOf(req), user(req), { write: true }); // owner only
+  res.json(await requestAdvice(doc, String(req.params.clauseId)));
 }

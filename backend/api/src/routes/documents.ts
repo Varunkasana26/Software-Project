@@ -1,6 +1,6 @@
 import { Router } from "express";
 import rateLimit from "express-rate-limit";
-import { clauses, explain, getOne, list, process_, remove, report, uploadDocument } from "../controllers/documentController";
+import { askAdvice, clauses, explain, getOne, list, process_, remove, report, uploadDocument } from "../controllers/documentController";
 import { authenticate } from "../middleware/auth";
 import { checkUploadedFile, handleMulterError, upload } from "../middleware/upload";
 import { validate } from "../middleware/validation";
@@ -17,6 +17,7 @@ router.get("/", validate({ query: documentQuerySchema }), list);
 router.get("/:id", byId, getOne);
 router.get("/:id/clauses", byId, clauses);
 router.get("/:id/report", byId, report);
+router.post("/:id/clauses/:clauseId/request-advice", heavy, validate({ params: documentIdParamSchema.extend({ clauseId: clauseIdParamSchema.shape.id }) }), askAdvice);
 router.post("/:id/clauses/:clauseId/explain", heavy, validate({ params: documentIdParamSchema.extend({ clauseId: clauseIdParamSchema.shape.id }) }), explain);
 router.post("/:id/process", heavy, byId, process_);
 router.delete("/:id", byId, remove);

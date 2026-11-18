@@ -7,6 +7,7 @@ async function setup() {
   const owner = await makeUser("USER");
   const doc = await makeDoc(owner.user.id, { status: "COMPLETED" });
   await storeAnalysis(doc.id);
+  await request(app).post(`/api/documents/${doc.id}/clauses/${db.clause.rows[0].id}/request-advice`).set(owner.auth); // the user asks for advice on clause 1
   return { owner, doc, clause: db.clause.rows[0] };
 }
 
@@ -24,6 +25,27 @@ describe("Lawyer override", () => {
     const report = (await request(app).get(`/api/documents/${doc.id}/report`).set(lawyer.auth)).body;
     expect(report.top_risks[0].score).toBe(3); // the list shows the override
     expect(report.clauses[0].score.auto).toBe(8); // the original is still there
+  });
+
+  it("a lawyer sees and can change only clauses the user asked advice on", async () => {
+    const { owner, doc } = await setup();
+    const lawyer = await makeUser("LAWYER");
+    const other = db.clause.rows.find((c: { adviceRequested?: boolean }) => !c.adviceRequested);
+    const report = (await request(app).get(`/api/documents/${doc.id}/report`).set(lawyer.auth)).body;
+    expect(report.clauses).toHaveLength(1); // only the requested clause
+    expect(report.clauses[0].advice_requested).toBe(true);
+    if (other) expect((await request(app).patch(`/api/clauses/${other.id}/override`).set(lawyer.auth).send({ score: 1, reason: "r" })).status).toBe(404);
+    const owned = (await request(app).get(`/api/documents/${doc.id}/report`).set(owner.auth)).body;
+    expect(owned.clauses.length).toBeGreaterThan(1); // the owner still sees everything
+  });
+
+  it("a document with no advice request is invisible to a lawyer", async () => {
+    const owner = await makeUser("USER");
+    const doc = await makeDoc(owner.user.id, { status: "COMPLETED" });
+    await storeAnalysis(doc.id);
+    const lawyer = await makeUser("LAWYER");
+    expect((await request(app).get(`/api/documents/${doc.id}/report`).set(lawyer.auth)).status).toBe(404);
+    expect((await request(app).get("/api/documents").set(lawyer.auth)).body.total).toBe(0);
   });
 
   it("is lawyer-only and validates the input", async () => {

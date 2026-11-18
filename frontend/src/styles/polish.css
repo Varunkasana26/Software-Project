@@ -57,3 +57,7 @@ html { scroll-behavior: smooth; }
   .card, .btn { transition: none; }
   .card:hover, .btn:hover, .btn:active { transform: none; }
 }
+
+.clause-actions { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 10px 14px; }
+.clause-actions .ai-explain { flex: 1 1 100%; order: 2; }
+.advice { margin: 10px 0 4px; }
