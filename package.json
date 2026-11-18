@@ -1,0 +1,14 @@
+{
+  "name": "legal-document-summarizer",
+  "private": true,
+  "description": "Root launcher. The three parts (core, backend/api, frontend) have their own dependencies; these scripts set them up and start them together.",
+  "scripts": {
+    "setup": "node scripts/dev.cjs setup",
+    "dev": "node scripts/dev.cjs dev",
+    "dev:offline": "node scripts/dev.cjs dev --offline",
+    "demo": "node scripts/dev.cjs demo",
+    "test:core": "python -m pytest core/tests",
+    "test:backend": "npm --prefix backend/api test",
+    "build:frontend": "npm --prefix frontend run build"
+  }
+}

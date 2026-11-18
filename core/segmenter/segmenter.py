@@ -5,6 +5,10 @@ Clause 4), an ALL-CAPS heading line, or after a blank line. Heading-only lines
 (for example "3. MAINTENANCE AND REPAIRS") do not become clauses; they are
 attached as the `heading` of the clauses that follow. Fragments shorter than
 30 characters are merged into the previous clause.
+
+PDF text usually has no blank lines between paragraphs, so two more starts are used: a line that begins
+with a legal recital word (WHEREAS / AND WHEREAS / NOW / IN WITNESS), and a short line that ends a
+sentence in a document whose other lines are long (the last line of a wrapped paragraph).
 """
 import logging
 import re
@@ -19,6 +23,11 @@ NUMBER_RE = re.compile(
     r"^\s*(?P<num>(?:Article|Section|Clause)\s+\d+(?:\.\d+)*[.:]?|\d+(?:\.\d+)*\.?|\([a-z]{1,4}\))\s+(?P<rest>\S.*)$",
     re.IGNORECASE,
 )
+
+
+# A recital or witness line always starts a new clause, even with no number or blank line before it.
+RECITAL_RE = re.compile(r"^(?:AND\s+)?WHEREAS\b|^NOW\b|^IN\s+WITNESS\b", re.IGNORECASE)
+SHORT_LINE_RATIO = 0.6  # a line shorter than this share of the usual line width, ending in a full stop, ends a paragraph
 
 
 class Clause(TypedDict):
@@ -46,11 +55,19 @@ def segment_clauses(text: str, name: str = "document") -> list[Clause]:
             raw.append((heading, " ".join(current).strip()))
             current.clear()
 
-    for line in text.splitlines():
-        line = line.strip()
+    lines = [ln.strip() for ln in text.splitlines()]
+    widths = sorted(len(ln) for ln in lines if ln)
+    usual = widths[int(len(widths) * 0.9)] if widths else 0  # 90th percentile line width; wrapped text has many long lines
+    prev_ended_paragraph = False
+
+    for line in lines:
         if not line:  # blank line ends the current clause
             flush()
+            prev_ended_paragraph = False
             continue
+        if prev_ended_paragraph or (current and RECITAL_RE.match(line)):  # no blank line, but a paragraph clearly ended
+            flush()
+        prev_ended_paragraph = usual >= 60 and len(line) < usual * SHORT_LINE_RATIO and line.endswith((".", ";"))
         m = NUMBER_RE.match(line)
         if m and _is_heading_text(m.group("rest")):  # "3. MAINTENANCE" -> heading only
             flush()

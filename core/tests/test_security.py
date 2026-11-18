@@ -41,3 +41,22 @@ def test_many_tiny_fragments_segment_in_linear_time():
     start = time.perf_counter()
     segment_clauses("word\n\n" * 100_000)
     assert time.perf_counter() - start < 2.0
+
+
+def test_pdf_style_bond_without_blank_lines_splits_into_clauses():
+    """PDF text has single newlines between paragraphs; recital words and short last lines must still split clauses."""
+    bond = "\n".join([
+        "DRAFT OF EMPLOYEE BOND FOR NON-COMPETE",
+        "By this Bond Mr. A residing at ... binds himself to pay to Mr. B the sum of Rs... as liquidated damages.",
+        "WHEREAS A is a qualified chemist employed by B in his factory manufacturing some goods viz. and in the",
+        "course of employment Mr. B may come to know the secret adopted by B in the manufacture of such products.",
+        "AND WHEREAS as per the terms of employment A has promised to B not to misuse his position by disclosing",
+        "to any person the knowledge acquired by him in the manufacture of the said products and has agreed to execute this Bond.",
+        "NOW the condition of this bond is that A shall not, after he ceases to be the employee of B, carry on any",
+        "business similar to the business of manufacturing the said products within the city of Delhi for two years.",
+        "In WITNESS, WEREOF the said Mr. A has put his hand this day.",
+    ])
+    clauses = segment_clauses(bond)
+    assert len(clauses) >= 5
+    assert clauses[0]["text"].startswith("By this Bond") and clauses[0]["text"].endswith("liquidated damages.")
+    assert any(c["text"].startswith("NOW the condition") for c in clauses)

@@ -10,8 +10,21 @@ afterEach(() => {
 });
 
 describe("Config", () => {
-  it("needs DATABASE_URL and JWT_SECRET in normal mode", () => {
+  it("starts in offline demo mode when there is no DATABASE_URL outside production, so a fresh clone runs", () => {
+    process.env.NODE_ENV = "development";
     delete process.env.DATABASE_URL;
+    delete process.env.JWT_SECRET;
+    resetConfig();
+    expect(getConfig().OFFLINE_DEMO).toBe(true);
+  });
+
+  it("still needs DATABASE_URL in production, and a JWT_SECRET whenever a database is used", () => {
+    process.env.NODE_ENV = "production";
+    delete process.env.DATABASE_URL;
+    resetConfig();
+    expect(() => getConfig()).toThrow("Invalid environment configuration");
+    process.env.NODE_ENV = "development";
+    process.env.DATABASE_URL = "postgresql://u:p@localhost:5432/db";
     delete process.env.JWT_SECRET;
     resetConfig();
     expect(() => getConfig()).toThrow("Invalid environment configuration");
