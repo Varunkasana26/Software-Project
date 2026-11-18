@@ -115,6 +115,8 @@ export const ClauseScalarFieldEnum = {
   autoScore: 'autoScore',
   lawyerOverride: 'lawyerOverride',
   lawyerOverrideReason: 'lawyerOverrideReason',
+  adviceRequested: 'adviceRequested',
+  adviceRequestedAt: 'adviceRequestedAt',
   overriddenAt: 'overriddenAt',
   overriddenById: 'overriddenById',
   warning: 'warning',

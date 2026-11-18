@@ -5,6 +5,7 @@ import App from "./App";
 import { AuthProvider } from "./components/Auth";
 import "./styles/tokens.css";
 import "./index.css";
+import "./styles/polish.css";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>

@@ -1,0 +1,63 @@
+/* Polish layer: small, GPU-friendly motion on top of the base styles. Loaded last. Everything is off under prefers-reduced-motion. */
+
+html { scroll-behavior: smooth; }
+
+/* Page transition: each page fades and rises in when the route changes (the page element is a new node, so it replays). */
+@keyframes polish-page-in { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+#main > * { animation: polish-page-in .55s var(--ease) both; }
+
+/* Page headings arrive a beat after the page, then the content. */
+@keyframes polish-rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+.page-head h1 { animation: polish-rise .6s var(--ease) .05s both; }
+.page-head .lead { animation: polish-rise .6s var(--ease) .15s both; }
+
+/* Cards lift on hover. */
+.card { transition: transform .25s var(--ease), box-shadow .25s var(--ease), border-color .25s var(--ease); }
+@media (hover: hover) {
+  .card:hover { transform: translateY(-3px); box-shadow: 0 14px 34px -18px rgba(15, 23, 42, .35); }
+  .report-dashboard .card:hover { transform: translateY(-2px); }
+}
+
+/* Document list: rows slide in one after another. */
+@keyframes polish-row-in { from { opacity: 0; transform: translateX(-14px); } to { opacity: 1; transform: none; } }
+.document-list > .document-row { animation: polish-row-in .5s var(--ease) both; }
+.document-list > .document-row:nth-child(1) { animation-delay: .05s; }
+.document-list > .document-row:nth-child(2) { animation-delay: .12s; }
+.document-list > .document-row:nth-child(3) { animation-delay: .19s; }
+.document-list > .document-row:nth-child(4) { animation-delay: .26s; }
+.document-list > .document-row:nth-child(n+5) { animation-delay: .33s; }
+
+/* Buttons: pressed feel and a soft lift. */
+.btn { transition: transform .18s var(--ease), box-shadow .2s var(--ease), background-color .2s, border-color .2s, color .2s; }
+@media (hover: hover) { .btn:not(:disabled):hover { transform: translateY(-1px); } }
+.btn:not(:disabled):active { transform: scale(.97); }
+.btn:disabled { cursor: progress; }
+
+/* Keyboard focus is always clearly visible. */
+:focus-visible { outline: 2px solid var(--accent, #2f4a70); outline-offset: 3px; border-radius: 6px; }
+
+/* AI explanation: button spinner and the answer sliding in. */
+.ai-explain { margin: 10px 0 4px; }
+.ai-explain .btn { display: inline-flex; align-items: center; gap: 8px; }
+.ai-explain .btn[disabled]::before {
+  content: ""; width: 12px; height: 12px; border-radius: 50%;
+  border: 2px solid currentColor; border-right-color: transparent; animation: polish-spin .7s linear infinite;
+}
+@keyframes polish-spin { to { transform: rotate(360deg); } }
+@keyframes polish-reveal { from { opacity: 0; transform: translateY(-6px); max-height: 0; } to { opacity: 1; transform: none; max-height: 400px; } }
+.ai-explain p { margin: 10px 0 0; padding: 10px 12px; border-left: 3px solid var(--accent, #2f4a70); border-radius: 0 8px 8px 0; background: rgba(47, 74, 112, .07); overflow: hidden; animation: polish-reveal .5s var(--ease) both; }
+
+/* High-risk clause: a calm pulse on the left edge so the eye lands there first. */
+@keyframes polish-edge { 0%, 100% { box-shadow: inset 3px 0 0 0 rgba(200, 40, 40, .55); } 50% { box-shadow: inset 3px 0 0 0 rgba(200, 40, 40, 1); } }
+.clause-card.high:not(.top-enter) { animation: polish-edge 2.6s ease-in-out infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  #main > *, .page-head h1, .page-head .lead, .document-list > .document-row, .ai-explain p, .clause-card.high:not(.top-enter), .ai-explain .btn[disabled]::before { animation: none !important; }
+  .card, .btn { transition: none; }
+  .card:hover, .btn:hover, .btn:active { transform: none; }
+}
+
+.clause-actions { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 10px 14px; }
+.clause-actions .ai-explain { flex: 1 1 100%; order: 2; }
+.advice { margin: 10px 0 4px; }

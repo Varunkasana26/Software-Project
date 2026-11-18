@@ -77,6 +77,8 @@ model Clause {
   autoScore            Float           @default(0)
   lawyerOverride       Float?
   lawyerOverrideReason String?         @db.Text
+  adviceRequested      Boolean         @default(false)
+  adviceRequestedAt    DateTime?
   overriddenAt         DateTime?
   overriddenById       String?
   warning              String?

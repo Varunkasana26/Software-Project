@@ -56,6 +56,7 @@ export function uploadDocument(file: File, party: string, onProgress: (percent: 
   return new Promise((resolve,reject)=>{const form=new FormData();form.append("file",file);form.append("party",party);const xhr=new XMLHttpRequest();xhr.open("POST",`${BASE}/api/documents`);xhr.withCredentials=true;xhr.upload.onprogress=e=>{if(e.lengthComputable)onProgress(Math.round(e.loaded/e.total*100));};xhr.onerror=()=>reject(new ApiError("Network error while uploading. Check your connection and retry.",0,"NETWORK"));xhr.onload=()=>{const body=JSON.parse(xhr.responseText||"{}");if(xhr.status>=200&&xhr.status<300)resolve(body);else reject(new ApiError(body.error??`Request failed (${xhr.status})`,xhr.status,body.code));};xhr.send(form);});
 }
 export const explainClause = (docId: string, clauseId: string) => request<{ explanation: string }>(`/api/documents/${docId}/clauses/${clauseId}/explain`, { method: "POST" });
+export const requestAdvice = (docId: string, clauseId: string) => request<{ advice_requested: boolean }>(`/api/documents/${docId}/clauses/${clauseId}/request-advice`, { method: "POST" });
 export const processDocument = (id: string) => request<{ document: DocumentInfo }>(`/api/documents/${id}/process`, { method: "POST" });
 export const getDocument = (id: string) => request<DocumentInfo>(`/api/documents/${id}`);
 export const listDocuments = (page: number) => request<{ data: DocumentInfo[]; total: number; page: number; totalPages: number }>(`/api/documents?page=${page}&limit=20`);
@@ -75,6 +76,7 @@ export interface ClauseView {
   autoScore: number;
   override: { score: number; reason: string } | null;
   explanation: string;
+  adviceRequested: boolean;
   warning: string | null;
 }
 export interface ItemView { clauseIndex: number; text: string; ruleId: string | null; score: number; label: Label }
@@ -98,7 +100,7 @@ function fromContract(r: ContractReport, isDemo: boolean): ReportView {
       id: c.id, index: c.index, heading: c.heading ?? "", text: c.text, category: c.category, label: c.sentiment,
       ruleId: c.rule_id, matchedRuleIds: c.matched_rule_ids ?? (c.rule_id ? [c.rule_id] : []), autoScore: c.score.auto,
       override: c.score.lawyer_override === null ? null : { score: c.score.lawyer_override, reason: c.lawyer_override_reason ?? "" },
-      explanation: c.explanation, warning: c.warning ?? null,
+      explanation: c.explanation, adviceRequested: (c as { advice_requested?: boolean }).advice_requested === true, warning: c.warning ?? null,
     })),
   };
 }

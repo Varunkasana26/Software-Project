@@ -5,7 +5,7 @@ import type { CoreItem } from "./coreClient";
 interface ClauseRow {
   id: string; documentId: string; index: number; heading: string; text: string; category: string; sentiment: string;
   ruleId: string | null; matchedRuleIds: string[]; autoScore: number; lawyerOverride: number | null;
-  lawyerOverrideReason: string | null; overriddenAt: Date | null; warning: string | null; explanation: string;
+  lawyerOverrideReason: string | null; adviceRequested?: boolean; overriddenAt: Date | null; warning: string | null; explanation: string;
 }
 interface DocRow { id: string; fileName: string; fileType: string; fileSize: number; status: string; party: string; failureCode: string | null; createdAt: Date }
 interface ReportRow { id: string; summary: string; topRisks: unknown; obligations: unknown; exitConditions: unknown; warnings: string[] }
@@ -28,17 +28,18 @@ export function clauseView(c: ClauseRow) {
     matched_rule_ids: c.matchedRuleIds,
     score: { auto: c.autoScore, lawyer_override: c.lawyerOverride },
     lawyer_override_reason: c.lawyerOverrideReason,
+    advice_requested: c.adviceRequested === true,
     overridden_at: c.overriddenAt ? c.overriddenAt.toISOString() : null,
     warning: c.warning,
     explanation: c.explanation,
   };
 }
 
-export function reportView(doc: DocRow, report: ReportRow, clauses: ClauseRow[]) {
+export function reportView(doc: DocRow, report: ReportRow, clauses: ClauseRow[], only?: Set<number>) {
   // The stored report items keep the automatic score. Show a lawyer's override where there is one.
   const override = new Map(clauses.filter((c) => c.lawyerOverride !== null).map((c) => [c.index, c.lawyerOverride as number]));
   const show = (items: unknown): CoreItem[] =>
-    (items as CoreItem[]).map((i) => (override.has(i.clause_index) ? { ...i, score: override.get(i.clause_index) as number } : i));
+    (items as CoreItem[]).filter((i) => !only || only.has(i.clause_index)).map((i) => (override.has(i.clause_index) ? { ...i, score: override.get(i.clause_index) as number } : i));
   return {
     id: report.id,
     document_id: doc.id,

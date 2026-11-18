@@ -21,6 +21,8 @@ export async function getAccessibleDocument(id: string, user: AuthUser, opts: { 
   const isOwner = doc?.ownerId === user.id;
   const mayRead = isOwner || user.role === Role.LAWYER;
   if (!doc || !(opts.write ? isOwner : mayRead)) throw new NotFoundError("Document");
+  // A lawyer sees a document only when its owner asked for advice on at least one clause.
+  if (!isOwner && !(await prisma.clause.count({ where: { documentId: id, adviceRequested: true } }))) throw new NotFoundError("Document");
   return doc;
 }
 
@@ -32,7 +34,12 @@ export async function createDocument(user: AuthUser, file: { originalname: strin
 }
 
 export async function listDocuments(user: AuthUser, page: number, limit: number, status?: DocumentStatus) {
-  const where = { ...(user.role === Role.LAWYER ? {} : { ownerId: user.id }), ...(status ? { status } : {}) };
+  let advice: { OR: { id: string }[] } | Record<string, never> = {};
+  if (user.role === Role.LAWYER) {
+    const asked = (await prisma.clause.findMany({ where: { adviceRequested: true } })) as { documentId: string }[];
+    advice = { OR: [...new Set(asked.map((c) => c.documentId))].map((id) => ({ id })) }; // only documents with a requested clause
+  }
+  const where = { ...(user.role === Role.LAWYER ? advice : { ownerId: user.id }), ...(status ? { status } : {}) };
   const [rows, total] = await Promise.all([
     prisma.document.findMany({ where, orderBy: { createdAt: "desc" }, skip: (page - 1) * limit, take: limit }),
     prisma.document.count({ where }),
@@ -40,15 +47,28 @@ export async function listDocuments(user: AuthUser, page: number, limit: number,
   return { data: rows.map(documentView), total };
 }
 
-export async function getClauses(doc: DocumentRow) {
+const lawyerView = (doc: DocumentRow, user?: AuthUser) => !!user && user.role === Role.LAWYER && doc.ownerId !== user.id;
+
+export async function getClauses(doc: DocumentRow, user?: AuthUser) {
   const clauses = await prisma.clause.findMany({ where: { documentId: doc.id }, orderBy: { index: "asc" } });
-  return clauses.map(clauseView);
+  return clauses.filter((c: { adviceRequested?: boolean }) => !lawyerView(doc, user) || c.adviceRequested === true).map(clauseView);
 }
 
-export async function getReportView(doc: DocumentRow) {
+/** The owner asks for a lawyer's advice on one clause. Only then does it appear on the lawyer side. */
+export async function requestAdvice(doc: DocumentRow, clauseId: string) {
+  const clause = await prisma.clause.findFirst({ where: { id: clauseId, documentId: doc.id } });
+  if (!clause) throw new NotFoundError("Clause");
+  return clauseView(await prisma.clause.update({ where: { id: clauseId }, data: { adviceRequested: true, adviceRequestedAt: new Date() } }));
+}
+
+export async function getReportView(doc: DocumentRow, user?: AuthUser) {
   const report = await prisma.report.findUnique({ where: { documentId: doc.id } });
   if (!report) throw new AppError(404, "Report not found for this document. Process the document first.", "NO_REPORT");
-  const clauses = await prisma.clause.findMany({ where: { documentId: doc.id } });
+  let clauses = await prisma.clause.findMany({ where: { documentId: doc.id } });
+  if (lawyerView(doc, user)) {
+    clauses = clauses.filter((c: { adviceRequested?: boolean }) => c.adviceRequested === true); // a lawyer sees only the clauses asked about
+    return reportView(doc, report, clauses, new Set(clauses.map((c: { index: number }) => c.index)));
+  }
   return reportView(doc, report, clauses);
 }
 

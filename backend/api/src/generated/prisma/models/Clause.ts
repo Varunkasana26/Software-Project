@@ -50,6 +50,8 @@ export type ClauseMinAggregateOutputType = {
   autoScore: number | null
   lawyerOverride: number | null
   lawyerOverrideReason: string | null
+  adviceRequested: boolean | null
+  adviceRequestedAt: Date | null
   overriddenAt: Date | null
   overriddenById: string | null
   warning: string | null
@@ -69,6 +71,8 @@ export type ClauseMaxAggregateOutputType = {
   autoScore: number | null
   lawyerOverride: number | null
   lawyerOverrideReason: string | null
+  adviceRequested: boolean | null
+  adviceRequestedAt: Date | null
   overriddenAt: Date | null
   overriddenById: string | null
   warning: string | null
@@ -89,6 +93,8 @@ export type ClauseCountAggregateOutputType = {
   autoScore: number
   lawyerOverride: number
   lawyerOverrideReason: number
+  adviceRequested: number
+  adviceRequestedAt: number
   overriddenAt: number
   overriddenById: number
   warning: number
@@ -122,6 +128,8 @@ export type ClauseMinAggregateInputType = {
   autoScore?: true
   lawyerOverride?: true
   lawyerOverrideReason?: true
+  adviceRequested?: true
+  adviceRequestedAt?: true
   overriddenAt?: true
   overriddenById?: true
   warning?: true
@@ -141,6 +149,8 @@ export type ClauseMaxAggregateInputType = {
   autoScore?: true
   lawyerOverride?: true
   lawyerOverrideReason?: true
+  adviceRequested?: true
+  adviceRequestedAt?: true
   overriddenAt?: true
   overriddenById?: true
   warning?: true
@@ -161,6 +171,8 @@ export type ClauseCountAggregateInputType = {
   autoScore?: true
   lawyerOverride?: true
   lawyerOverrideReason?: true
+  adviceRequested?: true
+  adviceRequestedAt?: true
   overriddenAt?: true
   overriddenById?: true
   warning?: true
@@ -268,6 +280,8 @@ export type ClauseGroupByOutputType = {
   autoScore: number
   lawyerOverride: number | null
   lawyerOverrideReason: string | null
+  adviceRequested: boolean
+  adviceRequestedAt: Date | null
   overriddenAt: Date | null
   overriddenById: string | null
   warning: string | null
@@ -311,6 +325,8 @@ export type ClauseWhereInput = {
   autoScore?: Prisma.FloatFilter<"Clause"> | number
   lawyerOverride?: Prisma.FloatNullableFilter<"Clause"> | number | null
   lawyerOverrideReason?: Prisma.StringNullableFilter<"Clause"> | string | null
+  adviceRequested?: Prisma.BoolFilter<"Clause"> | boolean
+  adviceRequestedAt?: Prisma.DateTimeNullableFilter<"Clause"> | Date | string | null
   overriddenAt?: Prisma.DateTimeNullableFilter<"Clause"> | Date | string | null
   overriddenById?: Prisma.StringNullableFilter<"Clause"> | string | null
   warning?: Prisma.StringNullableFilter<"Clause"> | string | null
@@ -332,6 +348,8 @@ export type ClauseOrderByWithRelationInput = {
   autoScore?: Prisma.SortOrder
   lawyerOverride?: Prisma.SortOrderInput | Prisma.SortOrder
   lawyerOverrideReason?: Prisma.SortOrderInput | Prisma.SortOrder
+  adviceRequested?: Prisma.SortOrder
+  adviceRequestedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   overriddenAt?: Prisma.SortOrderInput | Prisma.SortOrder
   overriddenById?: Prisma.SortOrderInput | Prisma.SortOrder
   warning?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -356,6 +374,8 @@ export type ClauseWhereUniqueInput = Prisma.AtLeast<{
   autoScore?: Prisma.FloatFilter<"Clause"> | number
   lawyerOverride?: Prisma.FloatNullableFilter<"Clause"> | number | null
   lawyerOverrideReason?: Prisma.StringNullableFilter<"Clause"> | string | null
+  adviceRequested?: Prisma.BoolFilter<"Clause"> | boolean
+  adviceRequestedAt?: Prisma.DateTimeNullableFilter<"Clause"> | Date | string | null
   overriddenAt?: Prisma.DateTimeNullableFilter<"Clause"> | Date | string | null
   overriddenById?: Prisma.StringNullableFilter<"Clause"> | string | null
   warning?: Prisma.StringNullableFilter<"Clause"> | string | null
@@ -377,6 +397,8 @@ export type ClauseOrderByWithAggregationInput = {
   autoScore?: Prisma.SortOrder
   lawyerOverride?: Prisma.SortOrderInput | Prisma.SortOrder
   lawyerOverrideReason?: Prisma.SortOrderInput | Prisma.SortOrder
+  adviceRequested?: Prisma.SortOrder
+  adviceRequestedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   overriddenAt?: Prisma.SortOrderInput | Prisma.SortOrder
   overriddenById?: Prisma.SortOrderInput | Prisma.SortOrder
   warning?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -405,6 +427,8 @@ export type ClauseScalarWhereWithAggregatesInput = {
   autoScore?: Prisma.FloatWithAggregatesFilter<"Clause"> | number
   lawyerOverride?: Prisma.FloatNullableWithAggregatesFilter<"Clause"> | number | null
   lawyerOverrideReason?: Prisma.StringNullableWithAggregatesFilter<"Clause"> | string | null
+  adviceRequested?: Prisma.BoolWithAggregatesFilter<"Clause"> | boolean
+  adviceRequestedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Clause"> | Date | string | null
   overriddenAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Clause"> | Date | string | null
   overriddenById?: Prisma.StringNullableWithAggregatesFilter<"Clause"> | string | null
   warning?: Prisma.StringNullableWithAggregatesFilter<"Clause"> | string | null
@@ -424,6 +448,8 @@ export type ClauseCreateInput = {
   autoScore?: number
   lawyerOverride?: number | null
   lawyerOverrideReason?: string | null
+  adviceRequested?: boolean
+  adviceRequestedAt?: Date | string | null
   overriddenAt?: Date | string | null
   overriddenById?: string | null
   warning?: string | null
@@ -445,6 +471,8 @@ export type ClauseUncheckedCreateInput = {
   autoScore?: number
   lawyerOverride?: number | null
   lawyerOverrideReason?: string | null
+  adviceRequested?: boolean
+  adviceRequestedAt?: Date | string | null
   overriddenAt?: Date | string | null
   overriddenById?: string | null
   warning?: string | null
@@ -464,6 +492,8 @@ export type ClauseUpdateInput = {
   autoScore?: Prisma.FloatFieldUpdateOperationsInput | number
   lawyerOverride?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   lawyerOverrideReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  adviceRequested?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  adviceRequestedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   overriddenAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   overriddenById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   warning?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -485,6 +515,8 @@ export type ClauseUncheckedUpdateInput = {
   autoScore?: Prisma.FloatFieldUpdateOperationsInput | number
   lawyerOverride?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   lawyerOverrideReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  adviceRequested?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  adviceRequestedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   overriddenAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   overriddenById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   warning?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -505,6 +537,8 @@ export type ClauseCreateManyInput = {
   autoScore?: number
   lawyerOverride?: number | null
   lawyerOverrideReason?: string | null
+  adviceRequested?: boolean
+  adviceRequestedAt?: Date | string | null
   overriddenAt?: Date | string | null
   overriddenById?: string | null
   warning?: string | null
@@ -524,6 +558,8 @@ export type ClauseUpdateManyMutationInput = {
   autoScore?: Prisma.FloatFieldUpdateOperationsInput | number
   lawyerOverride?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   lawyerOverrideReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  adviceRequested?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  adviceRequestedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   overriddenAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   overriddenById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   warning?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -544,6 +580,8 @@ export type ClauseUncheckedUpdateManyInput = {
   autoScore?: Prisma.FloatFieldUpdateOperationsInput | number
   lawyerOverride?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   lawyerOverrideReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  adviceRequested?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  adviceRequestedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   overriddenAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   overriddenById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   warning?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -582,6 +620,8 @@ export type ClauseCountOrderByAggregateInput = {
   autoScore?: Prisma.SortOrder
   lawyerOverride?: Prisma.SortOrder
   lawyerOverrideReason?: Prisma.SortOrder
+  adviceRequested?: Prisma.SortOrder
+  adviceRequestedAt?: Prisma.SortOrder
   overriddenAt?: Prisma.SortOrder
   overriddenById?: Prisma.SortOrder
   warning?: Prisma.SortOrder
@@ -607,6 +647,8 @@ export type ClauseMaxOrderByAggregateInput = {
   autoScore?: Prisma.SortOrder
   lawyerOverride?: Prisma.SortOrder
   lawyerOverrideReason?: Prisma.SortOrder
+  adviceRequested?: Prisma.SortOrder
+  adviceRequestedAt?: Prisma.SortOrder
   overriddenAt?: Prisma.SortOrder
   overriddenById?: Prisma.SortOrder
   warning?: Prisma.SortOrder
@@ -626,6 +668,8 @@ export type ClauseMinOrderByAggregateInput = {
   autoScore?: Prisma.SortOrder
   lawyerOverride?: Prisma.SortOrder
   lawyerOverrideReason?: Prisma.SortOrder
+  adviceRequested?: Prisma.SortOrder
+  adviceRequestedAt?: Prisma.SortOrder
   overriddenAt?: Prisma.SortOrder
   overriddenById?: Prisma.SortOrder
   warning?: Prisma.SortOrder
@@ -714,6 +758,10 @@ export type NullableFloatFieldUpdateOperationsInput = {
   divide?: number
 }
 
+export type BoolFieldUpdateOperationsInput = {
+  set?: boolean
+}
+
 export type NullableDateTimeFieldUpdateOperationsInput = {
   set?: Date | string | null
 }
@@ -730,6 +778,8 @@ export type ClauseCreateWithoutDocumentInput = {
   autoScore?: number
   lawyerOverride?: number | null
   lawyerOverrideReason?: string | null
+  adviceRequested?: boolean
+  adviceRequestedAt?: Date | string | null
   overriddenAt?: Date | string | null
   overriddenById?: string | null
   warning?: string | null
@@ -749,6 +799,8 @@ export type ClauseUncheckedCreateWithoutDocumentInput = {
   autoScore?: number
   lawyerOverride?: number | null
   lawyerOverrideReason?: string | null
+  adviceRequested?: boolean
+  adviceRequestedAt?: Date | string | null
   overriddenAt?: Date | string | null
   overriddenById?: string | null
   warning?: string | null
@@ -798,6 +850,8 @@ export type ClauseScalarWhereInput = {
   autoScore?: Prisma.FloatFilter<"Clause"> | number
   lawyerOverride?: Prisma.FloatNullableFilter<"Clause"> | number | null
   lawyerOverrideReason?: Prisma.StringNullableFilter<"Clause"> | string | null
+  adviceRequested?: Prisma.BoolFilter<"Clause"> | boolean
+  adviceRequestedAt?: Prisma.DateTimeNullableFilter<"Clause"> | Date | string | null
   overriddenAt?: Prisma.DateTimeNullableFilter<"Clause"> | Date | string | null
   overriddenById?: Prisma.StringNullableFilter<"Clause"> | string | null
   warning?: Prisma.StringNullableFilter<"Clause"> | string | null
@@ -817,6 +871,8 @@ export type ClauseCreateManyDocumentInput = {
   autoScore?: number
   lawyerOverride?: number | null
   lawyerOverrideReason?: string | null
+  adviceRequested?: boolean
+  adviceRequestedAt?: Date | string | null
   overriddenAt?: Date | string | null
   overriddenById?: string | null
   warning?: string | null
@@ -836,6 +892,8 @@ export type ClauseUpdateWithoutDocumentInput = {
   autoScore?: Prisma.FloatFieldUpdateOperationsInput | number
   lawyerOverride?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   lawyerOverrideReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  adviceRequested?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  adviceRequestedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   overriddenAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   overriddenById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   warning?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -855,6 +913,8 @@ export type ClauseUncheckedUpdateWithoutDocumentInput = {
   autoScore?: Prisma.FloatFieldUpdateOperationsInput | number
   lawyerOverride?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   lawyerOverrideReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  adviceRequested?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  adviceRequestedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   overriddenAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   overriddenById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   warning?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -874,6 +934,8 @@ export type ClauseUncheckedUpdateManyWithoutDocumentInput = {
   autoScore?: Prisma.FloatFieldUpdateOperationsInput | number
   lawyerOverride?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   lawyerOverrideReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  adviceRequested?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  adviceRequestedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   overriddenAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   overriddenById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   warning?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -896,6 +958,8 @@ export type ClauseSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   autoScore?: boolean
   lawyerOverride?: boolean
   lawyerOverrideReason?: boolean
+  adviceRequested?: boolean
+  adviceRequestedAt?: boolean
   overriddenAt?: boolean
   overriddenById?: boolean
   warning?: boolean
@@ -917,6 +981,8 @@ export type ClauseSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extens
   autoScore?: boolean
   lawyerOverride?: boolean
   lawyerOverrideReason?: boolean
+  adviceRequested?: boolean
+  adviceRequestedAt?: boolean
   overriddenAt?: boolean
   overriddenById?: boolean
   warning?: boolean
@@ -938,6 +1004,8 @@ export type ClauseSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extens
   autoScore?: boolean
   lawyerOverride?: boolean
   lawyerOverrideReason?: boolean
+  adviceRequested?: boolean
+  adviceRequestedAt?: boolean
   overriddenAt?: boolean
   overriddenById?: boolean
   warning?: boolean
@@ -959,6 +1027,8 @@ export type ClauseSelectScalar = {
   autoScore?: boolean
   lawyerOverride?: boolean
   lawyerOverrideReason?: boolean
+  adviceRequested?: boolean
+  adviceRequestedAt?: boolean
   overriddenAt?: boolean
   overriddenById?: boolean
   warning?: boolean
@@ -966,7 +1036,7 @@ export type ClauseSelectScalar = {
   createdAt?: boolean
 }
 
-export type ClauseOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "documentId" | "index" | "heading" | "text" | "category" | "sentiment" | "ruleId" | "matchedRuleIds" | "autoScore" | "lawyerOverride" | "lawyerOverrideReason" | "overriddenAt" | "overriddenById" | "warning" | "explanation" | "createdAt", ExtArgs["result"]["clause"]>
+export type ClauseOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "documentId" | "index" | "heading" | "text" | "category" | "sentiment" | "ruleId" | "matchedRuleIds" | "autoScore" | "lawyerOverride" | "lawyerOverrideReason" | "adviceRequested" | "adviceRequestedAt" | "overriddenAt" | "overriddenById" | "warning" | "explanation" | "createdAt", ExtArgs["result"]["clause"]>
 export type ClauseInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   document?: boolean | Prisma.DocumentDefaultArgs<ExtArgs>
 }
@@ -995,6 +1065,8 @@ export type $ClausePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
     autoScore: number
     lawyerOverride: number | null
     lawyerOverrideReason: string | null
+    adviceRequested: boolean
+    adviceRequestedAt: Date | null
     overriddenAt: Date | null
     overriddenById: string | null
     warning: string | null
@@ -1436,6 +1508,8 @@ export interface ClauseFieldRefs {
   readonly autoScore: Prisma.FieldRef<"Clause", 'Float'>
   readonly lawyerOverride: Prisma.FieldRef<"Clause", 'Float'>
   readonly lawyerOverrideReason: Prisma.FieldRef<"Clause", 'String'>
+  readonly adviceRequested: Prisma.FieldRef<"Clause", 'Boolean'>
+  readonly adviceRequestedAt: Prisma.FieldRef<"Clause", 'DateTime'>
   readonly overriddenAt: Prisma.FieldRef<"Clause", 'DateTime'>
   readonly overriddenById: Prisma.FieldRef<"Clause", 'String'>
   readonly warning: Prisma.FieldRef<"Clause", 'String'>
